@@ -7,12 +7,14 @@
 #                               [--order <f>] [--review <f>] [--reason <text>]
 #   reply-lines.sh repositories --door <f> [--claim <f>] [--release <f>] [--yield <f>] [--order <f>]
 #   reply-lines.sh landing      --door <f> --land <f> [--check <f>]
+#   reply-lines.sh elsewhere    --door <f> [--build <worktree>] <finding file> <behaviour> [<finding file> <behaviour>]...
 #
 # Each <f> is one state script's saved key=value output, read in a key space of its own, the last
 # occurrence of a key winning: --door ticket-door.sh, --state final-state.sh, --claim
 # `final-claim.sh claim`, --release `final-claim.sh release`, --yield `final-claim.sh yield`,
 # --order landing-order.sh (the run's last read), --land land-spec.sh's one line, --check
-# completion-check.sh. --review holds the Integration line and the
+# completion-check.sh. A finding file is spec-finding.sh's output, its behaviour the argument the
+# session gave it. --review holds the Integration line and the
 # Review return as the session wrote them, copied as they stand.
 #
 # The same files and arguments print the same lines.
@@ -22,7 +24,7 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: reply-lines.sh final|repositories|landing --door <f> [--state <f>] [--claim <f>] [--release <f>] [--yield <f>] [--order <f>] [--review <f>] [--reason <text>]" >&2
+  echo "usage: reply-lines.sh final|repositories|landing|elsewhere --door <f> [--state <f>] [--claim <f>] [--release <f>] [--yield <f>] [--order <f>] [--review <f>] [--reason <text>]" >&2
   exit 2
 }
 
@@ -310,6 +312,40 @@ cmd_final() {
   esac
 }
 
+cmd_elsewhere() { # $@ finding file and behaviour pairs: the whole stop message after its first line
+  local i=0 spec home number status relative repository repositories=() written pairs=("$@")
+  while [ "$#" -ge 2 ]; do
+    i=$((i + 1))
+    [ -f "$1" ] && [ -r "$1" ] || usage
+    read_source "finding$i" "$1"
+    if [ "$i" = 1 ]; then
+      value_of spec finding1 spec
+      value_of home finding1 home
+    fi
+    shift 2
+  done
+  number="$(ticket_number)" || {
+    echo "$number"
+    exit 3
+  }
+  value_of status door status
+  relative="${spec#"$home"/}"
+  set -- "${pairs[@]}"
+  i=0
+  while [ "$#" -ge 2 ]; do
+    i=$((i + 1))
+    value_of repository "finding$i" repository
+    repositories+=("$repository")
+    written="$repository added to its repositories list, and one line naming the behaviour as moved by the run on Ticket $number."
+    echo "Stopped at the Plan, before anything was built: \"$2\" has no place in this repository. It belongs to $repository."
+    echo "Written into the Spec ($relative): $written"
+    shift 2
+  done
+  echo "Ticket $number still reads $status."
+  echo "Yours: outward: cut the moved behaviour for $(joined "${repositories[@]}") with the command below, then run /do on this Ticket again"
+  echo "/tickets $relative"
+}
+
 parse_flags() { # $1 the flags a file names, $2 the flags a text names, $3.. the arguments
   local files="$1" texts="$2" flag name
   shift 2
@@ -349,6 +385,19 @@ case "$sub" in
     parse_flags "door claim release yield order" "" "$@"
     [ -n "${given[door]-}" ] || usage
     cmd_repositories
+    ;;
+  elsewhere)
+    flags=()
+    while [ "$#" -gt 0 ] && [[ "$1" == --* ]]; do
+      [ "$#" -ge 2 ] || usage
+      flags+=("$1" "$2")
+      shift 2
+    done
+    parse_flags "door" "build" "${flags[@]}"
+    [ -n "${given[door]-}" ] || usage
+    [ -z "${given[build]-}" ] || [ -d "${given[build]}" ] || usage
+    [ "$#" -ge 2 ] && [ "$(($# % 2))" = 0 ] || usage
+    cmd_elsewhere "$@"
     ;;
   *) usage ;;
 esac

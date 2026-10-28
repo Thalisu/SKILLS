@@ -496,4 +496,35 @@ EOF
 run_in "$main_checkout" landing --door "$home_door" --land "$land" --check "$check_none"
 check_absent "landing with nothing open on a check that did not read complete prints no Open line" 0 "$rc" "Open:"
 
+plan_door="$(
+  src plan_door <<'EOF'
+ticket=/home/dev/app/.scratch/feature/issues/03-export.md
+root=/home/dev/app
+status=ready-for-agent
+spec_branch=spec/feature
+build_repository=none
+verdict=ready
+EOF
+)"
+finding_added="$(
+  src finding_added <<'EOF'
+spec=/home/dev/app/.scratch/feature/spec.md
+repository=orders-service
+listed=no
+list=added
+line=written
+home=/home/dev/app
+home_name=app
+here=yes
+EOF
+)"
+run elsewhere --door "$plan_door" "$finding_added" "show the hold"
+check_lines "elsewhere on a finding that added the repository: exit 0" 0 "$rc"
+same "elsewhere prints the Plan-step stop: the behaviour and repository, what was written, the status, the Yours line and /tickets relative to the Home repository" \
+  "Stopped at the Plan, before anything was built: \"show the hold\" has no place in this repository. It belongs to orders-service.
+Written into the Spec (.scratch/feature/spec.md): orders-service added to its repositories list, and one line naming the behaviour as moved by the run on Ticket 03.
+Ticket 03 still reads ready-for-agent.
+Yours: outward: cut the moved behaviour for orders-service with the command below, then run /do on this Ticket again
+/tickets .scratch/feature/spec.md"
+
 exit "$((fails > 0))"
