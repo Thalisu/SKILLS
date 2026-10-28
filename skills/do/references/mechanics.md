@@ -667,10 +667,8 @@ first Final integration in four places:
   tree and no Review there, so every step below is that repository's first, run on its own
   project's facts, and no ref of another repository moves. On `route=out-of-order` the run stops
   before the `claim` call: no claim file under this repository's key, no tree for its Spec
-  branch, no ref moved here or there. Its message names the repository that has to land first, off the record's
-  `next_landing=` line, then that repository as the place to open a session in, and ends on its
-  `/do` command, in the three lines the stopped Final integration of [ticket.md](ticket.md)
-  words.
+  here or there. Its message is the lines `reply-lines.sh` prints from the record, as the stopped
+  Final integration of [ticket.md](ticket.md) says.
 - **The claim is a takeover.** The same `claim` call takes over a claim that was yielded and
   prints `takeover=yes` with the holder it replaced; of two resumes at once exactly one reads
   `claimed`. A claim nobody yielded reads `claim=taken`: the run stops in one line, writes nothing,
