@@ -77,4 +77,15 @@ check_lines "a target that moved after the in-run Resume's no-op integration sto
   "reason=target moved, spec/feature is at 89abcde and the branch is not on it" "route=blocked"
 absent_prefix "a run stopped on a tip it already met makes no further fix call" "fix="
 
+# A reason naming Findings leaves those Findings open, and the developer reads from one line which
+# ones, and the two ways to close them: fix them in the worktree, or overrule them in the Review,
+# then request the run again. The Findings are named wherever the reason names them.
+open_direction="Yours: direction: Finding 2, 5 stays open in /repo/.scratch/feature/issues/07-ticket.review.md: fix it in /repo/.claude/worktrees/do-ticket and run do on /repo/.scratch/feature/issues/07-ticket.md again, or overrule it by editing /repo/.scratch/feature/issues/07-ticket.review.md and running do on /repo/.scratch/feature/issues/07-ticket.md again"
+for reason in "Finding 2, 5 not fixed or not verified" \
+  "gate fixer did not return, Diff tests; Finding 2, 5 not fixed or not verified"; do
+  route "landing=not landed: $reason" "last=fix"
+  check_lines "a reason naming Findings ($reason) stops the run with the Findings and the way to close them" 4 "$rc" \
+    "reason=$reason" "direction=findings" "findings=2, 5" "yours=$open_direction" "route=blocked"
+done
+
 exit $((fails > 0))

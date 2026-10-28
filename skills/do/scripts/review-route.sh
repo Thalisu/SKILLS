@@ -21,8 +21,11 @@
 #   target moved noop              resume        blocked
 #   any other    any               any           blocked
 #
-# On blocked it prints direction=reason before route: the session words the direction from the
-# quoted reason.
+# On blocked it prints, before route, direction, first match wins:
+#
+#   findings  the reason names `Finding <n>[, <n>]... not fixed or not verified` anywhere in it:
+#             findings=<n>[, <n>]... and yours=, the developer's two ways to close them
+#   reason    anything else: no yours= line, the session words the direction from the quoted reason
 #
 # Exit codes: 0 verify · 1 fix · 3 resume · 4 blocked · 2 usage: a missing required key, an unknown or repeated key, an integration=
 # or last= word outside its union, or a landing= line of neither form.
@@ -88,6 +91,13 @@ case "$reason" in
     ;;
 esac
 
-echo "direction=reason"
+if [[ "$reason" =~ Finding\ ([0-9]+(,\ [0-9]+)*)\ not\ fixed\ or\ not\ verified ]]; then
+  findings="${BASH_REMATCH[1]}"
+  echo "direction=findings"
+  echo "findings=$findings"
+  echo "yours=Yours: direction: Finding $findings stays open in ${in[review]}: fix it in ${in[worktree]} and run do on ${in[rerun]} again, or overrule it by editing ${in[review]} and running do on ${in[rerun]} again"
+else
+  echo "direction=reason"
+fi
 echo "route=blocked"
 exit 4
