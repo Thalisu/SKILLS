@@ -98,4 +98,50 @@ run final --door "$door" --claim "$failed_claim" --release "$release" --review "
 check_lines "final refuses a claim that failed: exit 3" 3 "$rc"
 same "final refuses a claim that failed with one failed line naming it and no Reply line" "failed --claim failed"
 
+resume_door="$(
+  src resume_door <<'EOF'
+ticket=/home/dev/app/.scratch/feature/issues/03-export.md
+root=/home/dev/app
+status=resolved
+spec_branch=spec/feature
+build_repository=none
+verdict=resume-final
+EOF
+)"
+state="$(
+  src state <<'EOF'
+spec_branch=spec/feature
+stop=review
+verdict=land
+EOF
+)"
+takeover_claim="$(
+  src takeover_claim <<'EOF'
+claim=claimed
+spec_branch=spec/feature
+takeover=yes
+previous_ticket=/home/dev/app/.scratch/feature/issues/02-import.md
+previous_claimed_at=2026-10-27T09:00:00Z
+yielded_at=2026-10-27T10:00:00Z
+EOF
+)"
+run final --door "$resume_door" --state "$state" --claim "$takeover_claim" --release "$release" --review "$review" --order "$order"
+same "final on a resumed run opens with the state's verdict, its stop and the holder it took over from" \
+  "Final integration: resumed from land, stop review, taken over from /home/dev/app/.scratch/feature/issues/02-import.md yielded at 2026-10-27T10:00:00Z
+Open: none
+Integration: rebased spec/feature onto main, 3 commits, no conflict
+Review: landed on main at 1a2b3c4, 0 Act on Findings
+spec/feature removed"
+
+bare_state="$(
+  src bare_state <<'EOF'
+spec_branch=spec/feature
+verdict=integration
+EOF
+)"
+run final --door "$resume_door" --state "$bare_state" --claim "$claim" --release "$release" --review "$review" --order "$order"
+check_lines "final on a resumed run with no stop and no takeover opens with the state's verdict alone" 0 "$rc" \
+  "Final integration: resumed from integration"
+check_absent "final on a resumed run with no stop and no takeover names neither" 0 "$rc" ", stop " "taken over from"
+
 exit "$((fails > 0))"

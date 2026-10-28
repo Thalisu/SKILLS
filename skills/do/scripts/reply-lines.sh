@@ -47,9 +47,9 @@ v() { # $1 flag, $2 key: the last value, empty when the key is absent
   printf '%s' "${kv[$key]-}"
 }
 
-value_of() { # $1 flag, $2 key: the last value, or the missing-key refusal
-  has "$1" "$2" || failed "--$1 $2 missing"
-  v "$1" "$2"
+value_of() { # $1 the variable to set, $2 flag, $3 key: its last value, or the missing-key refusal
+  has "$2" "$3" || failed "--$2 $3 missing"
+  printf -v "$1" '%s' "$(v "$2" "$3")"
 }
 
 select_shape() { # the sources present -> one FinalShape word, or failed no-shape
@@ -64,23 +64,36 @@ select_shape() { # the sources present -> one FinalShape word, or failed no-shap
   failed no-shape
 }
 
+resume_line() { # the opener of a resumed Final integration
+  local verdict line previous yielded
+  value_of verdict state verdict
+  line="Final integration: resumed from $verdict"
+  if has state stop; then line="$line, stop $(v state stop)"; fi
+  if [ "$(v claim takeover)" = yes ]; then
+    value_of previous claim previous_ticket
+    value_of yielded claim yielded_at
+    line="$line, taken over from $previous yielded at $yielded"
+  fi
+  echo "$line"
+}
+
 cmd_final() {
-  local shape branch
+  local shape branch resumed=no
   shape="$(select_shape)" || {
     echo "$shape"
     exit 3
   }
+  [ "$(v door verdict)" != resume-final ] || resumed=yes
   case "$shape" in
     landed)
       [ -n "${given[review]-}" ] || failed "--review missing"
-      cat "${given[review]}"
-      if [ "$(v release removed)" = yes ]; then
-        branch="$(value_of release spec_branch)" || {
-          echo "$branch"
-          exit 3
-        }
-        echo "$branch removed"
+      [ "$(v release removed)" != yes ] || value_of branch release spec_branch
+      if [ "$resumed" = yes ]; then
+        resume_line
+        echo "Open: none"
       fi
+      cat "${given[review]}"
+      [ -z "${branch-}" ] || echo "$branch removed"
       ;;
   esac
 }
