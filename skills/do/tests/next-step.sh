@@ -103,4 +103,13 @@ run outcome=final-stopped yours=yes ticket=.scratch/notes-export/issues/03-expor
 same "a Reply carrying a Yours: line opens its Next step on doing what that line names first, and the command follows" \
   "$(printf '%s\n' 'First do what the Yours: line names, then:' '/do .scratch/notes-export/issues/03-export-job.md' 'exit 0')"
 
+blocker=/home/dev/notes/.scratch/notes-export/issues/02-export-job.md
+run outcome=blocked yours=yes verdict=blocked "next_blocker=$blocker" status=ready-for-agent
+same "a ticket run refused on a blocker built here ends on /do of the blocker's absolute location" \
+  "$(printf '%s\n' 'First do what the Yours: line names, then:' "/do $blocker" 'exit 0')"
+
+run outcome=blocked yours=yes verdict=blocked "next_blocker=$blocker" next_blocker_build=notes-web next_blocker_build_location=/home/dev/notes-web
+same "a ticket run refused on a blocker built in another repository names that repository and its location before the command" \
+  "$(printf '%s\n' 'First do what the Yours: line names, then:' 'notes-web: open a session in /home/dev/notes-web' "/do $blocker" 'exit 0')"
+
 exit "$((fails > 0))"

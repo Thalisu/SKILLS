@@ -114,6 +114,14 @@ route() {
       need worktree run_branch
       echo "Nothing landed: the work sits in ${key[worktree]} on ${key[run_branch]}, and the review and the landing are yours to run."
       ;;
+    blocked)
+      need next_blocker
+      if [ -n "${key[next_blocker_build]:-}" ]; then
+        need next_blocker_build_location
+        repository_line "${key[next_blocker_build]}" "${key[next_blocker_build_location]}"
+      fi
+      echo "/do ${key[next_blocker]}"
+      ;;
     claim-taken) echo "Another run is integrating the Spec, and there is nothing to type." ;;
     final-stopped)
       need ticket
