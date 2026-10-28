@@ -777,6 +777,27 @@ LEDGER
 }
 an_unfinished_integration_prints_no_fixed_point
 
+# land-spec.sh prints `moved <tip>` when a sibling Ticket landed first. A tip the worktree does not
+# hold yet is integrated again, the first race lost right after a no-op integration included, so the
+# run never stops for the developer over a race it can win.
+run_moved() { # $1 worktree, $2 land-spec.sh's line: integration.sh moved's output in $out, its exit in $rc
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+  out="$(bash "$integrationsh" moved "$1" "$2" 2>&1)" || rc=$?
+}
+a_moved_tip_the_worktree_never_met_is_integrated_again() {
+  run_held moved-new
+  echo sibling >sibling.txt
+  g add sibling.txt
+  g commit -qm "a sibling Ticket landed"
+  tip="$(g rev-parse main)"
+  run_moved "$wt" "moved $tip"
+  check_lines "a tip the worktree does not hold, right after a no-op integration, is integrated again" 0 "$rc" \
+    "tip=$tip" "verdict=integrate"
+  cd "$repo" || exit 1
+}
+a_moved_tip_the_worktree_never_met_is_integrated_again
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

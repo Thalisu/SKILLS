@@ -5,6 +5,7 @@
 #
 #   integration.sh check <worktree> <target> <ledger>
 #   integration.sh settle <worktree> <target> <ledger>
+#   integration.sh moved <worktree> "<the line land-spec.sh printed>"
 #
 # check: whether the step rebases, brings back an owed reapply, or ticks itself as a no-op. The target
 # is read as the branch refs/heads/<target>, so a tag of the same name never stands in for it.
@@ -19,15 +20,20 @@
 # HEAD>: the commit rebased onto after a replay, the worktree's start commit after a no-op, the
 # target's tip after the developer merged it by hand.
 #
-# Exit codes, check: 0 noop · 1 rebase · 3 reapply; settle: 0 settled · 1 owed · 3 open. Both: 2
-# usage, <worktree> not a work tree, <target> not a branch, or the ledger refused or unreadable
-# (ledger.sh's stderr passed on); check also on a rebase open in <worktree>.
+# moved: the retry on land-spec.sh's `moved <tip>`, read off that line alone, with no count and no
+# state carried between laps. Prints tip=<tip>, then verdict=integrate (the tip is not an ancestor of
+# the worktree's HEAD: integrate onto it and land again).
+#
+# Exit codes, check: 0 noop · 1 rebase · 3 reapply; settle: 0 settled · 1 owed · 3 open; moved: 0
+# integrate. All: 2 usage, <worktree> not a work tree; check and settle: <target> not a branch, or the
+# ledger refused or unreadable (ledger.sh's stderr passed on); check also on a rebase open in
+# <worktree>; moved: a line that is not `moved <40-hex sha>`, or a sha that is no commit.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 
 usage() {
-  echo "usage: integration.sh check|settle <worktree> <target> <ledger>" >&2
+  echo "usage: integration.sh check|settle <worktree> <target> <ledger> | integration.sh moved <worktree> <land-spec line>" >&2
   exit 2
 }
 refused() {
@@ -38,12 +44,24 @@ refused() {
 verb="${1:-}"
 case "$verb" in
   check | settle) [ "$#" = 4 ] || usage ;;
+  moved) [ "$#" = 3 ] || usage ;;
   *) usage ;;
 esac
-worktree="$2" target="$3" ledger="$4"
+worktree="$2"
 
 [ "$(git -C "$worktree" rev-parse --is-inside-work-tree 2>/dev/null)" = true ] ||
   refused "$worktree is not a work tree"
+
+if [ "$verb" = moved ]; then
+  [[ "$3" =~ ^moved\ ([0-9a-f]{40})$ ]] || refused "not a land-spec.sh moved line: $3"
+  tip="${BASH_REMATCH[1]}"
+  git -C "$worktree" cat-file -e "$tip^{commit}" 2>/dev/null || refused "$tip is no commit"
+  echo "tip=$tip"
+  echo "verdict=integrate"
+  exit 0
+fi
+
+target="$3" ledger="$4"
 rebase_open() {
   local d
   for d in rebase-merge rebase-apply; do
