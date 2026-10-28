@@ -504,19 +504,6 @@ out="$flat"
 absent "the /do it names carries no flag before the path" "/do --"
 expect "the /do it names carries no flag after the path" \
   bash -c '! grep -qE "/do <[^>]*> --" <<<"$1"' _ "$flat"
-carries_any "why: a session lists the skills it loaded when it started" \
-  "when it started" "when it starts" "when the session started" "when it was started" "at its start" \
-  "at startup" "at start-up" "on startup" "as it started" "the moment it started" "loaded at start"
-carries_each "so this session cannot list impeccable until it is reloaded" \
-  "impeccable" -- \
-  "until it is reloaded" "until the reload" "until a reload" "until reloaded" "before the reload" \
-  "before it is reloaded" "only after a reload" "only after the reload" "without a reload" \
-  "unless it is reloaded" "until the coding tool is reloaded" "only once it is reloaded" \
-  "only once reloaded"
-carries_any "and waiting in it proves nothing" \
-  "proves nothing" "prove nothing" "proves no step" "can prove nothing" "would prove nothing" \
-  "never proves" "cannot prove" "can never prove" "no use waiting" "nothing to wait for" \
-  "waiting changes nothing" "waiting is no use"
 carries_each "the reload message closes on the /do line in place of the words that hand a step over" \
   "closes on" "closes with" "last line" "final line" "closing line" "ends on" "ends with" \
   "ends its message on" -- \
@@ -608,9 +595,6 @@ carries "it never takes a form that stages everything: git add -A, git commit -a
 carries_any "nor git add ." "git add .\`" "git add . " "git add .,"
 carries_any "those forms are ruled out, not offered" \
   "never" "Never" "not " "no \`git add" "forbidden" "ruled out" "refuse"
-carries_any "since staging everything would commit the developer's stray work" \
-  "stray" "unrelated" "other work" "work in progress" "work in flight" "unfinished work" \
-  "whatever else" "anything else the developer" "everything else in the tree"
 carries_each "the developer runs it, and the run never commits on their branch itself" \
   "developer runs" "developer's to run" "run by the developer" "developer types" \
   "developer who runs" "developer, who runs" "the developer commits" "left to the developer" \
@@ -633,11 +617,8 @@ carries_any "that line is the one read off the committed tree, the setup facts a
   "committed tree" "\`HEAD\`" "HEAD" "committed state" "the commit itself" "what is committed" \
   "what the commit holds" "what the commit carries" "tree of the commit" "the tree at the commit"
 carries_any "the reload step done is needed as well" "reload" "Reload" "step 2" "Step 2"
-carries_each "the lines above it reading done, the files present in the working tree, are not enough" \
-  "working tree" "on disk" "in the checkout" "present" -- \
-  "not enough" "do not suffice" "does not suffice" "never suffice" "no close" "not close" \
-  "never close" "cannot close" "is not sufficient" "are not sufficient" "does not resolve" \
-  "do not resolve" "never resolve" "not yet" "alone prove" "alone does not" "alone do not"
+carries_any "the close waits for that line, and the lines above it reading done do not close it" \
+  "waits for" "only when" "runs only"
 carries_each "with the setup files present but uncommitted the check reads setup-committed=missing" \
   "uncommitted" "not committed" "not yet committed" "before the commit" "without the commit" -- \
   "setup-committed=missing"
@@ -648,17 +629,6 @@ carries_any "and the Ticket stays claimed" \
   "stays \`claimed\`" "stays claimed" "remains \`claimed\`" "remains claimed" "left \`claimed\`" \
   "left claimed" "still reads \`claimed\`" "still reads claimed" "still \`claimed\`" "still claimed" \
   "keeps its claim" "keeps \`claimed\`" "keeps the claim" "claim stays" "claim is kept"
-carries_each "why: the Tickets this one blocks are built in worktrees cut from a commit" \
-  "block" -- \
-  "worktree" -- \
-  "cut from a commit" "cut from the commit" "cut from \`HEAD\`" "cut from HEAD" "cut off a commit" \
-  "from a commit" "from the commit" "off a commit" "off the commit" "from \`HEAD\`" "from HEAD" \
-  "at a commit" "at \`HEAD\`"
-carries_any "which would not carry an uncommitted setup" \
-  "would not carry" "does not carry" "do not carry" "never carry" "never carries" "carries no" \
-  "carry no" "would lack" "would miss" "would not hold" "does not hold" "would not have" \
-  "does not have" "would start without" "start without" "without the setup" "half-finished" \
-  "is not in" "are not in" "never reaches" "never reach" "would not reach" "does not reach"
 
 echo "# setup.md / ## The close: at the end of a walk the Reply shows the six steps done ahead of the check's lines, and says first check only on a first check"
 # The samples carry check lines and a Reply of their own inside fences, so the prose is read with the

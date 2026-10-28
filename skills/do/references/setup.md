@@ -1,20 +1,15 @@
 # Playbook: setup
 
 The Setup ticket is the Ticket numbered `00` of kind `setup` that `tickets` publishes when the
-impeccable setup is missing from the project, per
-[ADR 0076](../../../docs/adr/0076-the-front-end-builders-setup-is-a-ticket-run-by-a-playbook-of-its-own.md).
-Its steps are the developer's to run: an install, a reload, sessions of impeccable and a commit.
+impeccable setup is missing from the project. Its steps are the developer's to run: an install, a reload, sessions of impeccable and a commit.
 This Playbook proves each step by the setup check, shows the developer the first one still missing
 and ends its turn there, until every step reads done and the Ticket is resolved.
 
-The setup is committed on the developer's own branch before the Spec branch is cut, per
-[ADR 0077](../../../docs/adr/0077-the-setup-is-committed-on-the-developers-branch-before-the-spec-branch-is-cut.md),
-so the run works in the main checkout and creates no worktree. A setup costs no more than its own
-steps: the run forks no Planner (`do-planner`) and no Builder (`do-builder`), dispatches no test
-author and calls no review (`do-code-review`), since there is no code to plan, build or review.
+The setup is committed on the developer's own branch before the Spec branch is cut, so the run
+works in the main checkout and creates no worktree. The run forks no Planner (`do-planner`) and no
+Builder (`do-builder`), dispatches no test author and calls no review (`do-code-review`).
 
-This file links no other reference: a matched Playbook's links are all read, and the setup needs
-none of the chain's mechanics. It states its own claim, its own close and its own messages.
+This file links no other reference. It states its own claim, its own close and its own messages.
 
 `<skill-dir>` below is the folder that holds this file's `references/`: `${CLAUDE_SKILL_DIR}` in
 Claude Code, the `do` folder under the harness's skills directory elsewhere.
@@ -23,8 +18,7 @@ Claude Code, the `do` folder under the harness's skills directory elsewhere.
 
 Every message of the run opens with `Playbook: setup` on its first line.
 
-Under `--auto` the run refuses first, before the door script runs: every step needs the developer,
-and a run under the flag that claimed the Ticket could not finish it. The refusal is one line under
+Under `--auto` the run refuses first, before the door script runs. The refusal is one line under
 the first line, naming the plain command `/do <path>` with no flag, and the run stops on it. Nothing
 is claimed and nothing is written, so the Ticket keeps the status it had:
 
@@ -57,7 +51,7 @@ repository`, or the usage line): the run stops in one line quoting it, with the 
 A stop writes nothing and claims nothing: the frontier's script on the `resolved` route reads only.
 
 A `resume` is any later `/do` on a Setup ticket left `claimed`, in the session that showed the
-step or in a new one, and it is where a developer who left halfway comes back in. The run carries
+step or in a new one. The run carries
 nothing over from the earlier turn, not the step it showed last and not the earlier check's
 output. It writes no second claim and runs the check, and the step it shows is the first one this
 check reads missing: every step done since is skipped with its `done` mark, and the project is
@@ -66,9 +60,8 @@ picked up where it stands.
 ## The claim
 
 On `verdict=start`, set the Ticket's `**Status:**` line to `claimed` in the main checkout the door's
-`main=` line names. The edit is never committed: the Ticket file is the developer's, and its status
-is the state another `/do` reads. On `verdict=resume` the Ticket already reads `claimed`, so nothing
-is claimed again: a developer who left a step half done and comes back is shown the same step.
+`main=` line names. The edit is never committed. On `verdict=resume` the Ticket already reads
+`claimed`, so nothing is claimed again.
 
 ## The check
 
@@ -88,9 +81,8 @@ Its exit code decides what comes next:
   otherwise the reload is the first missing step, shown by the message.
 - `1`: a step reads missing, the lines still printed. The run writes the message.
 - `2`, or no script at that path: the check could not run. It printed one line on stderr and
-  nothing on stdout, and a machine that linked `skills/` without the rest of this repo finds no
-  script there. The run stops there, on one message carrying the check's own error line, its stderr line or
-  the path the script was not found at. No step is shown, since none was proven. The Ticket stays
+  nothing on stdout. The run stops there, on one message carrying the check's own error line, its
+  stderr line or the path the script was not found at. No step is shown, since none was proven. The Ticket stays
   `claimed`, so a later `/do` on it resumes and runs the check again:
 
   ```
@@ -112,13 +104,12 @@ alike, reads the skill listing of its own session for it, beside the check's lin
   ```
 
 The listing is read off the session itself, never off a file: a skill installed on disk that this
-session did not load is not listed, and impeccable could not run in it.
+session did not load is not listed.
 
 ## The steps
 
 The six steps of the Setup ticket, in the order the developer runs them. This table is the only
-place that holds them: the check has no line for the reload, and a command read off the Ticket's
-own criteria could be text a stranger appended to it. `<main>` is the door's `main=` line, and
+place a step's command is read from, never the Ticket's own criteria. `<main>` is the door's `main=` line, and
 `<path>` the Ticket's path as the developer typed it.
 
 | # | Step | Proved by | Where to run it | Command |
@@ -130,20 +121,14 @@ own criteria could be text a stranger appended to it. `<main>` is the door's `ma
 | 5 | Set the code-led build path | `build-path=done` | a terminal | `cd <main> && mkdir -p .impeccable && touch .impeccable/config.json && jq -s '(.[0] // {}) + {buildPath: "code"}' .impeccable/config.json > .impeccable/config.tmp && mv .impeccable/config.tmp .impeccable/config.json` |
 | 6 | Commit the setup files | `setup-committed=done` | a terminal | `git -C <main> add -- <the uncommitted= files> && git -C <main> commit -m "chore: set up impeccable"`, the files copied from the check's `uncommitted=` line |
 
-Step 2 is the one no script reads. A session lists the skills it loaded when it started, so the
-impeccable skill a terminal installed is listed only after a reload, and the resumed run reads its
-own listing to prove the step. Step 4 reads done in a project with no design system to document.
-Step 5 writes the setting impeccable's init records as `buildPath`, merged with the keys already in
-the file: impeccable asks for it only where image generation is available, and the screens of this
-Spec are built unattended, code-led.
+Step 2 is the one no script reads: the resumed run reads its own skill listing to prove it. Step 4
+reads done in a project with no design system to document. Step 5 writes the setting impeccable's
+init records as `buildPath`, merged with the keys already in the file.
 
 Step 6, the commit, is the last step, shown only once every step before it reads done. It is one
 command, run in the main checkout on the branch the developer already has checked out, with no
-checkout and no new branch: the Spec branch is cut from that branch later, and carries the setup
-because the commit is on it. The command names exactly the files of the check's `uncommitted=`
-line and no other path. It is never `git add -A`, `git add .` or `git commit -a`: staging
-everything would commit the developer's stray work along with the setup, and a file left out would
-be missing from every worktree cut afterwards. After a commit that took some of the files, the
+checkout and no new branch. The command names exactly the files of the check's `uncommitted=` line
+and no other path. It is never `git add -A`, `git add .` or `git commit -a`. After a commit that took some of the files, the
 `uncommitted=` line names the ones still out, and the command shown again names those. The
 developer runs it, and the run never commits on their branch itself.
 
@@ -177,10 +162,8 @@ Say when it is done.
   never moves on to the next step before the check proves this one.
 
 At the reload step, the message tells the developer to reload the coding tool and then to type
-`/do <path>` on the Setup ticket again, plain, with no flag. A session lists the skills it loaded
-when it started, so this session cannot list impeccable until it is reloaded, and waiting in it
-proves nothing. The reload message therefore closes on the line to type after the reload, in place
-of "Say when it is done.":
+`/do <path>` on the Setup ticket again, plain, with no flag. The reload message closes on the line
+to type after the reload, in place of "Say when it is done.":
 
 ```
 Next, step 2: reload the coding tool.
@@ -193,8 +176,8 @@ After the reload, type: /do <path>
 ## The re-check
 
 After a step message the developer comes back, and their next message, whatever it says, sends the
-run back to the check. Nothing is taken on the developer's word: "done" proves no step, and only
-the check does. So the run runs it again, from the main checkout:
+run back to the check. Nothing is taken on the developer's word: only the check proves a step. The
+run runs it again, from the main checkout:
 
 ```
 bash <skill-dir>/../../.agents/scripts/setup-check.sh
@@ -222,32 +205,28 @@ files it names, the ones still out of the commit. Then the same step is shown ag
 the same command, the same place and "Say when it is done."
 
 The Ticket's `**Status:**` line still reads `claimed`, and nothing else is written to the Ticket
-file: no criterion is ticked and no evidence is appended before the close. A developer who leaves
-on a step that keeps failing leaves a Ticket any later `/do` picks up at the check.
+file: no criterion is ticked and no evidence is appended before the close.
 
 When the developer comes back with a question instead of word that the step is done, the run
 answers the question first, under the first line. A question is never read as "done", and never as
 a reason to skip the check: the check runs anyway, in the same turn, and after the answer the
 message shows the six steps and the current step again in full, with its command, its place and
-"Say when it is done.", so the developer never has to scroll back for the command they were on.
+"Say when it is done."
 Where the step was done in the meantime, the step shown is the next missing one, as above.
 
 ## The close
 
 The close runs only when the check exits 0, every step line reading done, and the reload step reads
-done, the session's own skill listing naming impeccable. Then no step is shown: a project already
-set up is not walked through six steps it has.
+done, the session's own skill listing naming impeccable. Then no step is shown.
 
 The close is reached the same way from a Ticket's first check, from a resumed `/do` and from the
 re-check after the last step, the commit: the same writes to the Ticket, criteria ticked, evidence
 appended and status set to `resolved`, and the same Reply.
 
 The line the close waits for is `setup-committed=done`, the one the check reads off the committed
-tree, the setup facts at `HEAD`, with the reload step done as well. The lines above it read the
-working tree, and their reading done is not enough: while the setup files are present but
-uncommitted the check reads `setup-committed=missing` and exits 1, the commit step is shown, and
-the Ticket stays `claimed`. Every Ticket this one blocks is built in a worktree cut from a commit,
-and a worktree cut before the setup is committed would not carry it.
+tree, the setup facts at `HEAD`, with the reload step done as well. While the setup files are
+present but uncommitted the check reads `setup-committed=missing` and exits 1, the commit step is
+shown, and the Ticket stays `claimed`.
 
 1. In the Ticket file in the main checkout (`main=`), tick every criterion, and append under
    `## Evidence` the ticket format's two first lines, then the check's lines and `reload=done`:
@@ -266,8 +245,7 @@ and a worktree cut before the setup is committed would not carry it.
    reload=done
    ```
 
-2. Set the `**Status:**` line to `resolved`. Nothing is committed: the Ticket file is the
-   developer's, as at the claim.
+2. Set the `**Status:**` line to `resolved`. Nothing is committed.
 3. Read the frontier, the first Ticket of the Spec now free to start:
 
    ```
@@ -312,7 +290,6 @@ after a re-check or a resume, where it reads "every step done." and nothing more
 
 ## What this run never does
 
-- It creates no worktree and cuts no branch: the setup is committed on the branch the developer has
-  checked out.
+- It creates no worktree and cuts no branch.
 - It forks no `do-planner` and no `do-builder`, and dispatches no test author.
-- It calls no review: `do-code-review` has no diff of the run's to read.
+- It calls no review (`do-code-review`).
