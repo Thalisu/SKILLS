@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # global-authors.sh: the contract of the global unit and end-to-end authors do ships for a project
-# with no Testing Policy installed: each agent carries the policy's agent core byte for byte, and
+# with no Testing Policy installed: each agent carries the policy's agent core section by section, and
 # the Project map the run derives with scripts/project-map.sh. Run: bash skills/do/tests/global-authors.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -12,14 +12,18 @@ fails=0
 tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
 
-echo "# the agents carry the policy's core unchanged"
+echo "# the agents carry the policy's core, section by section, between its markers"
+# The global authors keep the template core's rules with the why cut, so their wording departs from
+# AGENT-UNIT.md and AGENT-E2E.md: what holds is the core's markers and its sections, in its order.
 for kind in unit e2e; do
   agent="$skill/agents/global-$kind-test-author.md"
   core="$(bash "$policy/scripts/render-agent.sh" --core-only "$kind")"
-  body="$(cat "$agent")"
-  if [ -n "$core" ] && [[ "$body" == *"$core"* ]]; then
-    ok "global-$kind-test-author carries the $kind core byte for byte"
-  else fail "global-$kind-test-author carries the $kind core byte for byte"; fi
+  want="$(grep -E '^(#{2,3} |<!-- testing-policy:core-)' <<<"$core")"
+  have="$(sed -n '/^<!-- testing-policy:core-start -->$/,/^<!-- testing-policy:core-end -->$/p' "$agent" |
+    grep -E '^(#{2,3} |<!-- testing-policy:core-)')"
+  if [ -n "$want" ] && [ "$have" = "$want" ]; then
+    ok "global-$kind-test-author carries the $kind core's markers and every section heading, in order"
+  else fail "global-$kind-test-author carries the $kind core's markers and every section heading, in order"; fi
 done
 
 echo "# scripts/project-map.sh: only what a command read"
