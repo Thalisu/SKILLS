@@ -16,6 +16,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 mech="$here/../references/mechanics.md"
 forks="$here/../references/forks.md"
 ticket="$here/../references/ticket.md"
+final_stopped="$here/../references/final-stopped.md"
 resume="$here/../references/resume.md"
 bugfix="$here/../references/bug-fix.md"
 refactoring="$here/../references/refactoring.md"
@@ -214,7 +215,10 @@ still_asked_with_the_answer_shown() { # $1 the place, its statement of the disca
 # resume.md and ticket.md route a resume on the script's verdict, one bullet per verdict: every bullet
 # that opens on `verdict=ask` and speaks of the discard states the question, in a Ticket run's resume
 # (resume.md) and in a stopped Final integration's (ticket.md) alike.
-ask_bullets="$({ bullets_opening_on "$resume" "\`verdict=ask\`"; bullets_opening_on "$ticket" "\`verdict=ask\`"; } | grep -i "discard")"
+ask_bullets="$({
+  bullets_opening_on "$resume" "\`verdict=ask\`"
+  bullets_opening_on "$ticket" "\`verdict=ask\`"
+} | grep -i "discard")"
 expect "resume.md and ticket.md state the discard question on verdict=ask for a Ticket run's resume and for a stopped Final integration" \
   test "$(grep -c . <<<"$ask_bullets")" -ge 2
 n=0
@@ -222,6 +226,11 @@ while IFS= read -r flat; do
   n=$((n + 1))
   still_asked_with_the_answer_shown "ticket.md's verdict=ask bullet $n"
 done <<<"$ask_bullets"
+
+# final-stopped.md is what a stopped Final integration's resume reads, and its `verdict=ask` bullet
+# is the one the session asks the discard from there.
+flat="$(bullets_opening_on "$final_stopped" "\`verdict=ask\`" | grep -i "discard" | head -n 1)"
+still_asked_with_the_answer_shown "final-stopped.md's verdict=ask bullet of a stopped Final integration"
 
 # The bullet that words the question in full is the one the session writes it from.
 flat="$(grep -E "per file|uncommitted=" <<<"$ask_bullets" | head -n 1)"
@@ -310,6 +319,9 @@ carries_each "resume.md's moved=ask question names what a continue lands again l
 # session is reading there.
 flat="$(bullets_opening_on "$ticket" "\`verdict=integration\`" | grep -F "(abort / continue)" | head -n 1)"
 still_asked_with_the_answer_shown "ticket.md's verdict=integration bullet of a stopped Final integration" \
+  "$moved_question" "$moved_moment"
+flat="$(bullets_opening_on "$final_stopped" "\`verdict=integration\`" | grep -F "(abort / continue)" | head -n 1)"
+still_asked_with_the_answer_shown "final-stopped.md's verdict=integration bullet of a stopped Final integration" \
   "$moved_question" "$moved_moment"
 
 # mechanics.md: every bullet that names the question, wherever it sits.
