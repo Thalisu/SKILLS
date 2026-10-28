@@ -30,5 +30,6 @@ echo "# skills/do/agents/: a definition do forks carries no reason clause, no AD
 argues_no_rule do-reader.md
 argues_no_rule do-planner.md
 argues_no_rule do-builder.md
+argues_no_rule choice-taker.md
 
 exit $((fails > 0))
