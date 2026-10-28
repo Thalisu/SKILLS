@@ -686,4 +686,19 @@ check_absent "reply.md carries no template and no selection rule for the lines r
   'Repositories: built in <' 'Final integration: not started, <' 'Stopped at the Plan, before anything was built:' \
   'Written into the Spec (<spec>)' 'takeover=yes' 'Every repository of the feature landed'
 
+# The session saves what the state scripts print and hands the files to reply-lines.sh; the landing
+# record stays in the call's own result, which the evals grade, so it is saved through tee.
+ticket_md="$here/../references/ticket.md"
+mechanics_md="$here/../references/mechanics.md"
+out="$(cat "$ticket_md")"
+check "ticket.md's steps print the Reply's lines through reply-lines.sh" 0 0 \
+  'reply-lines.sh landing --door <state>/door --land <state>/land' 'reply-lines.sh final --door <state>/door' \
+  'reply-lines.sh repositories --door <state>/door' 'reply-lines.sh elsewhere --door <state>/door'
+for doc in "$ticket_md" "$mechanics_md"; do
+  out="$(grep -F 'landing-order.sh <the Ticket' "$doc")"
+  expect "${doc##*/} reads the landing record at least once" test -n "$out"
+  out="$(grep -F 'landing-order.sh <the Ticket' "$doc" | grep -vF '| tee <state>/order')"
+  same "${doc##*/} saves every landing record through tee, keeping it in the call's result" ""
+done
+
 exit "$((fails > 0))"

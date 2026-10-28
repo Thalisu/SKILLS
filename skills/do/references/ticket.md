@@ -29,9 +29,13 @@ change and no Spec branch was ever cut, so it finishes on the old flow, nothing 
 ## Door
 
 The argument is a Ticket's path, or an issue reference resolved through the tracker file,
-`docs/agents/issue-tracker.md`. On a local Ticket the door reads its facts from one script,
-`bash <skill-dir>/scripts/ticket-door.sh <the Ticket's path>`, and never from files it opens to
-find out: the Ticket's own path as `ticket=`, `root=` for the Home repository (the root whose
+`docs/agents/issue-tracker.md`. The run keeps the output of each state script the Reply's lines are
+printed from in one folder, `<state>`: the Ticket's path with `.state` in place of `.md`, emptied
+and made again at the door with `rm -rf <state> && mkdir -p <state>`, so no file of an earlier run
+is handed on. Each such call is piped through `tee <state>/<name>`, which keeps its record in the
+call's own result, and the run never edits a saved file. On a local Ticket the door reads its facts
+from one script, `bash <skill-dir>/scripts/ticket-door.sh <the Ticket's path> | tee <state>/door`,
+and never from files it opens to find out: the Ticket's own path as `ticket=`, `root=` for the Home repository (the root whose
 `.scratch/` holds the Ticket's Feature folder: the main checkout, unless the Ticket was named by
 its location in another repository, which is how a session opened in the Ticket's Build repository
 reaches it), the Ticket's `status=`, its `kind=` (`logic`, `front-end` or `setup` as its `**Kind:**`
@@ -522,12 +526,12 @@ of this project's facts and the Review at the `review_file=` path the claim prin
      for the Run report. `takeover=no` means no claim file was there, and the run holds a fresh one.
    - `claim=taken`, exit 1: a claim nobody yielded. Its holder is either still integrating or died
      without yielding, and the script cannot tell which, so the run stops in one line and writes
-     nothing, per ADR 0063. The Reply quotes `holder_ticket=`, `claimed_at=` and `yield_command=`
-     as the script printed them, and carries `Yours: direction:`, per [reply.md](reply.md): wait for that run, or, when
+     nothing, per ADR 0063. The blocker is the line `reply-lines.sh final` prints from `<state>`,
+     the Reply quotes `yield_command=` as the script printed it, and carries `Yours: direction:`, per [reply.md](reply.md): wait for that run, or, when
      it is dead, run the yield command and then the same `/do` again. The run composes no command
      of its own for it and never yields another holder's claim itself.
    - `claim=failed`, exit 3: the run stops as blocked with the `reason=` line quoted.
-3. **Where it stopped.** `bash <skill-dir>/scripts/final-state.sh <the Ticket's path>`, read once,
+3. **Where it stopped.** `bash <skill-dir>/scripts/final-state.sh <the Ticket's path> | tee <state>/state`, read once,
    the Final integration's counterpart of `resume-state.sh`: the paths the claim printed, the
    `token_slug=` the review token is stored under, the claim as it now stands, `worktree=`, and for
    a tree that is there `rebase=`, the `uncommitted=` lines, the stop record of an open rebase in
@@ -565,21 +569,19 @@ of this project's facts and the Review at the `review_file=` path the claim prin
    `landed at <commit>`. A `not landed: target moved` is answered as on a first Final integration,
    by the loop of the review in [mechanics.md](mechanics.md), for as long as the target's tip keeps
    changing. After `claim=released`, when the record of step 1 printed `repositories=` above 1,
-   the same `landing-order.sh` call a second time, as step 9a makes it: the Reply's `Landed:` and
-   `Still to land:` lines, the lines of each repository still to land and its last line are copied
-   from this second read, which counts this repository as landed, and never from the first.
+   the same `landing-order.sh` call a second time, as step 9a makes it, saved over
+   `<state>/order`: the Reply's lines are printed from this second read, which counts this
+   repository as landed, and never from the first.
 
 A resume that stops again yields the claim it holds before its Reply, as every stop of the Final
-integration does, so the next `/do` can take it over. Its Reply says the Final integration stopped
-again and why, and its Next step is the same `/do`. Only a run whose claim printed `takeover=yes`
-stops again: one whose claim printed `takeover=no` entered through this door on a Final integration
-no run had claimed, so its stop is a first stop and its Reply says stopped, per
-[reply.md](reply.md). A resume that finishes ends as the run that
+integration does, so the next `/do` can take it over. Its blocker is the lines step 9a has
+`reply-lines.sh final` print, with `--state <state>/state` added, and its Next step is the same
+`/do`. A resume that finishes ends as the run that
 ships a Spec ends: the Spec branch landed and removed, the claim released, the Reply and the Next
 step of the landed Final integration in [reply.md](reply.md). On a feature of more than one
 repository it reads the landing record after the release, the `landing-order.sh` call of step 9a,
-so its Reply names what landed and what is left, with the command of each repository left in
-landing order. It lands this repository and no other: one that landed before the stop is read by
+and its Reply's lines are printed by the `reply-lines.sh` calls of step 9a, with
+`--state <state>/state` added to `final`. It lands this repository and no other: one that landed before the stop is read by
 that record and never claimed, rebased or reviewed again.
 
 ## Checklist
@@ -876,8 +878,10 @@ and never this conversation, has the moved behaviour to cut from. It is the one 
 stop, made by a script and never by hand, once per `Elsewhere:` item, with the item's own values:
 
 ```sh
-bash <skill-dir>/scripts/spec-finding.sh <the Ticket's path> '<Belongs to>' '<the behaviour>' '<Location>'
+bash <skill-dir>/scripts/spec-finding.sh <the Ticket's path> '<Belongs to>' '<the behaviour>' '<Location>' | tee <state>/finding.<n>
 ```
+
+`<n>` is the item's number among the `Elsewhere:` items, from 1.
 
 Each value goes in single quotes, a single quote inside one written as `'\''`, and never in double
 quotes: a behaviour in the criterion's own words carries backticks, which a shell runs inside
@@ -892,9 +896,8 @@ on the entry's whole name the session never makes by reading the Spec. It adds t
 list lacks it, creating the section with the Home repository's own entry first on a Spec that has
 none, and appends the finding line to the Spec's Implementation Decisions in the form
 [spec-format.md](../../../.agents/formats/spec-format.md) fixes, marked with this Ticket. It prints
-`spec=`, `repository=`, `listed=`, `list=`, `line=`, `home=`, `home_name=` and `here=`, and the run
-records them as printed for the Reply: `list=added`, `list=unchanged` or `list=no-location` says
-whether the list gained an entry, and `line=present` is a finding an earlier run on this Ticket already wrote,
+`spec=`, `repository=`, `listed=`, `list=`, `line=`, `home=`, `home_name=` and `here=`, saved in
+`<state>` for the Reply. `line=present` is a finding an earlier run on this Ticket already wrote,
 which is never written twice. No `choice-taker` is forked, since a finding is no Ruling: nothing is
 chosen between two sides. An exit of 3 prints `failed <reason>` and writes nothing, and the run
 stops on that reason in the finding's place.
@@ -911,14 +914,16 @@ nobody for it, edits no file to hold it, and under `--auto` forks no `choice-tak
 
 The stop is the `outward` Handover class, keyed on the `Elsewhere:` item and never on the session's
 own reading of the tree: the behaviour is a write to a repository this run was not opened in, and
-cutting it into a Ticket there is the developer's command to type. The Reply is the blocked one
-[reply.md](reply.md) fixes for this stop, filled from the item and from the script's lines, with
-its `Yours: outward:` line and `/tickets <spec>` as its last line, which on `list=no-location`
-carries the repository and a place for its location after the Spec. On a Ticket run from its Build
-repository the script printed `here=no`, and that Reply names the Home repository, off `home_name=`
-and `home=`, as the place to open a session in on the line before the command, since `tickets`
-runs where the Feature folder is. The run asks nothing before it:
-under `--auto` the stop is the same lines, with no `choice-taker` forked.
+cutting it into a Ticket there is the developer's command to type. The Reply is the first line,
+then the lines this call printed, copied as they stand, one finding file and its item's
+`Elsewhere:` behaviour per item, in the items' order:
+
+```sh
+bash <skill-dir>/scripts/reply-lines.sh elsewhere --door <state>/door <state>/finding.1 '<the behaviour>' [<state>/finding.2 '<the behaviour>' ...]
+```
+
+On exit 3 the run copies nothing and stops as blocked on the `failed <reason>` line. The run asks
+nothing before it: under `--auto` the stop is the same lines, with no `choice-taker` forked.
 
 The Plan's own `## Map` is
 the subsystem as it stood before the diff and goes no further than the loop: the review is never
@@ -1225,11 +1230,10 @@ Route on the first line:
   repository and location stand where the item's `Elsewhere:`, `Belongs to:` and `Location:`
   stand, `spec-finding.sh` is run once with them and with `--step build` ahead of the Ticket's
   path, so the finding line names the build step it was met at, the stop is the `outward`
-  Handover class, and the Reply is the one [reply.md](reply.md) fixes for that stop, ending on
-  `/tickets <spec>`. What
-  differs is what the build already left, since this stop comes after the claim: the Ticket stays
-  `claimed`, and the worktree, its branch and the commits already on it are kept and named in the
-  Reply, as any blocked build leaves them, for the next `/do` on the Ticket to resume from.
+  Handover class, and the Reply is the lines `reply-lines.sh elsewhere` prints with
+  `--build <the run's worktree>` after `--door <state>/door`, the line's behaviour beside its
+  finding file. The worktree, its branch and the commits already on it are kept, as any blocked
+  build leaves them, for the next `/do` on the Ticket to resume from.
   The reading that tells a move from a change of direction is made here too, on the line's
   behaviour, and a change of direction ends on that section's `/discuss` command with the same
   Ticket, worktree, branch and commits kept and named.
@@ -1302,8 +1306,11 @@ the integration line is recorded for the Run report's Run section.
 **7. Landing, and on a Ticket with no Spec the review.** A Ticket of a Spec calls no review. After
 the green **Gate** and the integration onto the Spec branch, the run lands the branch itself, by
 the landing on the Spec branch in [mechanics.md](mechanics.md):
-`bash <skill-dir>/scripts/land-spec.sh <the main checkout> spec/<feature-slug> do/<slug>`, routed
-on its exit code and never on its prose. The main checkout is the one the worktree was cut from, so
+`bash <skill-dir>/scripts/land-spec.sh <the main checkout> spec/<feature-slug> do/<slug> | tee <state>/land`,
+routed on its exit code and never on its prose. The Spec landing lines are the lines
+`bash <skill-dir>/scripts/reply-lines.sh landing --door <state>/door --land <state>/land --check <state>/check`
+prints once the close of step 9 saved the Completion check, run from the main checkout, without
+`--check` on a run that stopped here, copied as they stand, per item 29 of [reply.md](reply.md). The main checkout is the one the worktree was cut from, so
 a Ticket run from its Build repository lands on that repository's Spec branch, and no ref of the
 Home repository moves.
 
@@ -1322,8 +1329,7 @@ Home repository moves.
   `verdict=blocked`, the tip the integration before it already met, the run stops as blocked with
   land-spec.sh's line quoted.
 - `checked-out <worktree>` (exit 4): a worktree holds the Spec branch, so its ref is not moved. The
-  run stops as blocked: the Reply reads `not landed: spec/<feature-slug> is checked out in
-  <worktree>`, the Ticket stays `claimed`, the run's worktree and its branch stay in place and are
+  run stops as blocked on the landing lines, the Ticket stays `claimed`, the run's worktree and its branch stay in place and are
   named, and the Next step says to switch that checkout off the branch and run `/do <ticket>`
   again, which resumes at the landing as the Resume above says.
 - `failed <reason>` (exit 3): the run stops as blocked with the reason quoted, the Ticket `claimed`
@@ -1371,7 +1377,7 @@ the status line set to `resolved`, the file left uncommitted, or, on a
 Ticket that is an issue, the one question listing every write the yes makes, the held Rulings'
 among them, under its `Yours: outward:` line, a question still asked of the developer under
 `--auto`, with the `choice-taker`'s return shown above it, per [forks.md](forks.md); then the Completion check,
-`bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, run only after the `resolved`
+`bash <skill-dir>/scripts/completion-check.sh <the Ticket's path> | tee <state>/check`, run only after the `resolved`
 write, so the last of two concurrent runs always sees every Ticket resolved, with its `open=` and
 `next=` lines recorded for the message's Next step and the Run report, and with them the `next_build=`, `next_build_location=` and
 `next_location=` lines as printed, when the next Ticket is built in another repository, and its
@@ -1393,7 +1399,7 @@ one is open anywhere the run reads no landing record, claims nothing and integra
 this repository or in any other.
 
 On `verdict=complete` the run reads the landing record before any claim,
-`bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>`: the repositories of the feature in
+`bash <skill-dir>/scripts/landing-order.sh <the Ticket's path> | tee <state>/order`: the repositories of the feature in
 the order they land, a provider before what consumes it, each with the state its own refs give,
 then `own=`, `waits_for=`, the `next_landing` lines and `verdict=`. A feature of one repository
 prints one group. The run composes none of those lines and keeps them for the Reply's Next step
@@ -1412,8 +1418,7 @@ on stdin, and routes on the one `route=` line it prints, choosing no route from 
     with the Spec as its spec source, `spec_upstream` as both its fixed point and its landing
     target, and the `review_file=` path as where its Review goes.
   - On `landed at <commit>`, that worktree removed and
-    `bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path>`, whose `claim=released`
-    line is recorded for the Run report as `spec/<feature-slug> removed`.
+    `bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path> | tee <state>/release`.
   - After `claim=released`, when the first read printed `repositories=` above 1, the same
     `landing-order.sh` call a second time. The Reply's lines are copied from this second read and
     never from the first, so they state what the repositories hold now.
@@ -1433,13 +1438,27 @@ on stdin, and routes on the one `route=` line it prints, choosing no route from 
 - An exit 2: the run stops as blocked with the script's stderr line quoted, and claims nothing.
 
 Any stop on the way makes no `release` call: the Spec branch, its worktree and the claim stay, the
-Ticket stays `resolved`, and the Reply says the Final integration stopped, why, and how it is
-resumed. Before that Reply the run yields its claim,
-`bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path>`, so the `/do` that resumes can
-take it over. After the yield it reads the landing record, the same `landing-order.sh` call, and
-on a feature of more than one repository the Reply names which repositories landed and which did
-not off that read: a repository that landed before the stop stays landed, and the run touches
-nothing there. A run that entered on the door's `verdict=resume-final` reaches this step through the
+Ticket stays `resolved`, and the Reply says how it is resumed. Before that Reply the run yields its
+claim, `bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path> | tee <state>/yield`, so
+the `/do` that resumes can take it over. After the yield it reads the landing record, the same
+`landing-order.sh` call saved over `<state>/order`: a repository that landed before the stop stays
+landed, and the run touches nothing there.
+
+The Reply's Final integration lines are printed from those files, never composed, and copied as
+they stand, per item 30 of [reply.md](reply.md). `<state>/review` is a file the run writes with
+the Integration line of item 27 and the Review return of item 28, as it recorded them. Each call
+hands over only the files this run saved, `--claim`, `--release` and `--yield` among them, and
+`--state <state>/state` on a run that entered on `verdict=resume-final`:
+
+```sh
+bash <skill-dir>/scripts/reply-lines.sh final --door <state>/door --claim <state>/claim --release <state>/release --review <state>/review --order <state>/order
+bash <skill-dir>/scripts/reply-lines.sh final --door <state>/door --claim <state>/claim --yield <state>/yield --order <state>/order --reason '<the stop reason>'
+bash <skill-dir>/scripts/reply-lines.sh repositories --door <state>/door --claim <state>/claim --release <state>/release --order <state>/order
+```
+
+`--reason` is the rebase question nobody answered, the red check, or the review's `not landed`
+line, in single quotes. On `verdict=wait` no claim was taken and both calls take `--door` and
+`--order` alone. On exit 3 the run copies nothing and reports the `failed <reason>` line. A run that entered on the door's `verdict=resume-final` reaches this step through the
 stopped Final integration of the Resume section, with no step before it. Done when the release
 read `claim=released` and, on a feature of more than one repository, the record was read a second
 time, or the claim read `taken`, or the run stopped as blocked with the Spec
@@ -1476,10 +1495,8 @@ Ticket landed and reads `resolved` all the same.
 What it puts in the Run report: the Ticket and the Review under the files left uncommitted; under
 `Rulings`, every Ruling the forks in [forks.md](forks.md) made, a Design fork's in the
 `On the Spec:` group and a run question's in the `On the run:` group, each group `none` when it
-holds no Ruling; the `Open:` line under the landing lines; on a Ticket run from its Build
-repository, the door's `root=` naming another repository than the main checkout, the
-`Repositories:` line opening those landing lines, as the Spec landing lines of
-[reply.md](reply.md) word it off the door's `root=` and `build_repository=` lines. On a Ticket of a
+holds no Ruling; the Spec landing lines `reply-lines.sh landing` printed, its `Open:` and
+`Repositories:` lines among them. On a Ticket of a
 Spec the Review is never among the files left uncommitted, except on a run whose Final
 integration landed, which lists the Review beside the Spec there with `Open: none`. A run that
 forked `do-impeccable` writes no Plan line in its Run section, since no Planner ran, and its

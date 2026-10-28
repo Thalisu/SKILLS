@@ -449,8 +449,12 @@ Build repository's, and the Home repository, which holds the Ticket, has no ref 
 One script call makes the landing, and the run never moves the ref by hand:
 
 ```
-bash <skill-dir>/scripts/land-spec.sh <the main checkout> spec/<feature-slug> do/<slug>
+bash <skill-dir>/scripts/land-spec.sh <the main checkout> spec/<feature-slug> do/<slug> | tee <state>/land
 ```
+
+`<state>` here and below is the folder the door of [ticket.md](ticket.md) names, and the Reply's
+lines are printed from the files saved there by `reply-lines.sh`, per step 7 and step 9a of
+[ticket.md](ticket.md).
 
 The Spec branch is checked out nowhere, so the landing is a fast-forward of its ref alone. The
 script holds the landing lock of
@@ -459,10 +463,8 @@ the review's landing holds, from its first read to the end of the ref update, so
 one Spec landing at once exactly one passes and the other reads `moved` with the Spec branch
 untouched. It prints one line, and the run routes on the exit code:
 
-- **`landed <sha>`, exit 0.** The Spec branch reads the tip of the run's branch. The run records
-  `landed at <sha> on spec/<feature-slug>` and
-  `Review: none, the Spec is reviewed once its last Ticket lands` for the Run report's Run section, per
-  [reply.md](reply.md), and goes on to the close.
+- **`landed <sha>`, exit 0.** The Spec branch reads the tip of the run's branch, and the run goes
+  on to the close.
 - **`moved <tip>`, exit 1.** The Spec branch holds a commit the run's branch lacks, another
   Ticket's landing. The run hands the script's line whole to the integration script and acts on the
   `verdict=` line it prints, never on an ancestor check of its own:
@@ -482,8 +484,8 @@ untouched. It prints one line, and the run routes on the exit code:
     stops as blocked with the script's line quoted.
 - **`checked-out <worktree>`, exit 4.** A worktree, the main checkout included, has the Spec branch
   checked out, and a ref moved under a checkout would leave that worktree's index showing the
-  landing as a reversal. Nothing is written. The run stops as blocked with
-  `not landed: spec/<feature-slug> is checked out in <worktree>`, and the run does not switch that
+  landing as a reversal. Nothing is written. The run stops as blocked on the landing lines
+  `reply-lines.sh landing` prints, and the run does not switch that
   checkout itself, since what it holds is the developer's. The Reply's `Yours:` line reads
   `direction`, and its Next step says to switch that checkout off the branch and run `/do <ticket>`
   again, which resumes at the landing.
@@ -518,10 +520,10 @@ consumes it, per
 One script reads that order and where each repository stands:
 
 ```
-bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>
+bash <skill-dir>/scripts/landing-order.sh <the Ticket's path> | tee <state>/order
 ```
 
-It writes nothing. It prints `repositories=<n>`, then one group per repository in landing order
+It writes nothing but the saved record. It prints `repositories=<n>`, then one group per repository in landing order
 (`repository=`, `repository_location=`, `repository_here=`, `repository_state=` reading `landed`,
 `unlanded` or `unreadable`, with `repository_reason=` after it on `unreadable`, and
 `repository_ticket=`, the Ticket its landing command takes), then `own=`, `waits_for=` with
@@ -547,7 +549,7 @@ lands as the steps below say, with nothing added to its Reply.
 **1. The claim.** Before anything else, one script call:
 
 ```
-bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>
+bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path> | tee <state>/claim
 ```
 
 It creates the claim file beside the Spec, in the Feature folder of the Home repository,
@@ -564,8 +566,8 @@ code:
   `spec_upstream=` (the developer's branch, the one the Spec branch was cut from), `tree=`,
   `ledger=` and `review_file=`. Its `takeover=` line reads `no` here, since no claim file was there.
 - **`claim=taken`, exit 1.** Another run holds it. This run ends here, with nothing blocked: its
-  own Ticket landed and reads `resolved`, and its Reply reads that the Spec is being integrated by
-  another run, per [reply.md](reply.md). It waits on nothing and retries nothing. On a resume the
+  own Ticket landed and reads `resolved`, and its Reply carries the line `reply-lines.sh final`
+  prints from the claim. It waits on nothing and retries nothing. On a resume the
   same line is a stop, as the resumed Final integration below says.
 - **`claim=failed`, exit 3.** The run stops as blocked with the `reason=` line quoted.
 
@@ -620,14 +622,12 @@ branch on the developer's branch by fast-forward. The return is read as the revi
 bare `cd` to the main checkout, removes it with `git worktree remove <tree>`, and makes one call:
 
 ```
-bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path>
+bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path> | tee <state>/release
 ```
 
 The script removes the Spec branch only when its tip is on its upstream, the proof that it
 landed, and deletes the claim file, with the yielded mark of an earlier stop beside it, only when
 the branch was removed or already absent.
-`claim=released` with `removed=yes` is recorded for the Run report as
-`spec/<feature-slug> removed`.
 `claim=held` (exit 1) means the branch did not land after all or a worktree still holds it: the
 run stops as blocked with the `reason=` line quoted, and never deletes the branch or the claim
 file by hand.
@@ -639,7 +639,7 @@ they are what a later run resumes from, and the run's own Ticket stays `resolved
 Reply, at every stop the run controls, a first run's or a resume's, it yields the claim:
 
 ```
-bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path>
+bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path> | tee <state>/yield
 ```
 
 The yield marks the claim as given up and leaves the claim file as it was written, so the claim
@@ -652,9 +652,8 @@ A stop touches this repository's landing and no other's. A repository of the fea
 before it stays landed: the run moves no ref there, reverts nothing and removes nothing, since
 what landed was reviewed and is already the developer's to push, per ADR 0084. So that a partial
 landing is never silent, the run reads the landing record once more after the yield, the same
-`landing-order.sh` call, on a first run and on a resume alike, and on a record printing
-`repositories=` above 1 its Reply names the repositories landed and the ones still to land off
-that read, this repository among the second.
+`landing-order.sh` call saved over `<state>/order`, on a first run and on a resume alike, and the
+Reply's lines are printed from that read.
 
 **A resumed Final integration.** A `do` on any Ticket of the Spec whose door printed
 `verdict=resume-final` enters here and nowhere earlier, per the stopped Final integration of the
@@ -676,11 +675,11 @@ first Final integration in four places:
 - **The claim is a takeover.** The same `claim` call takes over a claim that was yielded and
   prints `takeover=yes` with the holder it replaced; of two resumes at once exactly one reads
   `claimed`. A claim nobody yielded reads `claim=taken`: the run stops in one line, writes nothing,
-  and its Reply quotes the `holder_ticket=`, `claimed_at=` and `yield_command=` lines, the last
-  being the command that declares a dead holder's claim yielded. The run never composes that
+  its blocker is the line `reply-lines.sh final` prints from the claim, and its `Yours:` line quotes
+  the `yield_command=` line, the command that declares a dead holder's claim yielded. The run never composes that
   command and never runs it for the developer.
 - **The state is read, not assumed.** One call,
-  `bash <skill-dir>/scripts/final-state.sh <the Ticket's path>`, prints where the Final integration
+  `bash <skill-dir>/scripts/final-state.sh <the Ticket's path> | tee <state>/state`, prints where the Final integration
   stands, in the keys and the classes `resume-state.sh` prints for a Ticket run: the tree present
   or absent, a rebase left open with its stop record, uncommitted work, and whether the Review
   beside the Spec counts. Its verdict names the step the run picks up at: `restart` at the tree or
@@ -694,8 +693,8 @@ first Final integration in four places:
   [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md).
 
 A resume that stops again yields and replies as any stopped Final integration does. One that
-finishes ends at the release above, and reads the landing record after it as a first run does: it
-read none before its claim, so this is the one read its Reply's repository lines come from.
+finishes ends at the release above, and reads the landing record after it as a first run does,
+saved over `<state>/order`.
 
 Done when the Spec branch landed on the developer's branch, its tree is removed, the release
 read `claim=released` and, on a feature of more than one repository, the landing record was read a
