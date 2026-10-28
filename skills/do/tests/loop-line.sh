@@ -23,4 +23,9 @@ for word in policy fallback; do
   done
 done
 
+run loop=global agent=available
+same "loop-line.sh prints Loop: global and a line naming global-unit-test-author as the unit author for loop=global with the Agent tool available" \
+  "Loop: global
+Unit test author: global-unit-test-author"
+
 [ "$fails" = 0 ]
