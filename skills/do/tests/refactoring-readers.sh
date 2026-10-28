@@ -69,4 +69,34 @@ flat="$(paragraph_with "$design" "On no Ruling" | tr -s ' ')"
 expect "refactoring-design-fork.md's unruled stop points at refactoring-extreme-stop.md" \
   grep -qE "$extreme_pointer" <<<"$flat"
 
+echo "# refactoring-auto.md: the run questions under --auto, read only by a run carrying --auto"
+auto="$refs/refactoring-auto.md"
+auto_pointer='Read \[refactoring-auto\.md\]\(refactoring-auto\.md\) when [^ ]'
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(cat "$refactoring")"
+absent "refactoring.md carries no section of run questions under --auto" "### Run questions under"
+flat="$(paragraph_with "$auto" "It is read by" | tr -s ' ')"
+expect "refactoring-auto.md opens on a paragraph naming its readers" test -n "$flat"
+carries "the opening names the condition, a run carrying --auto" "--auto"
+carries_each "the opening names steps 1, 2, 3, 8 and 13 as its readers" \
+  "step 1" "Door" -- "step 2" "Worktree" -- "step 3" "Pin" -- "step 8" "Exit test" -- "step 13" "Verification"
+flat="$(tr '\n' ' ' <"$auto" | tr -s ' ')"
+carries "refactoring-auto.md writes the choice-taker's brief in itself" \
+  "subagent_type: choice-taker" "Caller:" "Question:" "Options:" "Recommendation:" \
+  "Repository root:" "Principles:" "Context:"
+carries "refactoring-auto.md checks the return in itself" "\`settled\`" "\`extreme\`" "Side:"
+carries_each "refactoring-auto.md keeps the discard and the revert asked of the developer" \
+  "still asked" -- "discard" -- "revert"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(cat "$auto")"
+absent "refactoring-auto.md points at no Design fork text" "refactoring-design-fork.md"
+for step in "1. Door" "2. Worktree" "3. Pin" "8. Exit test" "13. Verification"; do
+  flat="$(item_holding "$refactoring" '### [0-9]+\.' "### $step" | tr '\n' ' ' | tr -s ' ')"
+  expect "step $step points at refactoring-auto.md with Read <file> when <condition> naming --auto" \
+    grep -qE "${auto_pointer}[^.]*--auto" <<<"$flat"
+done
+flat="$(passage_of "$refactoring" "## Questions and stops" "## Steps" | tr '\n' ' ' | tr -s ' ')"
+expect "the index of questions points at refactoring-auto.md with Read <file> when <condition>" \
+  grep -qE "$auto_pointer" <<<"$flat"
+
 exit $((fails > 0))

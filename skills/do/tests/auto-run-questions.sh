@@ -18,6 +18,7 @@ forks="$here/../references/forks.md"
 ticket="$here/../references/ticket.md"
 bugfix="$here/../references/bug-fix.md"
 refactoring="$here/../references/refactoring.md"
+refactoring_auto="$here/../references/refactoring-auto.md"
 fails=0
 
 rules_it_under_auto() { # $1 the place, its text flattened in $flat: it names `--auto`, and the choice-taker or forks.md as what rules the question there
@@ -94,11 +95,11 @@ pin="$(item_holding "$refactoring" '### [0-9]+\.' ". Pin")"
 flat="$(paragraph_with <(printf '%s\n' "$pin") "harness" all | tr -s ' ' | grep -F "cannot be driven inside")"
 rules_it_under_auto "refactoring.md's Pin, in the paragraph on a behaviour outside the harness's bound," "$harness"
 
-flat="$(passage_of "$refactoring" "### Run questions under" "## " | tr '\n' ' ' | tr -s ' ')"
-expect "refactoring.md carries its own section of run questions under --auto" test -n "$flat"
-carries "refactoring.md's run questions name step 1's two homes" "two homes"
-carries "refactoring.md's run questions name step 3's harness outside its bound" "harness outside its bound"
-carries "refactoring.md's run questions are ruled by the choice-taker" "choice-taker"
+flat="$(tr '\n' ' ' <"$refactoring_auto" | tr -s ' ')"
+expect "refactoring-auto.md carries the refactoring Playbook's run questions under --auto" test -n "$flat"
+carries "refactoring-auto.md's run questions name step 1's two homes" "two homes"
+carries "refactoring-auto.md's run questions name step 3's harness outside its bound" "harness outside its bound"
+carries "refactoring-auto.md's run questions are ruled by the choice-taker" "choice-taker"
 
 # The index, read one statement at a time: a sentence of its prose naming `--auto`, or a row of its
 # table of questions. A row counts when it names `--auto` itself or sits under a column that does,
@@ -120,14 +121,14 @@ flat="$(grep -E 'harness|steps? ([0-9]+(, and |, | and ))*3([^0-9]|$)|\| 3 \|' <
 rules_it_under_auto "refactoring.md's index of questions" "$harness"
 
 # The discard and the revert cannot be undone, so the flag never reaches them. The sentence of
-# refactoring.md's run questions naming the ruled ones is the whole list of what takes the route,
-# and a statement of refactoring.md naming the choice-taker beside either of the two has to say
+# refactoring-auto.md naming the ruled ones is the whole list of what takes the route, and a
+# statement of refactoring.md or refactoring-auto.md naming the choice-taker beside either of the two has to say
 # that one is still asked.
-ruled="$(passage_of "$refactoring" "### Run questions under" "## " | tr '\n' ' ' | tr -s ' ' |
+ruled="$(tr '\n' ' ' <"$refactoring_auto" | tr -s ' ' |
   grep -oE 'The ruled ones are [^.]*\.')"
-expect "refactoring.md's run questions name the ruled ones in one sentence" test -n "$ruled"
+expect "refactoring-auto.md names the ruled run questions in one sentence" test -n "$ruled"
 flat="$(grep -iE 'discard|revert' <<<"$ruled")"
-expect "refactoring.md's ruled run questions leave out the discard of uncommitted changes and the revert of the branch" \
+expect "refactoring-auto.md's ruled run questions leave out the discard of uncommitted changes and the revert of the branch" \
   test -z "$flat"
 
 handed=""
@@ -141,14 +142,16 @@ while IFS= read -r statement; do
   done
   [ -n "$kept" ] || handed="$statement"
 done < <({
-  paragraph_with "$refactoring" "choice-taker" all | grep -v '^ *|' | tr -s ' ' |
-    awk 'BEGIN { RS = "\\.[ \n]" } /choice-taker/ { print }'
-  grep '^ *|' "$refactoring" | grep -F "choice-taker"
+  for doc in "$refactoring" "$refactoring_auto"; do
+    paragraph_with "$doc" "choice-taker" all | grep -v '^ *|' | tr -s ' ' |
+      awk 'BEGIN { RS = "\\.[ \n]" } /choice-taker/ { print }'
+    grep '^ *|' "$doc" | grep -F "choice-taker"
+  done
 } | grep -iE 'discard|revert')
 if [ -z "$handed" ]; then
-  ok "refactoring.md never hands the discard of uncommitted changes or the revert of the branch to the choice-taker"
+  ok "refactoring.md and refactoring-auto.md never hand the discard of uncommitted changes or the revert of the branch to the choice-taker"
 else
-  fail "refactoring.md never hands the discard of uncommitted changes or the revert of the branch to the choice-taker (found: $handed)"
+  fail "refactoring.md and refactoring-auto.md never hand the discard of uncommitted changes or the revert of the branch to the choice-taker (found: $handed)"
 fi
 
 echo "# a question still asked under --auto: the choice-taker's return rides on it, and nothing is done on that return before the developer answers"

@@ -46,14 +46,13 @@ The run asks the developer in these places and no other:
 | 8 | whether the branch is reverted, when the exit test failed | the revert deletes every commit on it |
 | 13 | whether a full suite or a remote run runs | its cost |
 
-The questions of steps 1 and 8 are the two this Playbook raises of its own. The other three are
-yeses the shared references reserve to the developer, and they are asked whenever the run reaches
-them, never waived. Under `--auto` the developer handed the run's direction over, and the
+The questions of steps 1 and 8 are the two this Playbook raises of its own; the other three are
+yeses the shared references reserve to the developer. Under `--auto` the `choice-taker` rules the
 questions of steps 1, 3 and 13 (the two homes, the harness outside its bound, the full suite or
-remote run) are ruled by the `choice-taker` in their place, per [Forks and run questions](#forks-and-run-questions) below: the run
-reaches each all the same, and it is handed over, never waived. The questions of steps 2 and 8 are
-still asked of the developer under `--auto`, since a discard and a revert that deletes the branch
-cannot be undone, each with the `choice-taker`'s return shown above it, per [Forks and run questions](#forks-and-run-questions).
+remote run), and the questions of steps 2 and 8 (the discard and the revert) are still asked of the
+developer, with the `choice-taker`'s return shown above each. Read
+[refactoring-auto.md](refactoring-auto.md) when the run carries `--auto` and reaches one of these
+questions.
 
 The run stops, in one message or as blocked, in these places:
 
@@ -61,7 +60,7 @@ The run stops, in one message or as blocked, in these places:
 - step 3, on a suite or a typecheck that was red before the first edit;
 - step 4, on a second deviation of the same shape from the sketch;
 - step 4 or step 6, on an Extreme fork or on a Design fork no `choice-taker` ruled, per
-  [Forks and run questions](#forks-and-run-questions);
+  [Forks](#forks);
 - steps 10 to 14, on the stops [mechanics.md](mechanics.md) names for the gate, the integration,
   the review, the verification and the close.
 
@@ -71,7 +70,7 @@ Everything else the run settles itself and carries on, in the same turn:
 |---|---|---|
 | the pin red under a deletion or a reshape step | undoes it and takes it smaller | 5, 6 |
 | the harness's output differing from its run on the old code | undoes the last step until the two agree | 6, 7 |
-| an empirical fork or a Design fork | settles it by [Forks and run questions](#forks-and-run-questions) | 4, 6 |
+| an empirical fork or a Design fork | settles it by [Forks](#forks) | 4, 6 |
 | a behaviour change found on the way | leaves it out and names it in the reply with its command | 1, 6, 9 |
 | a red gate | takes one more step of the reshape, then the whole gate again | 10 |
 | `not landed: target moved` | integrates again and lands through the fix call | 12 |
@@ -149,10 +148,8 @@ Four checks, before any edit and in this order.
    [migrate-callers-then-delete-legacy-apis](../../../.agents/principles/migrate-callers-then-delete-legacy-apis.md).
    A choice between two homes the request fits equally is a preference call and one of the two
    questions this Playbook raises of its own; everything else is a fact a search settles. Under
-   `--auto` that choice is not put to the developer: it is a run question the `choice-taker`
-   rules, per [Forks and run questions](#forks-and-run-questions), with one option per home, each naming the home and what of
-   the request fits there, and the home the run would take as its `Recommendation:`, or `none`.
-   The run takes the home the Ruling names and carries on.
+   `--auto` the `choice-taker` rules that choice, and the run takes the home the Ruling names.
+   Read [refactoring-auto.md](refactoring-auto.md) when the run carries `--auto` and meets it.
 3. **The discover batch.** The names the reshape will create (the extracted module, the new type,
    the registry) are checked before the first of them exists, the way the Discovery rule fixes: one
    `discover` batch for two or more names, one `rg -n -w` for a single one. A name that comes back
@@ -246,7 +243,8 @@ titles, and `git status --short` in the worktree.
   `Yours: destroy: discard the uncommitted changes in <worktree>, or commit or move them yourself, then type the request again`.
   Under `--auto` that question is still asked of the developer, in
   the same words, with the `choice-taker`'s return shown above it and nothing discarded on that
-  return, per [Forks and run questions](#forks-and-run-questions).
+  return. Read [refactoring-auto.md](refactoring-auto.md) when the run carries `--auto` and meets
+  uncommitted changes.
 - A run that stopped as blocked resumes the same way once its reason is gone, since every stop on
   this path leaves the worktree and its branch in place and named.
 
@@ -318,11 +316,8 @@ harness's command line first and waits for the same yes [mechanics.md](mechanics
 before a remote run, since the cost of touching the real system is the developer's to weigh. A no
 leaves this part reading `skip: the behaviour cannot be driven inside the harness's bound`, and the
 gap the harness would have covered is named as debt in the reply the same way step 9 names one.
-Under `--auto` that yes is not the developer's to give: it is a run question the `choice-taker`
-rules, per [Forks and run questions](#forks-and-run-questions), with the options `yes: run <the harness's command line>` and
-`no: leave the behaviour undriven`, `Recommendation:` `none`, and the command line with what it
-would touch in `Context:`. A Ruling for `yes` runs the harness, one for `no` takes the no above,
-and the run carries on either way.
+Under `--auto` the `choice-taker` rules that yes. Read [refactoring-auto.md](refactoring-auto.md)
+when the run carries `--auto` and reaches it.
 
 #### The target-interface test
 
@@ -567,13 +562,14 @@ asks one question, the second and last this Playbook raises of its own:
   carries the failed exit test as pending debt so the next reader knows the claim was not met.
 
 Under `--auto` the revert question is still asked of the developer, in the same place and the same
-words, with the `choice-taker`'s return shown above it as it came back, per the questions still
-asked under the flag in [Forks and run questions](#forks-and-run-questions): the branch is never reverted on that return.
+words, with the `choice-taker`'s return shown above it as it came back, and the branch is never
+reverted on that return. Read [refactoring-auto.md](refactoring-auto.md) when the run carries
+`--auto` and the exit test failed.
 
 A yes that [mechanics.md](mechanics.md) reserves to the developer is not one of the two and is never
 waived here: step 3 carries one when the harness cannot stay inside its bound, and step 13 carries
 the question before a full suite or a remote run. Both are asked whenever the run reaches them,
-and under `--auto` both go to the `choice-taker`, per [Forks and run questions](#forks-and-run-questions).
+and under `--auto` the `choice-taker` rules both.
 
 Done when the answer and its reason are recorded for the Run report's Run section, with the developer's
 answer when the test failed.
@@ -685,8 +681,9 @@ reads its skip with the worktree and its branch named.
 The verification in [mechanics.md](mechanics.md), from the main checkout after the landing:
 
 - the affected flows run with the command line printed first;
-- the one question is asked before a full suite or a remote run, or ruled by the `choice-taker`
-  under `--auto`, per [Forks and run questions](#forks-and-run-questions);
+- the one question is asked before a full suite or a remote run, and under `--auto` the
+  `choice-taker` rules it. Read [refactoring-auto.md](refactoring-auto.md) when the run carries
+  `--auto` and reaches it;
 - a red flow is taken as one more step of the reshape, handed with no **Gate** of the run's own to
   the fix call on the same Review, which lands it again with no second review.
 
@@ -738,7 +735,7 @@ the next command otherwise.
 
 Done when the reply is sent with every section that applies.
 
-## Forks and run questions
+## Forks
 
 This Playbook runs outside the chain, with no Ticket and no Spec, so it reads no fork reference of
 the `ticket` Playbook and none of another Playbook: what a fork needs here is in this section, per
@@ -753,31 +750,3 @@ A question the run meets is classified before it is asked, and its class decides
 
 An empirical fork never reaches the developer, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md).
-
-### Run questions under `--auto`
-
-A run question is one a step would put to the developer about the run itself: whether it carries
-on, and which way. Under `--auto` the developer handed that direction over, per
-[ADR 0045](../../../docs/adr/0045-auto-hands-direction-to-the-choice-taker-and-four-classes-still-stop.md).
-Without the flag each is asked as its step says. The ruled ones are the three of the index above:
-step 1's two homes, step 3's harness outside its bound, and step 13's full suite or remote run.
-
-A ruled question takes the Design fork's brief, with `Caller:` `do` at that step under `--auto`,
-`Question:` the question as the step words it, `Options:` the answers the step offers, each opening
-with its own word and saying what the run does on it (`yes: run <the command line>`, never a bare
-`yes`), `Recommendation:` the step's own or `none`, and `Context:` the lines the question would
-have shown the developer, inline. The return is checked as a Design fork's is, the options in place
-of the sides. On a `settled` Ruling the run does what the step says for that answer, as if the
-developer had typed it, and carries on with no message asking for a confirmation. The Ruling is
-written to no file of the project, and the Run report lists it under `Rulings`, in its `On the run:`
-group, per [reply.md](reply.md). On an `extreme` return or on no Ruling, the question is asked as
-without the flag, one line above it naming the reason or quoting the return.
-
-A question before something that cannot be undone is still asked under the flag, in the same place
-and the same words: step 2's discard of uncommitted changes and step 8's revert of the branch. For
-each, the session first forks the `choice-taker` with the brief above and shows its return directly
-above the question, a `settled` return's `Side:` and `Norm:` lines or an `extreme` return quoted
-whole, so the developer confirms an answer instead of deciding from scratch. That question is still
-asked, and nothing is discarded or reverted on that return before the developer answers. A
-`choice-taker` that cannot be forked, or a return that fails the check, leaves one line in the
-answer's place naming the reason.
