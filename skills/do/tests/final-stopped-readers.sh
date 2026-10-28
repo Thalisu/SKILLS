@@ -255,4 +255,40 @@ absent "ticket.md's step 9a makes no yield call of its own: the stop's yield is 
 expect "ticket.md's step 9a reads final-stopped.md when the Final integration stops" \
   grep -qE "$to_stopped_on_stop" <<<"$out"
 
+# A maintainer finds every way into final-stopped.md by its one shape, and misses a reader written
+# in another. Each paragraph is flattened first, so a pointer hard-wrapped across two lines is one
+# pointer, and a link with no `Read ` before it or no ` when <condition>` after it is misshaped.
+echo "# skills/do: every pointer to final-stopped.md reads Read [final-stopped.md](final-stopped.md) when <condition>"
+link_to_stopped='\]\(([^)]*/)?final-stopped\.md(#[^)]*)?\)'
+stopped_shape='Read \[final-stopped\.md\]\(final-stopped\.md\) when [^ ]'
+pointers=0
+misshaped=""
+while IFS= read -r file; do
+  case "$file" in "$skill" | "$final_stopped") continue ;; esac
+  while IFS= read -r para; do
+    links="$(grep -oE "$link_to_stopped" <<<"$para" | wc -l)"
+    shaped="$(grep -oE "$stopped_shape" <<<"$para" | wc -l)"
+    pointers=$((pointers + links))
+    [ "$links" = "$shaped" ] || misshaped+="${file#"$do_dir"/}: ${para:0:160}"$'\n'
+  done < <(awk 'BEGIN { RS = "" } { gsub(/\n/, " "); print }' "$file" | tr -s ' ')
+done < <(grep -rlE "$link_to_stopped" "$do_dir" --exclude-dir=tests)
+expect "the do skill carries pointers to final-stopped.md outside SKILL.md's references list" test "$pointers" -gt 0
+expect "no pointer to final-stopped.md has another shape" test -z "$misshaped"
+[ -z "$misshaped" ] || echo "      ${misshaped//$'\n'/$'\n'      }"
+
+# resume.md and not-landed.md are read from the stopped Final integration, which now lives in
+# final-stopped.md: an opening still placing it in ticket.md sends a maintainer to the wrong file.
+echo "# resume.md and not-landed.md: their openings name the stopped Final integration as final-stopped.md"
+clauses_of_opening() { # $1 file: its text before the first section, flattened, one clause (cut at "; " and ". ") per line
+  awk '/^## /{exit} !/^# / {print}' "$1" 2>/dev/null | tr '\n' ' ' | tr -s ' ' | sed -E 's/(; |\. )/\n/g'
+}
+for opened in resume.md not-landed.md; do
+  stop_clauses="$(clauses_of_opening "$do_dir/references/$opened" | grep -iF "final integration" | grep -iE 'stop')"
+  expect "$opened's opening names the stopped Final integration among its readers" test -n "$stop_clauses"
+  unnamed="$(grep -vF '`final-stopped.md`' <<<"$stop_clauses")"
+  expect "$opened's opening names the stopped Final integration as \`final-stopped.md\`, beside it" \
+    test -n "$stop_clauses" -a -z "$unnamed"
+  [ -z "$unnamed" ] || echo "      ${unnamed//$'\n'/$'\n'      }"
+done
+
 exit $((fails > 0))

@@ -4,7 +4,7 @@ Read by the session only when the review route script prints a `route=` line oth
 `route=verify`, on the first review's return or on a fix call's. The readers that send it here
 on that condition: the review step of each Playbook ([ticket.md](ticket.md),
 [bug-fix.md](bug-fix.md), [refactoring.md](refactoring.md)) and `### Reading the return` of
-[mechanics.md](mechanics.md); the Final integration's review step, its stop and its resume; the
+[mechanics.md](mechanics.md); the Final integration's review step, and its stop and its resume in `final-stopped.md`; the
 Resume paths of [ticket.md](ticket.md) and of the `bug-fix` Playbook that land through the fix call
 on a Review the run already has; and the verification's red flow, whose fix goes to the fix call.
 A run whose review lands never opens it.
