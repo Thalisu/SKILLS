@@ -65,4 +65,11 @@ route door < <(record landed 2 api)
 expect "at the door site, a landed record of two repositories with a next landing exits 0" [ "$rc" = 0 ]
 same "at the door site, a record of more than one repository reading verdict landed with a next landing that is not done routes the run to the already-landed stop" "route=already-landed"
 
+for door in "landed 1 api:a record of one repository" "no-spec 0 done:a record of no repository" \
+  "land 2 api:a land verdict" "wait 2 api:a wait verdict" "landed 2 done:a next landing reading done"; do
+  route door < <(record ${door%%:*})
+  expect "at the door site, ${door#*:} exits 0" [ "$rc" = 0 ]
+  same "at the door site, ${door#*:} routes the run to the resolved stop" "route=resolved"
+done
+
 exit "$fails"

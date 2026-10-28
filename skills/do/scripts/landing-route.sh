@@ -20,6 +20,8 @@ done
 if [ "$1" = door ]; then
   if [ "$repositories" -gt 1 ] && [ "$verdict" = landed ] && [ "$next_landing" != done ]; then
     echo "route=already-landed"
+  else
+    echo "route=resolved"
   fi
   exit 0
 fi
