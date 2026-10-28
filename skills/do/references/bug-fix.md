@@ -433,8 +433,9 @@ The session takes these steps in order:
 
 1. Say in one line that the run met a Design fork at its step, step 4 or step 6, and name both
    sides.
-2. Read the two sides for an Extreme fork. A side read as Extreme stops the run there, by the
-   Extreme stop below, and no `choice-taker` is forked.
+2. Read the two sides for an Extreme fork. A side read as Extreme stops the run there, and no
+   `choice-taker` is forked: Read [bug-fix-extreme-stop.md](bug-fix-extreme-stop.md) when a side
+   reads as Extreme.
 3. Call the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
    [choice-taker.md](../agents/choice-taker.md), never another agent in its place, with the brief
    its definition names:
@@ -449,9 +450,9 @@ The session takes these steps in order:
    `settled` or `extreme`, and a `settled` one only when its `Side:` line names one of the two
    sides, its `Fork:` line names those two and no other, and its `Losing criterion:` reads `none`,
    since no Ticket criterion exists to lose.
-5. On a `settled` Ruling, take its side and carry on in the same turn. On an `extreme` one, stop by
-   the Extreme stop below, its `Fork:`, `Weaker side:`, `Guarantee:` and `Risk class:` lines
-   filling the stop's slots.
+5. On a `settled` Ruling, take its side and carry on in the same turn. On an `extreme` one, stop:
+   Read [bug-fix-extreme-stop.md](bug-fix-extreme-stop.md) when the return reads `extreme`, its
+   `Fork:`, `Weaker side:`, `Guarantee:` and `Risk class:` lines filling the stop's slots.
 
 A `settled` Ruling is written to no file of the project: no Spec stands behind the run to carry
 it, and a commit is no place for a decision the developer did not make. It reaches the developer

@@ -49,4 +49,25 @@ check_absent "bug-fix.md carries no Resume section and none of its rules" 0 0 \
   "## Resume" "done: resumed" "git worktree add .claude/worktrees/do-<slug> do/<slug>" \
   "git log -g --format=%H" "git clean -fd"
 
+echo "# bug-fix-extreme-stop.md: a run stopped on an Extreme fork, or on no Ruling, hands the choice back through /discuss"
+extreme="$refs/bug-fix-extreme-stop.md"
+design="$refs/bug-fix-design-fork.md"
+flat="$(flat_of 2>/dev/null <"$extreme")"
+expect "bug-fix-extreme-stop.md exists and has text" test -n "$flat"
+carries "the stop is a blocked run handing the choice between the sides to the developer" \
+  "blocked" "Yours: direction: choose <side A> or <side B>"
+carries "the /discuss line is next-step.sh's stdout on outcome=extreme-fork, copied whole" \
+  "scripts/next-step.sh" "outcome=extreme-fork" "playbook=bug-fix" "undone="
+carries "a side that cannot be undone once landed takes its own clause, and no sidecar is written" \
+  "cannot be undone once landed" "sidecar"
+carries "the unruled stop reuses the message for a Design fork no choice-taker ruled" \
+  "on a Design fork no choice-taker ruled" "the Agent tool is withheld" "choice-taker is not listed" \
+  "the choice-taker returned no usable Ruling"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(cat "$bugfix" "$design" 2>/dev/null)"
+check_absent "bug-fix.md and the Design fork's text carry none of the Extreme stop" 0 0 \
+  "/discuss the do bug-fix run on" "outcome=extreme-fork" "on a Design fork no choice-taker ruled"
+expect "the Design fork reaches the Extreme stop through Read [bug-fix-extreme-stop.md](bug-fix-extreme-stop.md) when <condition>" \
+  grep -qE 'Read \[bug-fix-extreme-stop\.md\]\(bug-fix-extreme-stop\.md\) when [^ ]' <<<"$(flat_of <<<"$out")"
+
 exit $((fails > 0))
