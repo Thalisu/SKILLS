@@ -9,6 +9,7 @@ stand_in="$here/../references/stand-in.md"
 mechanics="$here/../references/mechanics.md"
 ticket="$here/../references/ticket.md"
 builder="$here/../references/builder.md"
+skill="$here/../SKILL.md"
 fails=0
 
 echo "# stand-in.md's readers: named in its opening, with the condition that sends them"
@@ -91,5 +92,16 @@ if [ -z "$misshapen" ]; then
 else
   fail "every pointer to stand-in.md has the \`Read <file> when <condition>\` shape (misshapen: $misshapen)"
 fi
+
+echo "# SKILL.md's references list names stand-in.md with its readers and its condition"
+
+flat="$(grep -F -- '- [stand-in.md](references/stand-in.md):' "$skill" | tr -s ' ')"
+expect "SKILL.md's Links list carries an entry for stand-in.md" test -n "$flat"
+carries "the entry names the reader's readers: the door and the runs that fork it again" \
+  "do-reader" "door" "second run" "Ruling" "discuss"
+carries "the entry names the Builder's readers: the build step and the Resume" \
+  "do-builder" "build step" "Resume"
+carries_each "the entry names the condition: the Agent tool withheld, or the agent not listed" \
+  "Agent tool" -- "withheld" -- "not listed" "lists no" "no \`do-reader\`"
 
 [ "$fails" -eq 0 ]
