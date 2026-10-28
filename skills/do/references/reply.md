@@ -372,9 +372,7 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
    still carries all three under `--auto`, and the message stays five parts. A `bug-fix` or
    `refactoring` Design fork's Ruling is listed here on every run, in the line its Forks section
    fixes. A held Ruling the close did not post, per the Rulings item above, with its
-   whole Spec line and its `Criterion:` and `Now reads:` lines. On a run that forked `do-impeccable`, each `finding:` line the fork
-   returned is listed here, one line per finding, so a finding counted under Evidence is always
-   named. Findings that remain are debt and never a stop: the Ticket still lands. When
+   whole Spec line and its `Criterion:` and `Now reads:` lines. When
    `guard-reply.sh` exits 1, on a `guard=header-only` probe or one that failed and printed no
    verdict, its `Guard:` line is listed here too, as printed, with the `disabled_by=` file when the
    probe named one, in the message, with or without `--auto`. On exit 0, a `pattern-and-header`
