@@ -632,8 +632,8 @@ landing is never silent, the run reads the landing record once more after the yi
 Reply's lines are printed from that read.
 
 **A resumed Final integration.** A `do` on any Ticket of the Spec whose door printed
-`verdict=resume-final` enters here and nowhere earlier, per the stopped Final integration of the
-Resume in [ticket.md](ticket.md). Nothing that landed on the Spec branch is built again: the run
+`verdict=resume-final` enters here and nowhere earlier, per `## A stopped Final integration` of
+[ticket.md](ticket.md). Nothing that landed on the Spec branch is built again: the run
 forks no reader, no Planner and no Builder and cuts no worktree for a Ticket. It differs from a
 first Final integration in four places:
 
@@ -863,8 +863,8 @@ repository.
    - `grounded=<the current figure>` the run kept when it grounded, or
      `ground_reason=<its stderr>` when that reading exited non-zero;
    - the lines this reading printed, or `close_reason=<its stderr>` when it exits non-zero;
-   - `resumed=yes` on a run that recorded the resume line of the Resume in
-     [ticket.md](ticket.md), `resumed=no` on any other.
+   - `resumed=yes` on a run that recorded the resume line of resume.md, `resumed=no` on any
+     other.
 
    Then the landed commit, the Review's location, the command lines of the gate
    and the flows with their quoted output lines, and each waiver.

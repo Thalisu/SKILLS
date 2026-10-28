@@ -8,7 +8,7 @@
 # Reads key=value lines on stdin, unknown keys ignored:
 #   grounded=<tokens>                 the ground reading's current
 #   ground_reason=<text>              the ground reading's stderr, in its place when it exited non-zero
-#   resumed=yes|no                    yes when the run recorded the Resume line of ticket.md
+#   resumed=yes|no                    yes when the run recorded the resume line of resume.md
 #   peak=<tokens> band=<band> forks=<n> fork_kinds=<kinds>   the close reading, as context-usage.sh prints it
 #   close_reason=<text>              the close reading's stderr, in its place when it exited non-zero
 # Prints the Context line, then the Forks line. A close_reason puts both lines at not measured with

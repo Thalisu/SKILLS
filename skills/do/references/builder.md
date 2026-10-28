@@ -430,5 +430,5 @@ and the run goes on. Its return names which of the two held on a `fallback:` lin
   layer cannot be crossed by accident.
 - A return the session's check refuses is dropped whole: a `behaviour:` line with no commit, a pair
   `resume-state.sh` does not print, or uncommitted work under `built`. The run picks the stretch up
-  from what `resume-state.sh` printed, the Resume section's own path, and says so on a fallback
+  from what `resume-state.sh` printed, the path resume.md fixes for it, and says so on a fallback
   line.

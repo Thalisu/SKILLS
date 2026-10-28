@@ -9,8 +9,8 @@ own forks and run questions in their own references, per
 
 It is read by the step of a `ticket` run that reaches a fork, the Plan step or the build step; by
 a step of that run whose question the `choice-taker` rules under `--auto`, such as the
-verification, per the run question section below; by the Resume step of
-[ticket.md](ticket.md), which meets the same fork again on a resume; and by the close step and the
+verification, per the run question section below; by the resume of a
+`ticket` run, which meets the same fork again; and by the close step and the
 reply, which carry a held Ruling forward, the Reply's Pending debt and the Run report's `Rulings`, per [mechanics.md](mechanics.md) and
 [reply.md](reply.md). The rest of what the Playbooks share is in [mechanics.md](mechanics.md), and
 the loop itself in [build-loop.md](build-loop.md).
@@ -473,18 +473,18 @@ the stop left:
 
 - The stop left the Ticket `claimed` with its worktree. The run is a resume: `resume-state.sh`
   prints the sidecar's `extreme=` and `discuss=` lines, both hashes match, and the run stops there
-  on the recorded command, per the `extreme=` bullet of the Resume of [ticket.md](ticket.md). It
+  on the recorded command, per the `extreme=` bullet of resume.md. It
   forks no Planner, no Builder and no `choice-taker`, and never meets the fork again.
 - The stop left nothing claimed. The run is a first run with no sidecar to read: it reuses the
   Digest, meets the same fork at the same step and stops as the first one did.
 
-Once `discuss` amended the Spec, the resume re-forks the reader, as the Resume of
-[ticket.md](ticket.md) says, and removes the sidecar before it does.
+Once `discuss` amended the Spec, the resume re-forks the reader and removes the sidecar before it does.
+Read [resume.md](resume.md) when the door prints verdict=resume on that Ticket: its amended-Spec bullet says how.
 
 A Ruling line is the Spec's, so the developer reverses one by editing it while the Ticket is
 `claimed` and typing `/do` on the Ticket again, per
 [ADR 0037](../../../docs/adr/0037-a-choice-takers-ruling-amends-the-spec-and-a-ticket-criterion-only-when-it-is-the-losing-side.md),
-and the resume after an amended Spec, the Resume of [ticket.md](ticket.md), picks it up with nothing
+and the resume after an amended Spec, the amended-Spec bullet of resume.md, picks it up with nothing
 added. That resume runs in this order:
 
 1. The edited line reaches the session off the door's own recording of this Ticket's

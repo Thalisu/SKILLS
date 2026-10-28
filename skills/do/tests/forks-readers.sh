@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # forks-readers.sh: forks.md's preamble and SKILL.md's references-list entry for it name every step
 # that reads the file. The fork step (shape, behaviours or build) reads it to settle a fork, but
-# forks.md's own body also sends the held Ruling to the Resume step of ticket.md ("as the Resume of
-# [ticket.md](ticket.md) says", twice), to the close ("the close's one question as the close there
+# forks.md's own body also sends the held Ruling to resume.md ("Read [resume.md](resume.md) when"), to the close ("the close's one question as the close there
 # says") and to the reply ("the reply's `Rulings` section and its Evidence, per [reply.md](reply.md)").
 # A reader who trusts the "and by no other" claim concludes wrongly that only the fork step reads
 # it, and never checks the Resume section's, the close's or the reply's own reading of it against a
@@ -28,8 +27,8 @@ echo "# forks.md's readers: named wherever the file claims who reads it"
 # the precondition the preamble's and SKILL.md's claims have to stay true against.
 resume_para="$(paragraph_with "$forks" "Once \`discuss\` amended the Spec, the resume re-forks the reader")"
 expect "forks.md's own body carries the paragraph naming its resume readers" test -n "$resume_para"
-expect "forks.md's own body sends the held Ruling to the Resume of ticket.md" \
-  grep -qF "as the Resume of [ticket.md](ticket.md) says" <<<"$resume_para"
+expect "forks.md's own body sends the held Ruling to resume.md" \
+  grep -qF "Read [resume.md](resume.md) when" <<<"$resume_para"
 
 held_para="$(paragraph_with "$forks" "The held Ruling reaches the review as")"
 expect "forks.md's own body carries the paragraph naming the held Ruling's readers" test -n "$held_para"

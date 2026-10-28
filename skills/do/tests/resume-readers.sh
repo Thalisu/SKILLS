@@ -57,4 +57,21 @@ carries_each "the entry names each condition: verdict=resume, route=resume, a Bu
 skill_links="$(grep -cE '\]\(([^)]*/)?resume\.md\)' "$skill")"
 expect "SKILL.md links resume.md in its references-list entry alone" test "$skill_links" = 1
 
+echo "# skills/do: every pointer to resume.md reads Read [resume.md](resume.md) when <condition>"
+# A link to the file, under any relative path, is a pointer, except SKILL.md's references-list entry
+# and the links resume.md makes to itself. bug-fix.md and refactoring.md keep Resume sections of
+# their own, which no pointer here is about.
+pointers="$(grep -rnE '\]\(([^)]*/)?resume\.md\)' "$do_dir" --include='*.md' --exclude-dir=tests |
+  grep -vF -e "$do_dir/references/resume.md:" -e "$do_dir/SKILL.md:")"
+expect "the do skill carries at least one pointer to resume.md outside ticket.md" \
+  test -n "$(grep -vF "$ticket:" <<<"$pointers")"
+misshaped="$(grep -vE "$pointer_shape" <<<"$pointers")"
+expect "no pointer to resume.md has another shape" test -z "$misshaped"
+stale="$(grep -rnE 'Resume (step |section |line )?(of|in|there)|the Resume (section|above|step)|Resume section' \
+  "$do_dir/references" "$do_dir/scripts" "$do_dir/SKILL.md" |
+  grep -vF -e "$do_dir/references/bug-fix.md:" -e "$do_dir/references/refactoring.md:" \
+    -e "$do_dir/references/resume.md:" | grep -vE "$pointer_shape" | grep -vE "bug-fix's Resume|refactoring's Resume|Resume of \\[bug-fix\\.md\\]|Resume of resume\\.md")"
+expect "no file of the do skill still sends a reader to the Resume of ticket.md" test -z "$stale"
+[ -z "$stale" ] || echo "      ${stale//$'\n'/$'\n'      }"
+
 exit $((fails > 0))

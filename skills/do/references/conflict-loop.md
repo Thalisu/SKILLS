@@ -61,7 +61,7 @@ recorded answer. A run that opened the rebase itself meets that stop when git re
 carries, an untracked file the replay would overwrite for one, and a continue there meets the same
 refusal. The run stops as blocked with git's own message quoted as it printed it, the
 rebase left open at that commit and `git rebase --abort` named as its undo. A resumed run meets the
-same stop only after the Resume of [ticket.md](ticket.md) continued on `resume-state.sh`'s
+same stop only after the mid-rebase bullet of resume.md continued on `resume-state.sh`'s
 `stop=resolved` or `stop=moved` line: on the answer to its question that says so, or on
 `moved=continue`, which puts no question.
 
