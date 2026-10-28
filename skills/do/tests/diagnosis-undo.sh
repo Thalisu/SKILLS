@@ -83,4 +83,14 @@ check_lines "both are kept with reason ancestry, exit 1" 1 "$rc" \
 expect "the worktree is still listed" worktree_listed "$wt"
 expect "the do/export branch is still there" branch_listed do/export
 
+echo "# diagnosis-undo.sh: a worktree and branch the door already listed"
+cd "$tmp" || exit 1
+diagnosis_repo entered tags
+wt="$(branch_worktree "$top" tags)"
+run "$ticket_path" "worktree=$wt" run_branch=do/tags
+check_lines "both are kept with reason entered, exit 1" 1 "$rc" \
+  "worktree=kept $wt entered" "branch=kept do/tags entered"
+expect "the entered worktree is still listed" worktree_listed "$wt"
+expect "the entered do/tags branch is still there" branch_listed do/tags
+
 exit "$fails"
