@@ -68,6 +68,11 @@ ticket 03-c.md '**Status:** ready-for-agent' '02'
 run "$issues/02-b.md"
 check_lines "gate-suites.sh prints full_unit=yes on a Ticket that is not the last when the project's facts carry no Post-feature gate line" 0 "$rc" \
   "last=no" "facts=missing" "full_unit=yes" "full_e2e=no"
+
+facts 'full E2E suite'
+run
+check_lines "gate-suites.sh run with no Ticket path takes the run as the feature's last and prints last=yes" 0 "$rc" \
+  "last=yes" "facts=full E2E suite" "full_unit=no" "full_e2e=yes"
 rm "$issues/03-c.md"
 
 [ "$fails" = 0 ]

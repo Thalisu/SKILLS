@@ -3,6 +3,8 @@
 # checkout's Project facts line and whether the Ticket is its feature's last. Reads only. Run from
 # anywhere inside the project being built, the main checkout or a worktree of it.
 #
+#   gate-suites.sh                        no Ticket file (bug-fix, refactoring, a tracker reference,
+#                                         the Final integration): last=yes
 #   gate-suites.sh <the Ticket's path>    last= as completion-check.sh prints it; a relative path is
 #                                         read from the directory the script runs in, then from the
 #                                         main checkout
@@ -11,22 +13,30 @@
 # up to the next `:` or the line's end, trimmed; `missing` with no such line or no CLAUDE.md, which
 # adds the full unit suite on every Ticket.
 # Prints last=, facts=, full_unit=yes|no, full_e2e=yes|no, in that order.
-# Exit codes: 0 read · 2 not a git repository, or completion-check.sh exiting 2 (its stderr passed
+# Exit codes: 0 read · 2 usage (more than one argument), not a git repository, or completion-check.sh
+# exiting 2 (its stderr passed
 # through, nothing printed).
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 # shellcheck source=skills/do/scripts/ticket-read.sh
 . "$here/ticket-read.sh"
 
+[ $# -le 1 ] || {
+  echo "usage: gate-suites.sh [<the Ticket's path>]" >&2
+  exit 2
+}
 main="$(main_of .)"
 [ -n "$main" ] || {
   echo "not a git repository" >&2
   exit 2
 }
-check="$(bash "$here/completion-check.sh" "$1")"
-[ $? -ne 2 ] || exit 2
-last="$(sed -n 's/^last=//p' <<<"$check")"
-[ "$last" = yes ] || last=no
+last=yes
+if [ $# -eq 1 ]; then
+  check="$(bash "$here/completion-check.sh" "$1")"
+  [ $? -ne 2 ] || exit 2
+  last="$(sed -n 's/^last=//p' <<<"$check")"
+  [ "$last" = yes ] || last=no
+fi
 
 facts="$(sed -n 's/^- \*\*Post-feature gate\*\*: //p' "$main/CLAUDE.md" 2>/dev/null | head -1)"
 facts="${facts%%:*}"
