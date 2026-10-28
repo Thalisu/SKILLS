@@ -385,4 +385,43 @@ run repositories --door "$door" --claim "$taken" --order "$stop_order"
 check_lines "repositories on a held claim: exit 0" 0 "$rc"
 same "repositories on a held claim prints no line" ""
 
+fresh app
+printf 'base\n' >README.md
+commit base
+main_checkout="$(pwd -P)"
+cd "$tmp" || exit 1
+run_in() { # $1 the directory the script runs from, $2.. its arguments
+  local dir="$1"
+  shift
+  rc=0
+  out="$(cd "$dir" && bash "$script" "$@" 2>&1)" || rc=$?
+}
+
+home_door="$(
+  src home_door <<EOF
+ticket=$main_checkout/.scratch/feature/issues/03-export.md
+root=$main_checkout
+status=resolved
+spec_branch=spec/feature
+build_repository=none
+verdict=resolved
+EOF
+)"
+land="$(src land <<<"landed 1a2b3c4d5e6f")"
+check_open="$(
+  src check_open <<EOF
+ticket=$main_checkout/.scratch/feature/issues/03-export.md
+spec_branch=spec/feature
+open=02 claimed $main_checkout/.scratch/feature/issues/02-import.md
+open=04 ready-for-agent $main_checkout/.scratch/feature/issues/04-show.md
+verdict=incomplete
+EOF
+)"
+run_in "$main_checkout" landing --door "$home_door" --land "$land" --check "$check_open"
+check_lines "landing on a Ticket that landed: exit 0" 0 "$rc"
+same "landing prints the landed line, the Review none line and one Open entry per open Ticket with its status" \
+  "landed at 1a2b3c4d5e6f on spec/feature
+Review: none, the Spec is reviewed once its last Ticket lands
+Open: 02-import (claimed), 04-show (ready-for-agent)"
+
 exit "$((fails > 0))"

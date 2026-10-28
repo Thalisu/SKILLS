@@ -6,11 +6,13 @@
 #   reply-lines.sh final        --door <f> [--state <f>] [--claim <f>] [--release <f>] [--yield <f>]
 #                               [--order <f>] [--review <f>] [--reason <text>]
 #   reply-lines.sh repositories --door <f> [--claim <f>] [--release <f>] [--yield <f>] [--order <f>]
+#   reply-lines.sh landing      --door <f> --land <f> [--check <f>]
 #
 # Each <f> is one state script's saved key=value output, read in a key space of its own, the last
 # occurrence of a key winning: --door ticket-door.sh, --state final-state.sh, --claim
 # `final-claim.sh claim`, --release `final-claim.sh release`, --yield `final-claim.sh yield`,
-# --order landing-order.sh (the run's last read). --review holds the Integration line and the
+# --order landing-order.sh (the run's last read), --land land-spec.sh's one line, --check
+# completion-check.sh. --review holds the Integration line and the
 # Review return as the session wrote them, copied as they stand.
 #
 # The same files and arguments print the same lines.
@@ -20,7 +22,7 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: reply-lines.sh final|repositories --door <f> [--state <f>] [--claim <f>] [--release <f>] [--yield <f>] [--order <f>] [--review <f>] [--reason <text>]" >&2
+  echo "usage: reply-lines.sh final|repositories|landing --door <f> [--state <f>] [--claim <f>] [--release <f>] [--yield <f>] [--order <f>] [--review <f>] [--reason <text>]" >&2
   exit 2
 }
 
@@ -169,6 +171,34 @@ cmd_repositories() {
   esac
 }
 
+open_entries() { # the --check record's open= lines -> one `<stem> (<status>)` entry each, comma-joined
+  local line rest status path entries=()
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in open=none | open=) continue ;; open=*) ;; *) continue ;; esac
+    rest="${line#open=* }"
+    status="${rest%% *}"
+    path="${rest#* }"
+    path="${path##*/}"
+    entries+=("${path%.md} ($status)")
+  done <"${given[check]}"
+  [ "${#entries[@]}" = 0 ] || joined "${entries[@]}"
+}
+
+cmd_landing() {
+  local land branch entries
+  IFS= read -r land <"${given[land]}" || [ -n "$land" ] || failed "land unknown"
+  value_of branch door spec_branch
+  case "$land" in
+    "landed "*) echo "landed at ${land#landed } on $branch" ;;
+    *) failed "land unknown" ;;
+  esac
+  echo "Review: none, the Spec is reviewed once its last Ticket lands"
+  if [ -n "${given[check]-}" ]; then
+    entries="$(open_entries)"
+    [ -z "$entries" ] || echo "Open: $entries"
+  fi
+}
+
 ticket_number() { # the door Ticket's leading number, from its file name
   local ticket
   value_of ticket door ticket
@@ -260,7 +290,7 @@ parse_flags() { # $1 the flags a file names, $2 the flags a text names, $3.. the
     if [[ " $files " == *" $name "* ]]; then
       [ -f "$2" ] && [ -r "$2" ] || usage
       given[$name]="$2"
-      [ "$name" = review ] || read_source "$name" "$2"
+      case "$name" in review | land) ;; *) read_source "$name" "$2" ;; esac
     elif [[ " $texts " == *" $name "* ]]; then
       given[$name]="$2"
     else
@@ -278,6 +308,11 @@ case "$sub" in
     parse_flags "door state claim release yield order review" "reason" "$@"
     [ -n "${given[door]-}" ] || usage
     cmd_final
+    ;;
+  landing)
+    parse_flags "door land check" "" "$@"
+    [ -n "${given[door]-}" ] && [ -n "${given[land]-}" ] || usage
+    cmd_landing
     ;;
   repositories)
     parse_flags "door claim release yield order" "" "$@"
