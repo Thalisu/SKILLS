@@ -86,7 +86,7 @@ branch and `refs/heads/do/<slug>`, qualified so a same-named tag can never shado
   the review already read the branch, and it runs once per run, per
   [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
   so the run integrates and lands through the fix call on that Review with no **Gate** of the
-  run's own before it, never a second review.
+  run's own before it, never a second review. Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
 - Uncommitted changes in the worktree are asked about before they are discarded, since the discard
   is the one irreversible act on this path. The question is the turn's final message: it says the
   run resumes, names the worktree and its branch, and names the changes one line per file from

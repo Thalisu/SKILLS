@@ -350,7 +350,7 @@ on before the rebase starts: the command that undoes the rebase is not the same 
 finished, and the recorded commit is what the later one names. A run the review already read, a
 resume whose `review=` line names a Review, walks this step the same way and then lands through
 the fix call, never a second review, per
-[ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md).
+[ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md). Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
 
 **The target on a Ticket of a Spec.** A `ticket` run whose Ticket has a Spec branch integrates onto
 that branch, `refs/heads/spec/<feature-slug>`, and never onto the developer's branch, per

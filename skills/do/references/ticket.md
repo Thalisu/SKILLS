@@ -322,6 +322,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   **Gate** of the run's own after it,
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
+  Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
 - On a Ticket of a Spec, one whose door printed `spec_exists=yes`, the script prints
   `base=spec/<feature-slug>` and reads `merge_base`, `tip`
   and `stop=` against that branch, so wherever a bullet of this section says the developer's
@@ -443,7 +444,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
 
   A `review=` line that names a Review means the rebase came after the review: once it finishes,
   the branch lands through the fix call on that Review with no **Gate** of the run's own before it,
-  and is never reviewed a second time.
+  and is never reviewed a second time. Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
 - A Spec amended while the Ticket is `claimed` is resumed the same way whoever amended it: `discuss`
   after a run stopped on an Extreme fork (the forks in [forks.md](forks.md)), or the
   developer editing a Ruling line in the Spec's Implementation Decisions to reverse it. No
@@ -534,7 +535,7 @@ of this project's facts and the Review at the `review_file=` path the claim prin
      `--auto` the `(abort / continue)` question is still asked of the developer, with the
      `choice-taker`'s return above it as that bullet says, per [forks.md](forks.md). A `review=`
      line naming a Review means the rebase came after the review, so the branch lands through the
-     fix call once it finishes.
+     fix call once it finishes. Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
    - `verdict=ask`, exit 1: uncommitted work in the tree with no rebase open. The run asks before
      discarding it, as the `verdict=ask` bullet above says, naming the tree and the Spec branch. A
      yes discards it and the run goes on as `verdict=restart` with the tree present; a no stops the
@@ -545,7 +546,7 @@ of this project's facts and the Review at the `review_file=` path the claim prin
    - `verdict=land`, exit 4: the Review beside the Spec counts, so the review already read the
      Spec branch. The run integrates with no **Gate** of its own and lands through the fix call on
      that Review, as the review in [mechanics.md](mechanics.md) says for a branch the review
-     already read, never a second review of the Spec.
+     already read, never a second review of the Spec. Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
    - Exit 2: the tree is on a detached HEAD or on another branch with no rebase open. The run stops
      as blocked in one line naming the tree and the script's reason.
 4. **The rest of the final integration**, from the step the verdict named, ending in the release on

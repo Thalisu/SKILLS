@@ -35,9 +35,11 @@ expect "SKILL.md links not-landed.md in its references-list entry alone" \
 
 echo "# each review step sends a return other than route=verify to not-landed.md at that point"
 # $1 the review step, $2 its text; the step carries the pointer followed by a condition.
+# Optional: $3 what sends the run there, for the case's label, a return other than route=verify when
+# left out.
 points_at_not_landed() {
   expect "$1 is found" test -n "$2"
-  expect "$1 reads not-landed.md when a return is other than route=verify" \
+  expect "$1 reads not-landed.md when ${3:-a return is other than route=verify}" \
     grep -qE 'Read \[not-landed\.md\]\(not-landed\.md\) when [^ ]' <<<"$2"
 }
 key="integration.sh settle <the worktree>"
@@ -51,6 +53,27 @@ points_at_not_landed "bug-fix.md's review step" \
   "$(item_holding "$refs/bug-fix.md" '\*\*[0-9]+\.' "$key" | tr '\n' ' ' | tr -s ' ')"
 points_at_not_landed "refactoring.md's review step" \
   "$(item_holding "$refs/refactoring.md" '### [0-9]+\.' "$key" | tr '\n' ' ' | tr -s ' ')"
+
+# A resume on a Review that already counts has no review return of its own to send it there: the
+# fix call's lines (`Caller: do`, its arguments, no `command=` line on a resume) live in
+# not-landed.md alone, so a path without the pointer calls the review with no `Caller: do` line.
+echo "# each Resume path that lands through the fix call on a Review the run has reads not-landed.md there"
+via_fix="it lands through the fix call on a Review the run already has"
+points_at_not_landed "ticket.md's verdict=land resume bullet" \
+  "$(bullets_opening_on "$refs/ticket.md" "On \`verdict=land\`, the review already read this branch")" "$via_fix"
+points_at_not_landed "ticket.md's mid-rebase resume, a review= line naming a Review" \
+  "$(passage_of "$refs/ticket.md" "  A \`review=\` line that names a Review means the rebase came after the review" "- " |
+    tr '\n' ' ' | tr -s ' ')" "$via_fix"
+points_at_not_landed "ticket.md's stopped Final integration, step 3's verdict=land" \
+  "$(passage_of "$refs/ticket.md" "### A stopped Final integration" "## " |
+    bullets_opening_on /dev/stdin "\`verdict=land\`, exit 4: the Review beside the Spec counts")" "$via_fix"
+points_at_not_landed "bug-fix.md's resume on a Review that counts" \
+  "$(bullets_opening_on "$refs/bug-fix.md" "A Review of the branch" |
+    grep -F "A Review that counts means the review already read the branch")" "$via_fix"
+points_at_not_landed "refactoring.md's resume on a Review that counts" \
+  "$(paragraph_with "$refs/refactoring.md" "a Review that counts decides" | tr -s ' ')" "$via_fix"
+points_at_not_landed "mechanics.md's integration on a run the review already read" \
+  "$(paragraph_with "$refs/mechanics.md" "A run the review already read, a" | tr -s ' ')" "$via_fix"
 
 echo "# skills/do: every pointer to not-landed.md reads Read [not-landed.md](not-landed.md) when <condition>"
 # A link to the file, under any relative path, is a pointer, except SKILL.md's references-list entry
