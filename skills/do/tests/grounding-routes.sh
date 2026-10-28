@@ -8,6 +8,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 mech="$here/../references/mechanics.md"
 ticket="$here/../references/ticket.md"
+impeccable="$here/../references/impeccable.md"
 fails=0
 
 # A passage that compares hashes in prose leaves the session to run the comparison, and two runs
@@ -59,7 +60,7 @@ carries_each "the re-check routes on the verify verdicts" \
 no_session_compare "the re-check leaves no hash comparison to the session"
 
 # do-impeccable returns no Plan, so its re-check is the call with no destination.
-flat="$(paragraph_with "$ticket" "The return of \`do-impeccable\` is the lines" | tr -s ' ')"
+flat="$(paragraph_with "$impeccable" "The return of \`do-impeccable\` is the lines" | tr -s ' ')"
 carries "do-impeccable's return is re-checked by grounding.sh verify with no destination" \
   "grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=>\`"
 
