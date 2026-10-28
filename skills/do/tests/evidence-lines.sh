@@ -38,4 +38,9 @@ same "evidence-lines.sh prints Context: not measured and Forks: not measured wit
 Forks: not measured, no assistant message with usage in t.jsonl"
 [ "$rc" = 0 ] || fail "a not-measured pair exits 0 (exit $rc)"
 
+run 'ground_reason=no session id: not a Claude Code session' resumed=no peak=98411 band=small forks=1 'fork_kinds=Explore 1'
+same "evidence-lines.sh prints Context: not measured with the ground reading's reason and a measured Forks line when only the ground reading failed" \
+  "Context: not measured, no session id: not a Claude Code session
+Forks: 1 (Explore 1)"
+
 [ "$fails" = 0 ]

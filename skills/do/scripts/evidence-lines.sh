@@ -7,11 +7,12 @@
 #
 # Reads key=value lines on stdin, unknown keys ignored:
 #   grounded=<tokens>                 the ground reading's current
+#   ground_reason=<text>              the ground reading's stderr, in its place when it exited non-zero
 #   resumed=yes|no                    yes when the run recorded the Resume line of ticket.md
 #   peak=<tokens> band=<band> forks=<n> fork_kinds=<kinds>   the close reading, as context-usage.sh prints it
 #   close_reason=<text>              the close reading's stderr, in its place when it exited non-zero
 # Prints the Context line, then the Forks line. A close_reason puts both lines at not measured with
-# that reason, and no resumed label.
+# that reason, and no resumed label; a ground_reason alone puts the Context line at not measured.
 # Exit codes: 0 both lines printed.
 set -euo pipefail
 declare -A in=()
@@ -22,7 +23,11 @@ if [ -n "${in[close_reason]+set}" ]; then
   printf 'Context: not measured, %s\nForks: not measured, %s\n' "${in[close_reason]}" "${in[close_reason]}"
   exit 0
 fi
-printf 'Context: grounded %s, peak %s, %s\n' "${in[grounded]}" "${in[peak]}" "${in[band]}"
+if [ -n "${in[ground_reason]+set}" ]; then
+  printf 'Context: not measured, %s\n' "${in[ground_reason]}"
+else
+  printf 'Context: grounded %s, peak %s, %s\n' "${in[grounded]}" "${in[peak]}" "${in[band]}"
+fi
 suffix=""
 [ "${in[resumed]:-}" = yes ] && suffix=", this session only (resumed run)"
 if [ "${in[forks]}" = 0 ]; then
