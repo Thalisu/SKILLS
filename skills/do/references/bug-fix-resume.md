@@ -17,7 +17,7 @@ and `git status --short` in the worktree.
   never created again. An existing branch with no worktree gets its worktree back on that
   branch, `git worktree add .claude/worktrees/do-<slug> do/<slug>`, without `-b`, and never under
   a second slug.
-- The run records the resume line for the Run report's Run section, per [reply.md](reply.md): it says
+- The run records the resume line for the Run report's Run section: it says
   the run resumed, names the worktree and its branch, and lists the commits found, one line each
   with its `Behaviour:` line. Step 0's read-back, surface, predicate and loop line are recorded
   again from the request for the Run report's Run section, and the Run report's Run section carries

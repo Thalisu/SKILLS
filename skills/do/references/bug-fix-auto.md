@@ -31,8 +31,7 @@ on, and which way. Without the flag each is asked as its step says.
    its `Fork:` line names those options and no other, and its `Losing criterion:` reads `none`.
 3. On a `settled` Ruling the run does what the step says for that answer, as if the developer had
    typed it, and carries on with no message asking for a confirmation. The Ruling is written to no
-   file of the project, and the Run report lists it under `Rulings`, in its `On the run:` group, per
-   [reply.md](reply.md).
+   file of the project, and the Run report lists it under `Rulings`, in its `On the run:` group.
 4. On an `extreme` return or on no Ruling, the question is asked as without the flag, one line
    above it naming the reason or quoting the return.
 
