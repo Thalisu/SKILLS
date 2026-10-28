@@ -43,3 +43,8 @@ size a slice there at all, and says which script is missing.
 
 A change to the thresholds is one edit, in the shared script and its test, with ADR 0016 amended
 beside it.
+
+Amended: `skills/do/scripts/estimate-load.sh` and its test are deleted. The estimator was advisory,
+no skill read it, and it counted the references `do` reads only on a condition as fixed load. Two
+callers of the shared script remain: `skills/do/scripts/context-usage.sh`, which exits 5 when it
+cannot find it, and `skills/tickets/scripts/estimate.sh`, which exits 2.
