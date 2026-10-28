@@ -238,5 +238,39 @@ echo "# every pointer to forks.md reads \`Read [forks.md](forks.md) when <condit
 pointers_shaped "every pointer to forks.md has the \`Read <file> when <condition>\` shape" \
   "$(cd "$here/.." && pwd -P)" forks.md 10
 
+echo "# a settled Design fork, outside --auto and with no side read as Extreme, loads no Extreme stop and no run question"
+
+# The unruled stop's section stays whole, its own `.extreme.md` sentence and its pointer to
+# extreme-fork.md included: it is found by the reason its `/discuss` line carries, and set aside.
+unruled_key="on a Design fork no choice-taker ruled"
+expect "forks.md carries the unruled stop's section" grep -qF "$unruled_key" "$forks"
+out="$(unruled_key="$unruled_key" awk '
+  /^#+ / { if (!index(sec, ENVIRON["unruled_key"])) printf "%s", sec; sec = "" }
+  { sec = sec $0 "\n" }
+  END { if (!index(sec, ENVIRON["unruled_key"])) printf "%s", sec }
+' "$forks" | tr '\n' ' ' | tr -s ' ')"
+for key in "/discuss Ticket" ".extreme.md" "the sidecar" "resume-state.sh" "extreme=" "discuss="; do
+  absent "forks.md, its unruled stop aside, carries none of the Extreme stop or its resume" "$key"
+done
+
+if grep -E '^#+ ' "$forks" | grep -qiF "run question"; then
+  fail "forks.md holds no section on run questions (found: $(grep -E '^#+ ' "$forks" | grep -iF "run question"))"
+else
+  ok "forks.md holds no section on run questions"
+fi
+out="$pre"
+absent "forks.md's opening names no --auto verification among its readers" "verification"
+
+for target in extreme-fork.md run-questions.md; do
+  windows="$(pointers_to "$(cd "$here/.." && pwd -P)" "$target" sentence)"
+  expect "the do skill's references point at $target" test -n "$windows"
+  unmet="$(grep -viF -e "extreme" -e "--auto" -e "unruled stop" -e "change-of-direction" <<<"$windows")"
+  if [ -z "$unmet" ]; then
+    ok "every pointer to $target is conditioned on Extreme, --auto, the unruled stop or the change-of-direction stop"
+  else
+    fail "every pointer to $target is conditioned on Extreme, --auto, the unruled stop or the change-of-direction stop (unmet: ${unmet//$'\n'/; })"
+  fi
+done
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

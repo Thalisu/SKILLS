@@ -246,11 +246,19 @@ bullets_opening_on() { # $1 file, $2 a fixed string a bullet's marker line carri
 # A pointer is a link to a reference, read with the `Read ` before it and the ` when ` after it where
 # they stand: the references hard-wrap, so a file is flattened before its links are read.
 pointers_to() { # $1 the skill's folder, $2 a reference's file name: every link to it from the skill's references and agents but the file's own, `<file>: <link>` one per line, on stdout
+  # Optional: $3 sentence: each link's own sentence, after the sentence before it, in place of the
+  # link: a condition that names its subject there ("this line", "either one") is read with it.
   local file re="${2//./\\.}"
   for file in "$1"/references/*.md "$1"/agents/*.md; do
     [ "$file" = "$1/references/$2" ] && continue
-    tr '\n' ' ' <"$file" | tr -s ' ' |
-      grep -oE "(Read )?\[[^]]*\]\(([^)]*/)?$re(#[^)]*)?\)( when )?" | sed "s|^|$(basename "$file"): |"
+    if [ "${3:-}" = sentence ]; then
+      tr '\n' ' ' <"$file" | tr -s ' ' | link="[]][(]([^)]*/)?${2//./[.]}(#[^)]*)?[)]" awk '
+        { n = split($0, s, /\. /); for (i = 1; i <= n; i++) if (s[i] ~ ENVIRON["link"]) print (i > 1 ? s[i - 1] ". " : "") s[i] }
+      '
+    else
+      tr '\n' ' ' <"$file" | tr -s ' ' |
+        grep -oE "(Read )?\[[^]]*\]\(([^)]*/)?$re(#[^)]*)?\)( when )?"
+    fi | sed "s|^|$(basename "$file"): |"
   done
 }
 pointers_shaped() { # $1 label, $2 the skill's folder, $3 a reference's file name, $4 the fewest pointers the skill holds to it: each reads `Read [<file>](<file>) when `
