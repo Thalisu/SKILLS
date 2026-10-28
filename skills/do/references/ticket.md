@@ -1194,11 +1194,6 @@ Completion check's `next=` line names.
 Read [stand-in.md](stand-in.md) when no Builder can be forked: the Agent tool is withheld from the
 session, or it lists no `do-builder`.
 
-The stand-in never reaches a Front-end ticket of a Spec reading `Front-end: impeccable`. The Door stopped
-it when the session lists no impeccable skill, and this step never falls back to the Builder for
-it on its own, neither by forking `do-builder` nor by the session running the loop in its place: the
-Spec's line names who builds the screen, and only the developer changes it.
-
 Done when the return's `behaviour:` lines each carry a commit and match what `resume-state.sh`
 prints, or the run took one of the two routes above that end it, and the build lines are recorded
 for the Run report's Run section.
