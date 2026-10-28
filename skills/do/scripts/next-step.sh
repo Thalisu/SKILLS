@@ -101,6 +101,18 @@ main() {
     final-landed | landing-wait) landing_line ;;
     pr-green) merge_lines green ;;
     pr-awaiting-approval) merge_lines awaiting ;;
+    integrated)
+      need op
+      if [ "${key[op]}" = rebase ] && [ "${key[upstream]:-no}" = yes ]; then
+        echo "git push --force-with-lease"
+      else
+        echo "git push"
+      fi
+      ;;
+    integrate-blocked)
+      need abort
+      echo "${key[abort]}"
+      ;;
     claim-taken) echo "Another run is integrating the Spec, and there is nothing to type." ;;
     final-stopped)
       need ticket

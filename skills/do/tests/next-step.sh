@@ -83,4 +83,16 @@ run outcome=pr-green yours=no pr=42 pushed=yes head=notes-export
 same "a pr run that pushed a round names the pull of the developer's local head before the merge" \
   "$(printf '%s\n' 'On your checkout of notes-export: git pull --ff-only origin notes-export' 'gh pr merge 42' 'exit 0')"
 
+run outcome=integrated yours=no op=rebase upstream=yes
+same "an integrate run that rebased a branch with an upstream ends on a push with lease" \
+  "$(printf '%s\n' 'git push --force-with-lease' 'exit 0')"
+
+run outcome=integrated yours=no op=merge upstream=yes
+same "an integrate run that merged ends on a plain push" \
+  "$(printf '%s\n' 'git push' 'exit 0')"
+
+run outcome=integrate-blocked yours=no op=rebase 'abort=git rebase --abort'
+same "an integrate run blocked mid-operation ends on the abort command the door printed" \
+  "$(printf '%s\n' 'git rebase --abort' 'exit 0')"
+
 exit "$((fails > 0))"
