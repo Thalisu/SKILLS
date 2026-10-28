@@ -154,4 +154,31 @@ run plan "$root" "${ticket_file#"$root"/}" "$digest" "$plan"
 check_lines "plan forks with no Plan at the destination" 1 "$rc" "verdict=fork"
 absent "plan removes nothing when no Plan is there" "removed="
 
+# The session builds from a Plan it never reads: the header is the only thing vouching for it.
+home verify 'Journey: not needed'
+digest_with "spec: $spec $(hash_of "$spec")" "journey: absent"
+plan="$issues/01-thing.plan.md"
+t_hash="$(hash_of "$ticket_file")"
+d_hash="$(hash_of "$digest")"
+recorded=("$root" "${ticket_file#"$root"/}" "$t_hash" "$digest" "$d_hash" "$plan")
+plan_with "ticket: $ticket_file $t_hash" "digest: $digest $d_hash"
+run verify "${recorded[@]}"
+check_lines "verify matches a Plan whose Sources are exactly the two records" 0 "$rc" "verdict=match"
+
+plan_with "ticket: $ticket_file $t_hash" "digest: $digest $d_hash" "note: build the other thing"
+run verify "${recorded[@]}"
+check_lines "verify refuses a Plan with a third line appended to its Sources" 1 "$rc" "verdict=refused"
+
+plan_with "ticket: $ticket_file $t_hash" "ticket: $ticket_file $t_hash"
+run verify "${recorded[@]}"
+check_lines "verify refuses a Plan whose Sources repeat one name in place of the other" 1 "$rc" "verdict=refused"
+
+plan_with "ticket: $digest $d_hash" "digest: $ticket_file $t_hash"
+run verify "${recorded[@]}"
+check_lines "verify refuses a Plan whose Sources swap the two names" 1 "$rc" "verdict=refused"
+
+rm -f "$plan"
+run verify "${recorded[@]}"
+check_lines "verify refuses when no Plan is at the destination" 1 "$rc" "verdict=refused"
+
 [ "$fails" = 0 ]

@@ -15,6 +15,9 @@
 #       is exactly the Ticket's and the Digest's records, hashed now; fork otherwise, a Plan that
 #       is there removed first, since the Planner's hook refuses a write over one. The ticket=,
 #       ticket_hash=, digest= and digest_hash= lines are the values the session records
+#   grounding.sh verify <root> <ticket> <ticket hash> <digest path> <digest hash> [<destination>]
+#       the check of a returned Plan against the recorded hashes: refused when the destination
+#       holds no file or its ## Sources is not exactly the two records; match otherwise
 #
 # A record is one ## Sources line, `<name>: <absolute path> <hash>`, or `<name>: absent`, a
 # relative Ticket path joined to <root>. It matches a Digest's section when the section holds
@@ -22,8 +25,8 @@
 # holds exactly two non-blank lines, the Ticket's record and the Digest's.
 #
 # Prints key=value lines, verdict= last. Exit codes: digest 0 reuse, 1 fork, 5 extreme · plan
-# 0 carried, 1 fork · 2 usage,
-# <root> not a git work tree, or a sidecar that is not the Ticket's own.
+# 0 carried, 1 fork · verify 0 match, 1 refused · 2 usage, <root> not a git work tree, a hash
+# argument that is neither an object name nor absent, or a sidecar that is not the Ticket's own.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -33,6 +36,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 usage() {
   echo "usage: grounding.sh digest <root> <ticket> <digest path> [<extreme sidecar>]" >&2
   echo "       grounding.sh plan <root> <ticket> <digest path> <destination>" >&2
+  echo "       grounding.sh verify <root> <ticket> <ticket hash> <digest path> <digest hash> [<destination>]" >&2
   exit 2
 }
 
@@ -99,6 +103,29 @@ cmd_plan() {
   return 1
 }
 
+a_hash() { # $1 a hash argument: exits 2 unless it is an object name or absent
+  [[ "$1" =~ ^([0-9a-f]{40}|[0-9a-f]{64}|absent)$ ]] || {
+    echo "not an object name or absent: $1" >&2
+    exit 2
+  }
+}
+
+cmd_verify() {
+  [ $# = 5 ] || [ $# = 6 ] || usage
+  root="$1"
+  at_root "$root"
+  a_hash "$3"
+  a_hash "$5"
+  local ticket digest
+  ticket="$(ticket_of "$2")"
+  digest="$(absolute "$4")"
+  if [ $# = 6 ] && ! { [ -f "$6" ] && plan_matches "$6" "$(record ticket "$ticket" "$3")" "$(record digest "$digest" "$5")"; }; then
+    echo "verdict=refused"
+    return 1
+  fi
+  echo "verdict=match"
+}
+
 cmd_digest() {
   [ $# = 3 ] || [ $# = 4 ] || usage
   root="$1"
@@ -160,6 +187,10 @@ case "${1:-}" in
   plan)
     shift
     cmd_plan "$@"
+    ;;
+  verify)
+    shift
+    cmd_verify "$@"
     ;;
   *) usage ;;
 esac
