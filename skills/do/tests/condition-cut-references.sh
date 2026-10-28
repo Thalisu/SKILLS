@@ -9,6 +9,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 refs="$here/../references"
 builder="$refs/builder.md"
 agent="$here/../agents/do-builder.md"
+skill="$here/../SKILL.md"
 fails=0
 
 subsection() { # $1 file, $2 the heading line; the flattened subsection on stdout
@@ -170,5 +171,35 @@ carries_each "verification.md's opening names the verification steps and the Fin
   "verification step" -- "Final integration"
 carries "verification.md's opening names its condition, an affected flow or a full E2E suite" \
   "affected flow" "full_e2e=yes"
+
+echo "# SKILL.md's references list names each new reference with its readers and its condition"
+
+entry() { # $1 file name: its SKILL.md references-list bullet, flattened
+  bullets_opening_on "$skill" "[$1](references/$1):" | tr -s ' '
+}
+
+flat="$(entry flows.md)"
+carries "the flows.md entry names its readers and its condition" \
+  "Builder" "do-impeccable" "\`## Observable criteria\`" "names a criterion"
+flat="$(entry time-budget.md)"
+carries "the time-budget.md entry names its readers and its condition" "Builder" "build step" "stretch=stop"
+flat="$(entry global-authors.md)"
+carries "the global-authors.md entry names its readers and its condition" \
+  "build loop" "flows" "\`Loop: global\`" "\`Loop: fallback\`"
+flat="$(entry second-run.md)"
+carries "the second-run.md entry names its readers and its condition" \
+  "door" "reader section" "Digest already sits beside the Ticket"
+flat="$(entry verification.md)"
+carries "the verification.md entry names its readers and its condition" \
+  "verification step" "Final integration" "affected flow" "full_e2e=yes"
+
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(entry mechanics.md)"
+absent "the mechanics.md entry no longer lists the verification" "the verification"
+absent "the mechanics.md entry no longer lists the second run" "second run"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(entry builder.md)"
+absent "the builder.md entry no longer lists the flows" "flows"
+absent "the builder.md entry no longer lists the time budget" "time budget"
 
 [ "$fails" -eq 0 ]
