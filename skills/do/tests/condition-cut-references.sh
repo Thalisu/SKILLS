@@ -137,4 +137,38 @@ carries "verification.md runs the affected flows by script and stops blocked on 
 carries "verification.md asks before a full suite, ruled by the choice-taker under --auto" "--auto" "choice-taker"
 carries "verification.md fixes a red flow as one more unit of the build loop" "[build-loop.md](build-loop.md)" "\`bugfix\`"
 
+echo "# each new reference opens on every reader that reaches it and the condition that sends them"
+
+opening() { # $1 file: the first paragraph past the title, on one line
+  awk 'BEGIN { RS = "" } !/^#/ { gsub(/\n/, " "); print; exit }' "$1" 2>/dev/null | tr -s ' '
+}
+
+flat="$(opening "$refs/flows.md")"
+carries_each "flows.md's opening names the Builder, do-impeccable and the session in the Builder's place" \
+  "Builder" -- "do-impeccable" -- "session"
+carries "flows.md's opening names its condition, the Digest's Observable criteria naming a criterion" \
+  "\`## Observable criteria\`" "names a criterion"
+
+flat="$(opening "$refs/time-budget.md")"
+carries_each "time-budget.md's opening names the Builder and the build step that reads a spent-budget return" \
+  "Builder" -- "build step"
+carries "time-budget.md's opening names its condition, stretch=stop or a stopped: line naming a spent budget" \
+  "stretch=stop" "spent time budget"
+
+flat="$(opening "$refs/global-authors.md")"
+carries_each "global-authors.md's opening names the build loop and the flows" "build loop" -- "flows"
+carries "global-authors.md's opening names its condition, the loop line reading Loop: global or Loop: fallback" \
+  "\`Loop: global\`" "\`Loop: fallback\`"
+
+flat="$(opening "$refs/second-run.md")"
+carries_each "second-run.md's opening names the door and the reader section" "door" -- "reader section"
+carries "second-run.md's opening names its condition, a Digest already beside the Ticket" \
+  "Digest already sits beside the Ticket"
+
+flat="$(opening "$refs/verification.md")"
+carries_each "verification.md's opening names the verification steps and the Final integration" \
+  "verification step" -- "Final integration"
+carries "verification.md's opening names its condition, an affected flow or a full E2E suite" \
+  "affected flow" "full_e2e=yes"
+
 [ "$fails" -eq 0 ]
