@@ -1051,44 +1051,6 @@ the brief that file fixes, filled from the Plan's path step 1 returned and the w
 branch step 2 created. The keys are in [builder.md](builder.md) and are never copied here, the way
 the Plan step's keys are never copied here.
 
-Around the fork of `do-impeccable`, and around that fork alone, the run reads the main checkout
-twice by script: the fork's write guard matches text, and a builder that ignored its worktree
-leaves files in the developer's checkout that no commit carries. Before the fork,
-`bash <skill-dir>/scripts/main-untouched.sh snapshot <the main checkout> <the state file>` records
-the checkout's uncommitted state, with its git hooks and its git config, which every worktree
-shares and no `git status` reports. A file git ignores is outside what it reads. The state file is
-`<the main checkout's git common dir>/do/main-state/<the slug>.state`, the path
-`git -C <the main checkout> rev-parse --path-format=absolute --git-path do/main-state/<the slug>.state`
-prints, under the slug step 2 cut the worktree with: no `git status` reports it, so it
-needs no `.scratch/` ignore line, which a Ticket run from its Build repository under
-`Loop: policy` never writes there, and it stays out of the Ticket's `issues/` folder, per
-[ADR 0110](../../../docs/adr/0110-the-main-checkouts-snapshot-is-kept-in-the-git-common-dir-not-the-scratch.md).
-After the fork returns,
-right after the revoke below and before any check or route of the return,
-`bash <skill-dir>/scripts/main-untouched.sh check <the main checkout> <the state file>` compares
-the checkout with that record, so the check always runs before step 4 and before the Gate. Every
-fork gets a snapshot of its own: a re-fork after a `fork` or a cleared `stopped`, and a resumed run
-that forks again, snapshots again first, since the developer may have worked in the checkout
-between the two forks.
-
-Either call exiting 2 prints no verdict, and no verdict is never an untouched checkout. A snapshot
-that exits 2 stops the run as blocked before the fork, with nothing forked, the Ticket still
-`claimed` and the worktree and its branch kept and named, in one line quoting the script's reason.
-A check that exits 2 stops the run as blocked before any check or route of the return, the way
-`verdict=changed` does below, the worktree, its branch and its commits kept for the resume and its
-line quoting the script's reason.
-On `verdict=untouched` from `main-untouched.sh check` the run goes on to the checks and the routes
-below with nothing added to the Run report. On `verdict=changed` the run stops as blocked before the
-Gate, whatever verdict the fork returned. The stop's class is `direction`: the Reply lists the
-`file=` lines the check printed, which are the files that changed since the fork began and never
-the work that was already uncommitted, a git hook or the git config among them as an absolute
-path, and carries one `Yours: direction:` line with the two
-choices, to move the files into the worktree by hand and run `/do` on the Ticket again, or to
-discard them and run `/do` again, in the blocked shape [reply.md](reply.md) fixes. The run removes
-nothing, in the main checkout or anywhere else: which of those files belong to the screen is the
-developer's to say. The worktree and its commits stay in place for the resume, and the Ticket
-still reads `claimed`.
-
 As soon as the Builder returns, before any of the checks below run and before any of their routes
 is taken, revoke the token again, the same call step 3 opened with:
 `bash <skill-dir>/scripts/review-token.sh revoke <the slug>`. The window a live token could reach a
