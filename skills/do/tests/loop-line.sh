@@ -28,4 +28,9 @@ same "loop-line.sh prints Loop: global and a line naming global-unit-test-author
   "Loop: global
 Unit test author: global-unit-test-author"
 
+run loop=global agent=withheld
+same "loop-line.sh prints Loop: fallback and a line saying the Agent tool is withheld, so the run writes every unit test itself and authors the flow itself, for loop=global with the Agent tool withheld" \
+  "Loop: fallback
+Agent tool withheld: the run writes every unit test itself, red first, and authors the flow itself"
+
 [ "$fails" = 0 ]
