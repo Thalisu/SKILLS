@@ -21,4 +21,9 @@ misshaped="$(grep -nF 'resume.md' "$ticket" | grep -vE "$pointer_shape")"
 expect "every line of ticket.md naming resume.md reads Read [resume.md](resume.md) when <condition>" \
   test -z "$misshaped"
 
+echo "# ticket.md / ## Door: a resumed run is sent to resume.md where the door prints verdict=resume"
+door="$(passage_of "$ticket" "## Door" "## A stopped Final integration")"
+expect "the Door reads Read [resume.md](resume.md) when the door prints verdict=resume" \
+  grep -qF "Read [resume.md](resume.md) when the door prints verdict=resume" <<<"$door"
+
 exit $((fails > 0))
