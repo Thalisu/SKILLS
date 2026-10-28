@@ -573,6 +573,86 @@ LEDGER
 }
 a_branch_that_holds_its_target_with_nothing_owed_is_a_noop
 
+# A run resumed between two reapply commits holds its target already, and a no-op tick there would
+# lose the reapply the judge kept: each owed entry is named for the session to bring back.
+a_branch_that_holds_its_target_with_a_reapply_owed_brings_it_back() {
+  run_held held-owed
+  mkdir -p .scratch
+  cat >.scratch/run.ledger.md <<'LEDGER'
+# Loss ledger
+
+## aaaaaaaaaaa1
+
+- file: owed.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+- verdict: reapply, the incoming fix is still needed
+
+### Target (kept)
+
+```
+kept
+```
+
+### Incoming (set aside)
+
+```
+set aside
+```
+
+## bbbbbbbbbbb2
+
+- file: dropped.txt
+- location: L4-L6
+- shape: rewrite-vs-rewrite
+- commit: 3333333333333333333333333333333333333333
+- before: 4444444444444444444444444444444444444444
+- verdict: drop, already on the target
+
+### Target (kept)
+
+```
+kept
+```
+
+### Incoming (set aside)
+
+```
+set aside
+```
+
+## ccccccccccc3
+
+- file: also-owed.txt
+- location: L7-L9
+- shape: rewrite-vs-rewrite
+- commit: 5555555555555555555555555555555555555555
+- before: 6666666666666666666666666666666666666666
+- verdict: reapply, the incoming guard is still needed
+
+### Target (kept)
+
+```
+kept
+```
+
+### Incoming (set aside)
+
+```
+set aside
+```
+LEDGER
+  run_check "$wt" main "$PWD/.scratch/run.ledger.md"
+  check_lines "a worktree holding its target whose ledger owes reapplies brings each one back" 3 "$rc" \
+    "owed=aaaaaaaaaaa1" "owed=ccccccccccc3" "verdict=reapply"
+  absent "an entry judged drop is owed nothing" "owed=bbbbbbbbbbb2"
+  absent "a reapply owed is never ticked a no-op" "verdict=noop"
+  cd "$repo" || exit 1
+}
+a_branch_that_holds_its_target_with_a_reapply_owed_brings_it_back
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

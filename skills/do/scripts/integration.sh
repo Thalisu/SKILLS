@@ -56,7 +56,12 @@ owed_ids() {
 echo "target=$ref"
 if git -C "$worktree" merge-base --is-ancestor "$ref" HEAD; then
   echo "ancestor=yes"
-  owed_ids >/dev/null || exit 2
+  owed="$(owed_ids)" || exit 2
+  if [ -n "$owed" ]; then
+    printf '%s\n' "$owed" | sed 's/^/owed=/'
+    echo "verdict=reapply"
+    exit 3
+  fi
   echo "verdict=noop"
   exit 0
 fi
