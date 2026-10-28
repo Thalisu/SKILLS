@@ -203,20 +203,7 @@ the tracker file describes. Before anything is written:
   developer's call, so it carries `Yours: direction:` per [reply.md](reply.md). A Ticket outside a
   feature folder's `issues/` (`spec_branch=none`, a tracker Ticket among them) has no Spec branch
   and is never refused on this ground: its worktree comes from HEAD as before.
-- A Front-end ticket of a Spec reading `Front-end: impeccable` (`kind=front-end` with
-  `front_end=impeccable`) that every check above let through is stopped when the session lists no
-  impeccable skill: its own skill listing names neither `impeccable` nor a skill under
-  `impeccable:`. The script cannot print this fact, since the listing is the session's and never a
-  file's: a skill installed on disk that this session did not load is not listed, and impeccable
-  could not run in it. The stop comes before the claim and before any worktree, in one message
-  naming the Ticket, the Spec's line and the skill the session does not list. Nothing is written,
-  nothing is claimed and nothing is cut: the Ticket keeps the `status=` the door printed. Who
-  builds the screen is the developer's call, so the message carries `Yours: direction:` with the
-  two choices, per [reply.md](reply.md): install impeccable, reload the coding tool and run
-  `/do <ticket>` again, or change the Spec's line to `Front-end: builder` and run it again.
-  The run never falls back to the Builder on its own: the Spec's line is the developer's choice of
-  who builds the screen, and a screen built by `do-builder` under `Front-end: impeccable` is one
-  nobody chose.
+- Read [impeccable.md](impeccable.md) when the door prints kind=front-end with front_end=impeccable.
 - On a remote tracker, an issue assigned to someone else stops the run in one line with their
   name.
 

@@ -7,13 +7,23 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 ticket="$here/../references/ticket.md"
+reference="$here/../references/impeccable.md"
+pointer="Read [impeccable.md](impeccable.md) when the door prints kind=front-end with front_end=impeccable"
 fails=0
 
-# The Door's bullets are its stops, and the Door puts the first write after every one of them, so
-# the stop is looked for among them and nowhere else: a sentence past the claim, or in another
-# section, would tell the developer after the Ticket was claimed and the worktree cut.
-echo "# ticket.md / ## Door: a session with no impeccable skill stops a Front-end: impeccable ticket"
-flat="$(bullets_opening_on <(passage_of "$ticket" "## Door" "## Resume") "- " | grep -F "impeccable" |
+# A Logic ticket's run reads ticket.md's Door and nothing of impeccable.md, so the Door carries one
+# pointer to the reference and the run of an impeccable Front-end ticket reads the rest there.
+echo "# ticket.md / ## Door: the Door points a Front-end: impeccable run at impeccable.md, once"
+expect "the Door carries the pointer to impeccable.md on a line of its own" \
+  grep -qF -- "$pointer" <(passage_of "$ticket" "## Door" "## Resume")
+expect "ticket.md carries that pointer exactly once" \
+  test "$(grep -cF -- "$pointer" "$ticket")" = 1
+
+# The Door's pointer sends the run here before the first write, so the stop is looked for in the
+# reference's Door section and nowhere else: a sentence past the claim, or in another section, would
+# tell the developer after the Ticket was claimed and the worktree cut.
+echo "# impeccable.md / ## The Door: a session with no impeccable skill stops a Front-end: impeccable ticket"
+flat="$(passage_of "$reference" "## The Door" "## " | tr '\n' ' ' | tr -s ' ' |
   grep -F -e "lists no impeccable" -e "lists no \`impeccable\`" -e "no impeccable skill" \
     -e "no \`impeccable\` skill" -e "impeccable is not listed" -e "\`impeccable\` is not listed" \
     -e "impeccable not listed" -e "\`impeccable\` not listed" -e "names no impeccable" \
@@ -52,7 +62,7 @@ no_fallback=(
 )
 the_builder=("the Builder" "the **Builder**" "\`do-builder\`" "do-builder")
 
-echo "# ticket.md / ## Door: the stop never falls back to the Builder on its own"
+echo "# impeccable.md / ## The Door: the stop never falls back to the Builder on its own"
 carries_each "the Door's stop says the run does not fall back to the Builder" \
   "${no_fallback[@]}" -- "${the_builder[@]}"
 
