@@ -202,7 +202,8 @@ that Playbook. The reply reference is read last by every Playbook but `setup`, w
 - [resume.md](references/resume.md): the resume of a `ticket` run, read only when one of three readers of
   ticket.md sends the run there: the Door, when the door prints `verdict=resume` (a `claimed` Ticket whose
   `do/<slug>` worktree exists); the review step, when `review-route.sh` prints `route=resume`, for its
-  all-ticked bullet; and the build step, when a Builder's return fails its checks: the state
+  all-ticked bullet; the build step, when a Builder's return fails its checks; and the stopped Final
+  integration, when `final-state.sh` prints `verdict=integration` or `verdict=ask`: the state
   `resume-state.sh` reads, the Plan reused or forked again, the tick, the discard question, the
   mid-rebase resume and the fork a resume meets again on an amended Spec.
 - [stand-in.md](references/stand-in.md): the session in the place of `do-reader` or `do-builder` when the Agent tool is withheld from it or lists no such agent, read then and only then by the `ticket` door that forks the reader, by every run that forks it again (a second run that finds a document moved, a Ruling that rewrote a Ticket criterion, the resume after `discuss`), by the build step that forks the Builder and by the Resume of resume.md that forks it at the first behaviour without a commit.

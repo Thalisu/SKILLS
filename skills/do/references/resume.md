@@ -1,11 +1,13 @@
 # The resume of a ticket run
 
-Read by the session of a `ticket` run, from three places of [ticket.md](ticket.md): the Door, when
+Read by the session of a `ticket` run, from these places of [ticket.md](ticket.md): the Door, when
 the door prints `verdict=resume` (a `claimed` Ticket whose `do/<slug>` worktree exists); the review
-step, when `review-route.sh` prints `route=resume`, for the all-ticked bullet in the same run; and
-the build step, when a Builder's return fails its checks, to pick the stretch up from what
-`resume-state.sh` printed. A run none of the three sends here never opens it. The steps named below
-are the steps of [ticket.md](ticket.md).
+step, when `review-route.sh` prints `route=resume`, for the all-ticked bullet in the same run; the
+build step, when a Builder's return fails its checks, to pick the stretch up from what
+`resume-state.sh` printed; and the stopped Final integration, when `final-state.sh` prints
+`verdict=integration` (for the mid-rebase bullet, with the Spec branch as the branch that moves) or
+`verdict=ask` (for the discard question). A run none of them sends here never opens it. The steps
+named below are the steps of [ticket.md](ticket.md).
 
 ## Resume
 

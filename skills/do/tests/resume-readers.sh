@@ -37,23 +37,32 @@ expect "every passage sending a verdict=resume-final run names the stopped Final
 expect "no passage sending a verdict=resume-final run names a Resume section" \
   bash -c '! grep -qE "Resume section|the Resume above|Resume of" <<<"$1"' _ "$senders"
 
-readers=("the Door" "The Door" -- "the review step" "The review step" -- "the build step" "The build step")
-conditions=("verdict=resume" -- "route=resume" -- "fails its checks" "fails either check" "fails a check")
+readers=("the Door" "The Door" -- "the review step" "The review step" -- "the build step" "The build step"
+  -- "the stopped Final integration" "A stopped Final integration" "The stopped Final integration")
+conditions=("verdict=resume" -- "route=resume" -- "fails its checks" "fails either check" "fails a check"
+  -- "verdict=integration" -- "verdict=ask")
+# The opening that counts its readers goes stale the day ticket.md adds one, as the stopped Final
+# integration did; a reader trusting the count changes resume.md without checking the one it misses.
+reader_count='the three|three (places|readers)|one of three'
 
 echo "# resume.md: its opening names every reader that reaches it and the condition that sends each"
 flat="$(awk '/^## /{exit} !/^# / {print}' "$resume" | tr '\n' ' ' | tr -s ' ')"
 expect "resume.md has an opening before its first section" grep -q '[a-z]' <<<"$flat"
-carries_each "the opening names the Door, the review step and the build step" "${readers[@]}"
-carries_each "the opening names each condition: verdict=resume, route=resume, a Builder return failing its checks" \
+carries_each "the opening names the Door, the review step, the build step and the stopped Final integration" \
+  "${readers[@]}"
+carries_each "the opening names each condition: verdict=resume, route=resume, a Builder return failing its checks, verdict=integration, verdict=ask" \
   "${conditions[@]}"
+expect "the opening no longer counts its readers as three" bash -c '! grep -qiE "$1" <<<"$2"' _ "$reader_count" "$flat"
 
 echo "# SKILL.md: the references-list entry for resume.md names the same readers and conditions"
 skill="$do_dir/SKILL.md"
 flat="$(bullets_opening_on "$skill" "[resume.md](references/resume.md)" | tr -s ' ')"
 expect "SKILL.md's references list has an entry for resume.md" test -n "$flat"
-carries_each "the entry names the Door, the review step and the build step" "${readers[@]}"
-carries_each "the entry names each condition: verdict=resume, route=resume, a Builder return failing its checks" \
+carries_each "the entry names the Door, the review step, the build step and the stopped Final integration" \
+  "${readers[@]}"
+carries_each "the entry names each condition: verdict=resume, route=resume, a Builder return failing its checks, verdict=integration, verdict=ask" \
   "${conditions[@]}"
+expect "the entry no longer counts its readers as three" bash -c '! grep -qiE "$1" <<<"$2"' _ "$reader_count" "$flat"
 skill_links="$(grep -cE '\]\(([^)]*/)?resume\.md\)' "$skill")"
 expect "SKILL.md links resume.md in its references-list entry alone" test "$skill_links" = 1
 
