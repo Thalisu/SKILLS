@@ -1,5 +1,10 @@
 # The Run report
 
+Read when the run is under `--auto`, before it writes the Run report, by the Reply step of the
+`ticket`, `bug-fix`, `refactoring`, `trivial`, `integrate` and `pr` Playbooks, and by a refused or
+blocked run's reply, per the blocked-run section of [reply.md](reply.md). A run without `--auto`
+writes no Run report and never reads this file.
+
 ## The file
 
 Every line the run's steps name besides the five parts of the message of [reply.md](reply.md),
