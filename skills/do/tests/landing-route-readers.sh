@@ -8,6 +8,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 ticket_md="$here/../references/ticket.md"
 mech="$here/../references/mechanics.md"
+final_stopped="$here/../references/final-stopped.md"
 fails=0
 
 routes_by_script() { # $1 reader, $2 site, $3.. the route values its site prints; reads $flat
@@ -32,8 +33,8 @@ flat="$(passage_of "$ticket_md" '- A `verdict=resolved` Ticket whose door printe
   '- A Ticket whose Build repository cannot be built' | flat_of)"
 routes_by_script "the door bullet of ticket.md" door already-landed resolved
 
-flat="$(passage_of "$ticket_md" '1. **The landing record.**' '2. **The claim.**' | flat_of)"
-routes_by_script "the resumed Final integration's landing record step of ticket.md" resume "${resume_routes[@]}"
+flat="$(passage_of "$final_stopped" '1. **The landing record.**' '2. **The claim.**' | flat_of)"
+routes_by_script "the resumed Final integration's landing record step of final-stopped.md" resume "${resume_routes[@]}"
 
 flat="$(passage_of "$ticket_md" '**9a. Final integration.**' '**10. Reply.**' | flat_of)"
 routes_by_script "step 9a of ticket.md" final "${final_routes[@]}"

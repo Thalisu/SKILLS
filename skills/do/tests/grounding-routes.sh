@@ -30,7 +30,7 @@ carries_each "the second run routes on the digest check's reuse and fork verdict
 no_session_compare "the second run leaves no hash comparison to the session"
 
 echo "# ticket.md / ## Door: the Digest decision"
-flat="$(passage_of "$ticket" "Every other run goes on to the Digest decision" "## A stopped Final integration" | tr '\n' ' ' | tr -s ' ')"
+flat="$(passage_of "$ticket" "Every other run goes on to the Digest decision" "## Checklist" | tr '\n' ' ' | tr -s ' ')"
 expect "ticket.md carries the door's Digest decision" test -n "$flat"
 carries "the door's Digest decision runs grounding.sh digest" "grounding.sh digest"
 carries_each "the door routes on the digest check's reuse and fork verdicts" \

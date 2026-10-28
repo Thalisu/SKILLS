@@ -64,8 +64,8 @@ points_at_not_landed "resume.md's verdict=land resume bullet" \
 points_at_not_landed "resume.md's mid-rebase resume, a review= line naming a Review" \
   "$(passage_of "$refs/resume.md" "  A \`review=\` line that names a Review means the rebase came after the review" "- " |
     tr '\n' ' ' | tr -s ' ')" "$via_fix"
-points_at_not_landed "ticket.md's stopped Final integration, step 3's verdict=land" \
-  "$(passage_of "$refs/ticket.md" "## A stopped Final integration" "## " |
+points_at_not_landed "final-stopped.md's resume, step 3's verdict=land" \
+  "$(passage_of "$refs/final-stopped.md" "## The resume" "## " |
     bullets_opening_on /dev/stdin "\`verdict=land\`, exit 4: the Review beside the Spec counts")" "$via_fix"
 points_at_not_landed "bug-fix-resume.md's resume on a Review that counts" \
   "$(bullets_opening_on "$refs/bug-fix-resume.md" "A Review of the branch" |

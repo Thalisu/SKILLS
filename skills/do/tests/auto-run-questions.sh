@@ -212,19 +212,19 @@ still_asked_with_the_answer_shown() { # $1 the place, its statement of the disca
     "choice-taker" "(forks.md)"
 }
 
-# resume.md and ticket.md route a resume on the script's verdict, one bullet per verdict: every bullet
-# that opens on `verdict=ask` and speaks of the discard states the question, in a Ticket run's resume
-# (resume.md) and in a stopped Final integration's (ticket.md) alike.
+# resume.md and final-stopped.md route a resume on the script's verdict, one bullet per verdict: every
+# bullet that opens on `verdict=ask` and speaks of the discard states the question, in a Ticket run's
+# resume (resume.md) and in a stopped Final integration's (final-stopped.md) alike.
 ask_bullets="$({
   bullets_opening_on "$resume" "\`verdict=ask\`"
-  bullets_opening_on "$ticket" "\`verdict=ask\`"
+  bullets_opening_on "$final_stopped" "\`verdict=ask\`"
 } | grep -i "discard")"
-expect "resume.md and ticket.md state the discard question on verdict=ask for a Ticket run's resume and for a stopped Final integration" \
+expect "resume.md and final-stopped.md state the discard question on verdict=ask for a Ticket run's resume and for a stopped Final integration" \
   test "$(grep -c . <<<"$ask_bullets")" -ge 2
 n=0
 while IFS= read -r flat; do
   n=$((n + 1))
-  still_asked_with_the_answer_shown "ticket.md's verdict=ask bullet $n"
+  still_asked_with_the_answer_shown "the verdict=ask bullet $n"
 done <<<"$ask_bullets"
 
 # final-stopped.md is what a stopped Final integration's resume reads, and its `verdict=ask` bullet
@@ -317,9 +317,6 @@ carries_each "resume.md's moved=ask question names what a continue lands again l
 
 # A stopped Final integration asks the same question from its own bullet, which is the one the
 # session is reading there.
-flat="$(bullets_opening_on "$ticket" "\`verdict=integration\`" | grep -F "(abort / continue)" | head -n 1)"
-still_asked_with_the_answer_shown "ticket.md's verdict=integration bullet of a stopped Final integration" \
-  "$moved_question" "$moved_moment"
 flat="$(bullets_opening_on "$final_stopped" "\`verdict=integration\`" | grep -F "(abort / continue)" | head -n 1)"
 still_asked_with_the_answer_shown "final-stopped.md's verdict=integration bullet of a stopped Final integration" \
   "$moved_question" "$moved_moment"

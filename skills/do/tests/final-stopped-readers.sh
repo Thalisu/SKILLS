@@ -196,4 +196,32 @@ expect "final-stopped.md has text" test -n "$out"
 check_absent "final-stopped.md links no ADR and cites none as a step's reason" 0 0 \
   "docs/adr/" "per ADR" "ADR 0"
 
+# ticket.md is loaded whole on every ticket run, so a stop and resume kept there rides in the window
+# of every run whose Final integration never stops, and a Door that points at a section no longer
+# there leaves a resume with no steps: the Door sends verdict=resume-final to final-stopped.md.
+echo "# ticket.md: the stopped Final integration is read in final-stopped.md, and the Door sends it there"
+ticket="$do_dir/references/ticket.md"
+headings="$(grep -ciE '^#+ .*stopped final integration' "$ticket")"
+expect "ticket.md has no section for a stopped Final integration" test "$headings" = 0
+out="$(tr '\n' ' ' <"$ticket" | tr -s ' ')"
+absent "ticket.md carries no resume step reading the landing record through landing-route.sh resume" \
+  "landing-route.sh resume"
+absent "ticket.md carries no resume step taking the claim over with takeover=yes" "takeover=yes"
+absent "ticket.md carries no resume step reading where it stopped through final-state.sh" \
+  "final-state.sh <the Ticket's path>"
+door="$(passage_of "$ticket" "## Door" "## ")"
+flat="$(tr '\n' ' ' <<<"$door" | tr -s ' ')"
+expect "the Door is found" test -n "$door"
+expect "the Door reads final-stopped.md when the door prints verdict=resume-final" grep -qE \
+  'Read \[final-stopped\.md\]\(final-stopped\.md\) when ([^.]|\.[a-z])*verdict=resume-final' <<<"$flat"
+units="$({
+  bullets_opening_on /dev/stdin "- " <<<"$door"
+  awk 'BEGIN { RS = "" } /^[^ -]/ { gsub(/\n/, " "); print }' <<<"$door"
+} | tr -s ' ' | grep -F 'verdict=resume-final')"
+expect "the Door names verdict=resume-final" test -n "$units"
+out="$(grep -vF '](final-stopped.md)' <<<"$units" | cut -c1-160)"
+same "every paragraph and bullet of the Door naming verdict=resume-final sends the run to final-stopped.md" ""
+out="$units"
+absent "no paragraph or bullet of the Door sends a verdict=resume-final run to a section of ticket.md" '`## '
+
 exit $((fails > 0))
