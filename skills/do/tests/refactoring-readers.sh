@@ -121,4 +121,15 @@ done
 flat="$(bullets_opening_on "$skill" "[refactoring.md](references/refactoring.md)" | tr -s ' ')"
 expect "SKILL.md's entry for refactoring.md still describes the Playbook" test -n "$flat"
 
+echo "# refactoring.md and each reference cut from it: instructions only, no ADR argument and no why column"
+for doc in "$refactoring" "$design" "$extreme" "$auto"; do
+  name="$(basename "$doc")"
+  # shellcheck disable=SC2034  # lib.sh's absent reads $out
+  out="$(tr '\n' ' ' <"$doc" | tr -s ' ')"
+  absent "$name argues from no ADR" "docs/adr/"
+  absent "$name names no ADR as a rule's reason" "per ADR"
+  absent "$name keeps no column of why" "| Why"
+  absent "$name keeps no line of why for the empirical fork" "never reaches the developer, per"
+done
+
 exit $((fails > 0))

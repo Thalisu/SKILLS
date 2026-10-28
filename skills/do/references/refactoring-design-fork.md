@@ -4,9 +4,8 @@ It is read by step 4, Structure, and step 6, Reshape, of [refactoring.md](refact
 step meets two shapes it cannot settle, and by step 15, Reply, when the run met a Design fork the
 `choice-taker` ruled, for the Ruling's Pending debt line.
 
-A Design fork is ruled inside the run, with or without `--auto`, per
-[ADR 0036](../../../docs/adr/0036-a-design-fork-is-settled-in-the-run-by-a-read-only-choice-taker-and-only-an-extreme-fork-stops-it.md).
-The session takes these steps in order:
+A Design fork is ruled inside the run, with or without `--auto`. The session takes these steps in
+order:
 
 1. Say in one line that the run met a Design fork at its step, step 4 or step 6, and name both
    sides.
@@ -25,15 +24,13 @@ The session takes these steps in order:
      Ticket, Spec or Digest to name.
 4. Check the return before reading a side from it. It is a Ruling only when its first line reads
    `settled` or `extreme`, and a `settled` one only when its `Side:` line names one of the two
-   sides, its `Fork:` line names those two and no other, and its `Losing criterion:` reads `none`,
-   since no Ticket criterion exists to lose.
+   sides, its `Fork:` line names those two and no other, and its `Losing criterion:` reads `none`.
 5. On a `settled` Ruling, take its side and carry on in the same turn. On an `extreme` one, stop,
    its `Fork:`, `Weaker side:`, `Guarantee:` and `Risk class:` lines filling the stop's slots.
    Read [refactoring-extreme-stop.md](refactoring-extreme-stop.md) when the return reads `extreme`.
 
-A `settled` Ruling is written to no file of the project: no Spec stands behind the run to carry
-it. It reaches the developer in two places. The Reply's Pending debt carries it on every run, as
-one line, since the developer reads a refactor and a design choice rode inside it:
+A `settled` Ruling is written to no file of the project. It reaches the developer in two places.
+The Reply's Pending debt carries it on every run, as one line:
 `Ruled by the choice-taker at the <step> step: <the side taken>. Norm: <the norm, or "no norm: the side easiest to undo">. Fork: <side A> or <side B>.`
 Under `--auto` the Run report lists it under `Rulings`, in its `On the run:` group, per
 [reply.md](reply.md).
