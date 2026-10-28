@@ -93,12 +93,15 @@ echo "# the Playbooks: what each puts under Rulings names the two groups"
 # wherever else a step sends a Ruling to the reply's `Rulings` section.
 for playbook in ticket refactoring bug-fix trivial integrate; do
   file="$refs/$playbook.md"
+  # The trivial run's one Ruling is a run question under --auto, held in trivial-auto.md.
+  rulings="$file"
+  [ "$playbook" = trivial ] && rulings="$refs/trivial-auto.md"
   step="$(item_holding "$file" '\*\*[0-9]+\.|### [0-9]+\.' ". Reply")"
   expect "$playbook.md carries its Reply step" test -n "$step"
   flat="$(
     {
       printf '%s\n' "$step"
-      paragraph_with "$file" "\`Rulings\`" all
+      paragraph_with "$rulings" "\`Rulings\`" all
     } | tr '\n' ' ' | tr -s ' '
   )"
   carries "$playbook.md names both groups where it says what goes under Rulings" \
