@@ -10,6 +10,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 refs="$here/../references"
 bugfix="$refs/bug-fix.md"
 resume="$refs/bug-fix-resume.md"
+skill="$here/../SKILL.md"
 fails=0
 
 flat_of() { tr '\n' ' ' | tr -s ' '; }
@@ -138,14 +139,14 @@ done
 # Each reference cut from bug-fix.md, with the readers that reach it and the condition that sends
 # each one, groups separated by `--` and the reference's own entry closed by `==`.
 cut_references=(
-  "$resume" "step 1" "Worktree" -- "git worktree list" -- "git branch --list" -- "step 10" -- "route=resume" ==
-  "$design" "step 4" "Plan the fix" -- "step 6" "Fix" -- "Design fork" ==
-  "$extreme" "Design fork" -- "Extreme" -- "\`extreme\`" -- "no Ruling" ==
-  "$auto" "step 11" "Verification" -- "resume" -- "uncommitted" -- "--auto" ==
+  "$resume" "step 1" "Worktree" -- "git worktree list" -- "git branch --list" -- "step 10" -- "route=resume" "=="
+  "$design" "step 4" "Plan the fix" -- "step 6" "Fix" -- "Design fork" "=="
+  "$extreme" "Design fork" -- "Extreme" -- "\`extreme\`" -- "no Ruling" "=="
+  "$auto" "step 11" "Verification" -- "resume" -- "uncommitted" -- "--auto" "=="
 )
 opening_of() { awk 'BEGIN { RS = "" } NR == 2 { gsub(/\n/, " "); print; exit }' "$1" 2>/dev/null | tr -s ' '; }
 
-echo "# each reference cut from bug-fix.md opens on the readers that reach it and the condition that sends them"
+echo "# each reference cut from bug-fix.md, and SKILL.md's entry for it, name the readers that reach it and the condition that sends them"
 group=()
 for item in "${cut_references[@]}"; do
   if [ "$item" != "==" ]; then
@@ -158,7 +159,12 @@ for item in "${cut_references[@]}"; do
   expect "$name opens on a paragraph after its title" test -n "$flat"
   carries_each "$name's opening names every reader that reaches it and the condition that sends each one" \
     "${group[@]:1}"
+  flat="$(bullets_opening_on "$skill" "[$name](references/$name)" | tr -s ' ')"
+  expect "SKILL.md's references list has an entry for $name" test -n "$flat"
+  carries_each "SKILL.md's entry for $name names the same readers and condition" "${group[@]:1}"
   group=()
 done
+expect "SKILL.md's references list keeps its entry for bug-fix.md" \
+  test -n "$(bullets_opening_on "$skill" "[bug-fix.md](references/bug-fix.md)")"
 
 exit $((fails > 0))
