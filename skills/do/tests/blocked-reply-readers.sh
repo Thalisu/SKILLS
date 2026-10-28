@@ -38,4 +38,12 @@ check_absent "reply.md carries no refusal-or-blocked section, no Yours: class de
   "Yours: direction: switch /home/dev/notes-spec off spec/notes" "First do what the Yours: line names, then:" \
   "Refused before the claim." "Refused. 03-share-notes.md is blocked by"
 
+# The Yours: part is where the session writes the blocker and its hand-over: a pointer anywhere else
+# is one the session may pass before the run has ended, or never reach when it stops.
+echo "# reply.md / ## The message: the Yours part sends a blocked or refused run to blocked-reply.md"
+out="$(item_holding <(passage_of "$reply" "## The message" "## ") '[0-9]+\.' "**Yours.**" | tr '\n' ' ' | tr -s ' ')"
+expect "reply.md's The message has a Yours part" test -n "$out"
+check "the Yours part reads Read blocked-reply.md when the run ends blocked or refused" 0 0 \
+  "Read [blocked-reply.md](blocked-reply.md) when the run ends blocked or refused"
+
 exit $((fails > 0))

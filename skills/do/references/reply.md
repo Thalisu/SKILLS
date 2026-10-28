@@ -26,9 +26,9 @@ these parts, in this order:
 2. **For whom.** The [For whom](#sections) section, under a `## For whom` heading.
 3. **Pending debt.** The [Pending debt](#sections) section, under a `## Pending debt` heading.
 4. **Yours.** The `Yours: <class>: <the choice>` line, only when the run hands the developer
-   something, per [blocked-reply.md](blocked-reply.md), with the blocker it
-   stopped on and its reason on the lines right above it. A run that hands over nothing writes no
-   such line and no heading for it.
+   something, with the blocker it stopped on and its reason on the lines right above it. A run that
+   hands over nothing writes no such line and no heading for it.
+   Read [blocked-reply.md](blocked-reply.md) when the run ends blocked or refused.
 5. **Next step.** The [Next step](#sections) section, under a `## Next step` heading, last: the
    stdout of `next-step.sh`, copied whole. Piped `yours=yes` when a `Yours:` line stands, it opens
    on one line saying to do what that line names first, and the command comes after it.
