@@ -6,6 +6,9 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 stand_in="$here/../references/stand-in.md"
+mechanics="$here/../references/mechanics.md"
+ticket="$here/../references/ticket.md"
+builder="$here/../references/builder.md"
 fails=0
 
 echo "# stand-in.md's readers: named in its opening, with the condition that sends them"
@@ -35,5 +38,37 @@ carries "one line names the branch that holds, and the command that links the re
 carries "the run neither stops nor asks for the tool or the agent" "neither stops nor asks"
 carries "no other agent is forked in the reader's place" "never forks another agent in the reader's place"
 carries "a reader failure is never stood in for" "never on a return the reader actually made"
+
+echo "# a run that forks both agents reads no stand-in text"
+
+# The files every run that forks the reader and the Builder reads hold a pointer to stand-in.md in
+# place of the stand-in itself.
+flat="$(flat_section "$mechanics" "## The reader")"
+carries "mechanics.md's reader section points at stand-in.md" "[stand-in.md](stand-in.md)"
+out="$flat"
+absent "mechanics.md's reader section no longer has the session read the documents itself" \
+  "reads both documents itself"
+absent "mechanics.md's reader section no longer names the installer for an unlisted reader" \
+  "link-skills.sh"
+
+flat="$(flat_section "$ticket" "## Door")"
+carries "ticket.md's door points at stand-in.md" "[stand-in.md](stand-in.md)"
+out="$flat"
+absent "ticket.md's door no longer has the session read the documents itself" \
+  "the session reads both itself"
+
+flat="$(item_holding "$ticket" '\*\*[0-9]+\.' "subagent_type: do-builder" | tr '\n' ' ' | tr -s ' ')"
+carries "ticket.md's build step points at stand-in.md" "[stand-in.md](stand-in.md)"
+out="$flat"
+absent "ticket.md's build step no longer has the session run the loop itself" \
+  "the session runs the loop itself"
+absent "ticket.md's build step no longer has the session author the flows itself" \
+  "authors the flows itself"
+
+flat="$(awk 'BEGIN { RS = "" } /^## / { exit } { gsub(/\n/, " "); print }' "$builder" | tr -s ' ')"
+carries "builder.md's preamble points at stand-in.md" "[stand-in.md](stand-in.md)"
+out="$flat"
+absent "builder.md's preamble no longer has the session run the loop itself" \
+  "the session runs the loop itself"
 
 [ "$fails" -eq 0 ]

@@ -14,9 +14,8 @@ over, and a session that carries the build as well compacts before the Ticket is
 
 Two readers use this file, each for its own part. The session fills the brief and routes the
 return. The Builder reads the rest as its contract: what it builds from, where it picks up, the
-time budget, the flows, its edges, and the lines it returns. When no Builder can be forked, the session runs the
-loop itself, per the build step of [ticket.md](ticket.md), and `## The flows` binds the session in
-the fork's place.
+time budget, the flows, its edges, and the lines it returns. Read [stand-in.md](stand-in.md) when
+no Builder can be forked: the Agent tool is withheld from the session, or it lists no `do-builder`.
 
 ## The brief
 

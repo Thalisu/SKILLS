@@ -237,11 +237,9 @@ is (the spec file in the folder above the `issues/` folder, or the issue the par
 and over the journey its `Journey:` line names when it names one, and the run opens neither itself:
 it says in one line that both are being read in a window of their own, then
 the session writes the Digest from the text that comes back, in the format of
-[digest.md](digest.md), and the run derives its behaviours from that file. When no reader can be
-forked, the Agent tool withheld or no `do-reader` listed, the door still hashes both documents,
-the session reads both itself and writes the Digest, and one line says which of the two holds,
-the way the reader section of [mechanics.md](mechanics.md) says. The run never forks another agent
-in the reader's place. The Digest and the `.scratch/` line its write needs are the run's first
+[digest.md](digest.md), and the run derives its behaviours from that file. Read
+[stand-in.md](stand-in.md) when no reader can be forked: the Agent tool is withheld from the
+session, or it lists no `do-reader`. The Digest and the `.scratch/` line its write needs are the run's first
 marks on the developer's checkout, so a Ticket refused above leaves `git status` in the main
 checkout exactly as it found it. Both go under `<root>`, the door's `root=` line: the Digest beside
 the Ticket, the `.scratch/` line in that repository's `.gitignore`, and both hashes taken there.
@@ -1277,20 +1275,10 @@ after a Builder, with no step added, skipped or changed for this fork. The run e
 does: the Ticket reads `resolved`, and the Reply's last line is the next `/do`, the one the
 Completion check's `next=` line names.
 
-No Builder can be forked on two branches: the Agent tool is withheld from the session, or the Agent
-tool lists no `do-builder`, as it does on a machine that never linked the agent `do` ships. On
-either branch the session runs the loop itself, in the worktree step 2 made, per
-[build-loop.md](build-loop.md), and says in one line which of the two holds, the way the run already
-does for the reader and for the Planner. It never forks another agent in the Builder's place: a
-fork under any other name could still write where `do-builder`'s own definition binds it not to.
-The session also authors the flows itself, in the same window, per [builder.md](builder.md)'s
-`## The flows`: one for each criterion the Digest's `## Observable criteria` section names, a
-criterion the section leaves out states why no flow is needed, and a criterion it names with no
-flow authored stops the step with that reason, the way it would stop the Builder's own fork.
-On a run whose Plan step recorded `Planner/Builder: none`, this fallback adds no second line: that
-one line already said the session did the Builder's work too.
+Read [stand-in.md](stand-in.md) when no Builder can be forked: the Agent tool is withheld from the
+session, or it lists no `do-builder`.
 
-None of that reaches a Front-end ticket of a Spec reading `Front-end: impeccable`. The Door stopped
+The stand-in never reaches a Front-end ticket of a Spec reading `Front-end: impeccable`. The Door stopped
 it when the session lists no impeccable skill, and this step never falls back to the Builder for
 it on its own, neither by forking `do-builder` nor by the session running the loop in its place: the
 Spec's line names who builds the screen, and only the developer changes it.

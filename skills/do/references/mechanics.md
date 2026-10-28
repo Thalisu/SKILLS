@@ -168,8 +168,8 @@ run.
 
 ## The reader
 
-The Ticket's Spec and its journey are read by a fork, never by the session, except on the two
-branches below where no reader can be forked. They are two whole documents the run needs a slice
+The Ticket's Spec and its journey are read by a fork, never by the session, except where no reader
+can be forked. They are two whole documents the run needs a slice
 of, which is the exploration the Delegates rule below forks for. The session opens neither
 document, and it opens neither afterwards to check the fork: what comes back is quoted with the
 location of every quote, so the check is a quote read against its line. The one read of the Spec
@@ -179,7 +179,7 @@ no other part of it.
 Before anything is forked, the door resolves both paths from the Ticket, the way the second run
 below does, and the door hashes both itself before it forks: `git hash-object <path>` run under
 the door's `root=`, the Home repository, for each, recording `absent` for a document not on
-disk. It resolves and hashes them the same way when no reader can be forked, on the two branches below. Those two values are the
+disk. It resolves and hashes them the same way when no reader can be forked. Those two values are the
 Digest's `## Sources` lines, so the record the reuse gate trusts is the run's own reading and never
 the fork's. When it forks the reader, the door says in one line that both are being read in a
 window of their own.
@@ -198,19 +198,8 @@ reused Digest needs them as much as a fresh one: a Spec whose hash still matches
 the Rulings an earlier run wrote, and a brief that arrived without them would bring a settled
 Design fork back.
 
-No reader can be forked on two branches: the Agent tool is withheld from the session, or
-the Agent tool lists no `do-reader`, as it does on a machine that never linked the reader `do`
-ships. On either branch the door has already run its stops, nothing is forked, and the session
-reads both documents itself and writes the Digest at the same path and in the same format, its
-`## Sources` lines from the door's own hashes, a document not on disk recorded `absent` and named
-in one line as below. It says in one line which branch holds: the Agent tool withheld, or
-`do-reader` not listed, the reader this machine has not linked, which one run of the skills
-repository's `scripts/link-skills.sh` links before the next `/do`. With the tool withheld this is
-the case the Delegates rule below covers, and as there the session does that work itself. On
-either branch the run neither stops nor asks for the tool or the agent, since the developer cannot
-hand one over mid-run and the slice is what the run needs, not the window it was read in. It never
-forks another agent in the reader's place: a fork under any other name could still hold the write
-tools `do-reader`'s own definition denies it.
+Read [stand-in.md](stand-in.md) when no reader can be forked: the Agent tool is withheld from the
+session, or it lists no `do-reader`.
 
 The door calls the Agent tool with `subagent_type: do-reader`, the agent `do` ships in
 [do-reader.md](../agents/do-reader.md), on the model its definition names, since it quotes rather
@@ -226,9 +215,7 @@ format fixes other than `## Sources`, `## Journey Path`, `## Stories`, `## Testi
 present. A return missing one, whether a refusal, an error or a shape the format does not fix,
 stops the door in one line naming what is missing. No Digest is written, the Ticket is left as the
 door found it, and the next run forks the reader again. The session never reads the Spec or the
-journey itself on a reader failure: that fallback belongs only to the two branches that never reach
-the fork at all, the Agent tool withheld and no `do-reader` listed, and never to a return the fork
-actually made.
+journey itself on a reader failure.
 
 The session writes the Digest itself, whole, at the path [digest.md](digest.md) fixes beside the
 Ticket in the Home repository's scratch: its `## Sources` lines from the door's own hashes first,
