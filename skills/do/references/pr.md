@@ -13,23 +13,6 @@ follows that one pull request, and the developer reads it afterwards, through th
   no pull request is open for the branch pair it was asked for, and the create pushes nothing.
 - Rebase the head branch, or push to it, on a conflict with the base: the run stops and names the
   owner of the head branch, the only one who may rewrite it.
-- Commit in, check out or move anything in the developer's checkout: the round is brought onto the
-  head in a worktree of the run's own, cut detached at the commit the checks ran on, so the
-  developer's branch, HEAD and uncommitted work read after the run as they did before it.
-- Push to any branch but the head, push with `--force`, or merge into the head: the round's one
-  push is `HEAD:refs/heads/<head>` by fast-forward only, and git's refusal of anything else stops
-  the run (ADR 0086).
-- Pick, and so push, a fixer's commit that changes a CI workflow, a secret or a migration file: that
-  commit moves the bar the checks hold, so the run stops instead, naming the check and the file.
-- Fork a fixer for a check `pr-classify.sh` printed `stale`, or rebase the head to clear one: the
-  check stops the run, naming its file, and the rebase is the head owner's.
-- Fix a check in the session: each red check is one `do-pr-fixer` fork (ADR 0088).
-- Rerun a check unless its `do-pr-fixer` returned `not reproduced` or `not run`, and never rerun it
-  because the session read its log as a flake.
-- Rerun a check on a round that pushed, or rerun one check twice in one run: the rerun is once per
-  check per run.
-- Rerun anything but `gh run rerun --failed` on the run of the pull request's head, through
-  `pr-rerun.sh` (ADR 0089).
 
 ## The message
 
@@ -262,75 +245,6 @@ the whole message, and a green watch adds no part of its own:
 - **For whom** says every check is green and the pull request mergeable, ready for the developer
   to merge, with the count off the watch's `checks=<n>` line (`checks=0` reads as no checks
   reported).
-- On a run that pushed a round, **For whom** carries the round lines ahead of the green line,
-  inside the five parts and adding no part of their own: one line per red check, one per `kept`
-  line `fix-worktrees.sh remove` printed, and the verdict the watch read after the push:
-
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: fixed <k> by mechanism: <the test> <the log line that names it>; end-to-end failure itself not reproduced locally, the fix stands on <the test> and <the log line that names it>; <picked sha> pushed to <head>
-      round <r>: <check>: compose commit <composed sha> (chore(e2e)) pushed to <head> ahead of <picked sha>
-      round <r>: <check>: compose commit <composed sha> (chore(e2e)) kept in <run tree>, not pushed
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: <path> is a <class> file
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: the guard could not read it: <reason>
-      round <r>: <check> red again; pushed as fixed in round <r'> as <sha>
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: not fixed: conflicted with check <m>; nothing pushed for it
-      round <r>: <check> red; stale base: <path>[, <path>...] not changed by this pull request against <base> at <merge base short sha>; no fixer forked
-      round <r>: <a `kept` line, as fix-worktrees.sh printed it>
-      round <r>: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: not fixed <k>: the fixer did not return; kept <fixer branch> <path> and its compose project fixer-<id>, never removed; nothing pushed for it
-      round <r>: kept <first run tree> from the first attempt, superseded by the redone round; its fix commits <kept sha>, ... stay there
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; retried by the run on <picked sha>
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it; retried by the run on <picked sha>
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> attempt <n>
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it; rerun <run id> attempt <n>
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> refused: <reason>
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it; rerun <run id> refused: <reason>
-      round <r>: <check> not reproduced locally, retried once, green
-      round <r>: <check> not run locally, retried once, green
-      round <r>: <check> red again on its retry (<the retry>); diagnosis do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>
-      round <r>: <check> red again on its retry (<the retry>); diagnosis do-pr-fixer on <fixer branch>: fixed <k> by mechanism: <the test> <the log line that names it>; end-to-end failure itself not reproduced locally, the fix stands on <the test> and <the log line that names it>; <picked sha> pushed to <head>
-      round <r>: <check> red again on its retry (<the retry>); diagnosis do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
-      round <r>: <check> red again on its retry (<the retry>); not diagnosed: three rounds have pushed
-      round <r>: nothing pushed; failed jobs rerun on run <run id>[, run <run id>...]; not counted toward the three pushed rounds
-      round <r>: nothing rerun: <head> moved to <short sha> after the watch; the round is redone from the watch
-      round <r>: after the push the watch read <verdict word>
-      round <r>: after the rerun the watch read <verdict word>
-
-  The `kept <first run tree>` line is written once for a redone round, whether that round pushed
-  or stopped, and on a stop it sits ahead of the `Yours: direction:` line.
-
-  The compose line is written once per `composed <k> <sha>` line the integration printed, on a line
-  of its own directly under that check's round line, so the developer reads that the run added
-  infrastructure to the pull request apart from the fix. It reads `pushed to <head> ahead of
-  <picked sha>` on a round that pushed, and `kept in <run tree>, not pushed` on one that stopped.
-
-  The first `not picked` line is written once per path the guard named. The `stale base` line is
-  written once per stale check, in place of any fixer line for that check, with
-  `<merge base short sha>` the first 7 characters of the `merge-base=` value `pr-classify.sh`
-  printed.
-
-  When a round stops on more than one stop, each stop is listed on a round line of its own, with its
-  reason, and every clause sits on the one `Yours: direction:` line step 4 item 5 orders.
-
-  The pushed line carries the fixer's return line so that step 3 can match a check that came back
-  red and quote it.
-
-  `<r>` is the round's number, 1, 2, 3 in the order the rounds pushed, so each round is listed
-  under its own number, `round 1:`, `round 2:`, `round 3:`, each with its red checks, the fixer of
-  each, the commits pushed and the verdict that ended it. A redone round is listed under the number
-  of the round it redid: it counts once, never a new number.
-
-  A diagnosis round's line names the diagnosis fixer and its return, and a diagnosis fix pushed on
-  its mechanism takes the line that says so. Every `red again on its retry` line is followed by the
-  two excerpts, each quoted, the first excerpt under the label
-  `first excerpt (round <r>):` and then the retry's under `retry excerpt (attempt <n>):` (or
-  `retry excerpt (the run on <picked sha>):`), so the developer reads them side by side.
-- When the run pushed, the **Next step** line names `git pull --ff-only origin <head>` on the
-  developer's checkout of `<head>`, then `gh pr merge <n>`. The run never runs either one, and
-  never names either under `outward`.
 - No `Yours:` line: a green run hands nothing over.
 - The **Next step** line ends with `gh pr merge <n>`, `<n>` the number step 2 read back. The run
   never runs it and never names it under `outward`, the way a landed run names the push it never
@@ -341,5 +255,4 @@ the whole message, and a green watch adds no part of its own:
   **Next step** line names the approval, then `gh pr merge <n>` once it is given, which the run
   never runs and never names under `outward`.
 - The **Next step** is the stdout of `scripts/next-step.sh`, copied whole: `outcome=pr-green`, or
-  `outcome=pr-awaiting-approval` on that verdict, piped with `pr=<n>`, `pushed=yes|no`, and
-  `head=<head>` when the run pushed.
+  `outcome=pr-awaiting-approval` on that verdict, piped with `pr=<n>` and `pushed=no`.
