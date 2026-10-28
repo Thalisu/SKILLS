@@ -6,6 +6,7 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 trivial="$here/../references/trivial.md"
+escape="$here/../references/trivial-escape.md"
 fails=0
 
 echo "# trivial.md: the door on the diff keeps the exit-0 route and sends every other exit to trivial-escape.md"
@@ -23,5 +24,19 @@ absent "the step carries no re-route by goes_to=" "goes_to="
 absent "the step carries no judgment route" "verdict=judgment"
 absent "the step carries no restore of the touched files" "git checkout --"
 absent "the step carries no blocked reply for a door that could not run" "Yours: direction: fix what the error names"
+
+echo "# trivial-escape.md: a diff the door rejects is restored, commits nothing and is routed as before"
+row() { grep -E "^\| $1 \|" "$escape" | tr -s ' '; }
+flat="$(row 1)"
+carries "exit 1 restores the touched files and commits nothing" \
+  "verdict=not-trivial" "git checkout -- <files>" "commits nothing"
+carries "exit 1 names the Playbook goes_to= names, refactoring, discuss or bug-fix" \
+  "goes_to=" "\`refactoring\`" "\`discuss\`" "\`bug-fix\`"
+flat="$(row 2)"
+carries "exit 2 stops blocked with the error and the developer's direction" \
+  "blocked" "Yours: direction: fix what the error names, then type the request again"
+flat="$(row 3)"
+carries "exit 3 has the run read the diff against the three questions and stop as for exit 1" \
+  "verdict=judgment" "a test file, a new exported symbol, a changed signature" "stops as for exit 1" "its own judgment"
 
 exit $((fails > 0))
