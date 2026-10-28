@@ -53,8 +53,8 @@ expect "the Builder's flows rule's REFUSED_INCOMPLETE_INPUT route resolves in bu
 
 expect "resume.md's resume step links build-loop.md for the Behaviour: line" \
   grep -qF "per the build loop in [build-loop.md](build-loop.md)" "$here/../references/resume.md"
-expect "bug-fix.md's resume step links build-loop.md for the Behaviour: line" \
-  grep -qF "per the build loop in [build-loop.md](build-loop.md)" "$bug_fix"
+expect "bug-fix-resume.md, the bug-fix resume, links build-loop.md for the Behaviour: line" \
+  grep -qF "per the build loop in [build-loop.md](build-loop.md)" "$bug_fix_resume"
 
 # build-loop.md's own preamble: the paragraph naming who reads it.
 pre="$(paragraph_with "$build_loop" "It is read by")"
