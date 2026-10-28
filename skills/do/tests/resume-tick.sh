@@ -80,4 +80,14 @@ check_lines "a behaviour a commit's Behaviour: line carries word for word is tic
   "item=1 $archived"
 check_lines "a behaviour no commit carries prints open" 0 "$rc" "item=2 open"
 
+echo "# resume-tick.sh tick: the only commit near a behaviour words it differently"
+cd "$tmp" || exit 1
+claimed_ticket reworded archive
+behaviour_commit "feat: archive a note" "Archiving a note hides it from the list view"
+behaviour_commit "feat: restore a note" "restoring a note puts it back in place"
+plan_file "Archiving a note hides it from the list" "Restoring a note puts it back in place"
+run tick "$ticket_path" "$plan"
+check_lines "a commit whose Behaviour: line adds words to the behaviour leaves it open" 0 "$rc" "item=1 open"
+check_lines "a commit whose Behaviour: line differs from the behaviour in case alone leaves it open" 0 "$rc" "item=2 open"
+
 exit "$fails"
