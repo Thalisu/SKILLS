@@ -61,4 +61,13 @@ check_lines "a fix call with no gate of the run's own still names the Review and
   "fix=fix /repo/.scratch/feature/issues/07-ticket.review.md spec/feature" "caller=Caller: do" "route=fix"
 absent_prefix "a fix call with no gate of the run's own carries no gate line" "gate="
 
+# A target that moved after an integration that found it already held sends the run through its
+# in-run Resume once, the fix call made from the same lines, instead of stopping.
+for last in review fix; do
+  route "landing=$moved" "integration=noop" "last=$last" "command=command=bash skills/do/scripts/gate.sh"
+  check_lines "a target that moved after a no-op integration, on the return of a $last call, takes the in-run Resume" 3 "$rc" \
+    "fix=fix /repo/.scratch/feature/issues/07-ticket.review.md spec/feature" \
+    "gate=command=bash skills/do/scripts/gate.sh" "caller=Caller: do" "route=resume"
+done
+
 exit $((fails > 0))

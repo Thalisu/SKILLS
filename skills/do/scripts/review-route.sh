@@ -11,14 +11,15 @@
 # gate ran before the review), before (the commit recorded before the integration started).
 #
 # Prints, in order: landing=landed|not landed, commit=<sha> (landed only), reason=<reason> (not
-# landed only), the fix call's lines on fix (fix=fix <review> <target>, gate=<the command= line as
+# landed only), the fix call's lines on fix and resume (fix=fix <review> <target>, gate=<the command= line as
 # given> only when command= was given, caller=Caller: do), then route, first match wins:
 #
-#   landing      integration       route
-#   landed       any               verify
-#   target moved rebase, reapply   fix
+#   landing      integration       last          route
+#   landed       any               any           verify
+#   target moved rebase, reapply   any           fix
+#   target moved noop              review, fix   resume
 #
-# Exit codes: 0 verify · 1 fix · 2 usage: a missing required key, an unknown or repeated key, an integration=
+# Exit codes: 0 verify · 1 fix · 3 resume · 2 usage: a missing required key, an unknown or repeated key, an integration=
 # or last= word outside its union, or a landing= line of neither form.
 set -uo pipefail
 
@@ -70,6 +71,13 @@ case "$reason" in
         fix_call
         echo "route=fix"
         exit 1
+        ;;
+    esac
+    case "${in[last]}" in
+      review | fix)
+        fix_call
+        echo "route=resume"
+        exit 3
         ;;
     esac
     ;;
