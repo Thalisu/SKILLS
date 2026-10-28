@@ -10,27 +10,23 @@ writes no Run report and never reads this file.
 Every line the run's steps name besides the five parts of the message of [reply.md](reply.md),
 the [Run](#run) section and the other [Sections](#sections) (Inherited, Commits, Evidence,
 Principles, Rulings, Skipped and Left uncommitted), makes up the Run report, which is never
-part of the message. The run writes the Run report to a file only under `--auto`, since
-a Ruling the `choice-taker` made on a run question sits in no other file: in a `ticket`
+part of the message. The run writes the Run report to a file only under `--auto`: in a `ticket`
 run beside the Plan, its stem with `.report.md` in place of `.plan.md`, and in every other
 Playbook at `.scratch/do-reports/<YYYYMMDD>-<the branch's slug>.md` in the main checkout,
 appending the `.scratch/` line first per [scratch.md](../../../.agents/scratch.md). It holds
 the Run section, then the ten sections in their order, each under a `##` heading of its name,
 with a section that has nothing to say reading `none`. A later `--auto` run that finds the
 file already there appends its own Run report below the earlier one, under a `---` rule,
-and never replaces it. Without `--auto` the Run report is not written at all, per
-[ADR 0091](../../../docs/adr/0091-the-do-reply-is-five-parts-and-the-run-report-is-written-only-under-auto.md).
+and never replaces it. Without `--auto` the Run report is not written at all.
 
 Under `--auto` a run writes its section of the Debt file, per [reply.md](reply.md), as well as the Run
-report, since the Run report does not stand in for the Debt file, and the Run report stays written
+report. The Run report does not stand in for the Debt file, and the Run report stays written
 under `--auto` alone.
 
 Under `--auto` the Run section carries the matched Playbook's checklist with every step the run
-reached ticked `done:` or visible as `skip: <reason>`. A skipped step left visible is one the
-developer can question; a dropped one is not.
+reached ticked `done:` or visible as `skip: <reason>`.
 
-A principle is named in the Run report only with the decision it changed. A name with no decision
-is a citation the reader cannot check.
+A principle is named in the Run report only with the decision it changed.
 
 ## Run
 
@@ -47,9 +43,9 @@ place them:
   it falls in that Playbook's own sequence, not at a position this list fixes alike for every
   Playbook. Lines one step records together keep the order of the list below.
 
-The numbers identify the lines. They are not one single order every Playbook follows, since two
-Playbooks can produce the same lines in a different relative order: in `bug-fix` the
-worktree line comes before the audit line and before the hand-over, shaped-by and Sketch lines; in
+The numbers identify the lines. They are not one single order every Playbook follows: in
+`bug-fix` the worktree line comes before the audit line and before the hand-over, shaped-by and
+Sketch lines; in
 `refactoring` the target files and the audit line both come before the worktree line.
 
 1. **Read-back.** The request or the Ticket confirmed back: the Ticket's `<NN>: <title>`, or the
@@ -79,18 +75,17 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
 8. **Protected-branch warning.** When it applies: the branch, the rule, and that the landing is
    refused on it.
 9. **Checklist.** The matched Playbook's checklist, verbatim, every step the run reached ticked
-   `done:` or reading `skip: <reason>`, and a step it never reached left as it was copied. The run
-   copied it at its start as its own todo list; the copy in the Run report is the record of it, so
-   it is never required as text before the first edit.
+   `done:` or reading `skip: <reason>`, and a step it never reached left as it was copied. It is
+   never required as text before the first edit.
 10. **Plan line.** In `ticket`, the Plan's location and every fallback the Planner's return
     named: a Map built from search output because `how` was not listed, one `rg -n -w` per
     candidate in place of the discover batch, or a shape the fork stated itself. The grounding
-    itself is in the Plan and never here, since the session never read it. Two runs name no fresh
+    itself is in the Plan and never here. Two runs name no fresh
     Plan:
     - A Plan the run carried instead of forking the Planner is named the same way, with the line
       saying it was reused.
     - On a resume whose only work left was the landing, the line says the Plan step was skipped
-      for that reason and names no Plan, since the run opened none.
+      for that reason and names no Plan.
 
     Whenever a fork ran, the Planner or the Builder, one `Guard:` line rides it: the line
     `guard-reply.sh` printed from the guard probe, per the Plan step of [ticket.md](ticket.md),
@@ -103,7 +98,7 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
 
     When neither fork could run, the Agent tool withheld or neither agent listed, the one
     `Planner/Builder: none` line rides it in place of the Planner's and the Builder's per-fork
-    fallback lines, with no `Guard:` line, since no fork ran for a guard to bind.
+    fallback lines, with no `Guard:` line.
 
     ```
     Guard: guard=pattern-and-header (harness=claude-code, hooks=run): the pattern guard beside the header check.
@@ -123,17 +118,16 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
 14. **Shaped-by line.** In `bug-fix` and `refactoring`, when `sketch` wrote nothing (the Agent
     tool withheld, no `sketch` listed,
     or a return that is not a usable Sketch), the line saying so, with that reason, and saying the
-    session shaped the work itself, so the developer knows who shaped it. With no Sketch filed, it
+    session shaped the work itself. With no Sketch filed, it
     carries the shape the session stated in a few words.
 15. **Sketch line.** In `bug-fix` and `refactoring`, when a Sketch was filed, its location and the
-    shape it settled in a few words, so the developer learns both without opening it.
+    shape it settled in a few words.
 16. **Reproduction.** When the run reproduced a defect: the command line it ran and the output
     that carries the defect, the forcing named when it was forced, and, once the fix is in, the
     same command's passing output beside it, a developer's report marked as theirs. When the run
     instrumented the main checkout, the `git status --short` it read there after the revert.
 17. **Diagnosis.** When the run hunted a cause: one line per hypothesis with the runtime evidence
-    that ruled it out, then the mechanism the run confirmed, in one line, so the developer checks
-    the cause instead of taking it on trust.
+    that ruled it out, then the mechanism the run confirmed, in one line.
 18. **Target files.** The files the door's checks named, in `trivial` and `refactoring`.
 19. **Worktree line.** The worktree's path and its branch, once the worktree step entered it.
 20. **Structure line.** In `refactoring`, the structure and the target shape, with the sketch or
@@ -147,13 +141,10 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       [tdd-fallback.md](tdd-fallback.md), the reason it did and the check that stood in.
     - Then one flow line per criterion the flows reached, off the `flow:` lines the build
       returned: the criterion, the author's verdict and the commit where a flow was authored, and,
-      where none was, the reason it needed none or the empty command slot that stopped it. A
-      criterion whose flow was skipped is read here or nowhere, since the close leaves it unticked
-      and the diff carries no trace of a flow nobody wrote.
+      where none was, the reason it needed none or the empty command slot that stopped it.
     - Then the `fallback:` lines the Builder returned, copied unchanged, among them the one naming
       why no Implementer was dispatched: `do-implementer` not linked, or its dispatch refused, so
-      the Builder wrote the production code itself. Without it the Run report reads as if the
-      Implementers wrote the code.
+      the Builder wrote the production code itself. These lines are the Run report's.
 24. **Answer lines.** In `refactoring`, each answer with its reason: the exit test's, with the
     developer's answer when the test failed, and a behaviour change the cleanup found, with its
     command.
@@ -169,23 +160,19 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     stop and the Loss ledger's location when a contested hunk took the **Target** side. Where the
     ledger held an entry to judge, three groups of lines sit under it:
     - **The judging.** The line each entry was judged on, its id, `reapply` or `drop` and the
-      one-line reason, every `drop` among them, so what a contested hunk set aside is read as kept
-      or as let go and never merely as set aside; the line saying the session judged them itself,
+      one-line reason, every `drop` among them; the line saying the session judged them itself,
       with the branch that held, when no `ledger-judge` could be forked; and every id the judge
       named that `pending` did not, or that already carried a verdict, refused by the script with
       nothing written.
     - **What came back and what did not.** Then each reapplied commit on a line of its own, with
       the entry's id and the commit's short sha, and each dropped entry on a line of its own, with
       its reason. An entry judged `reapply` whose applied line reads `none` made no commit and is
-      listed among the dropped entries, with the reason its applied line gives, so a reapply that
-      did not come back is never read as one that did.
+      listed among the dropped entries, with the reason its applied line gives.
     - **A second integration.** A run whose integration ran after the review, the retry on
       `not landed: target moved` or a resumed run's, carries the lines of both integrations, each
       under its own integration line, and the integration after the review lists every `drop` of
-      its own, each marked as coming after the review, since no reviewer reads what that
-      integration set aside. Each such drop is also a line of the Pending debt, per item 9 of
-      [Sections](#sections), with or without `--auto`: the message is the one place the developer
-      sees it before it reaches their branch.
+      its own, each marked as coming after the review. Each such drop is also a line of the
+      Pending debt, per item 9 of [Sections](#sections), with or without `--auto`.
 28. **Review return.** The review's return, one line per part: the Review's location, the
     `Act on:` line, the landing line and the `route=` line `review-route.sh` printed for it, every
     `Risk:` line and every `Axis not run:` line. The last
@@ -217,8 +204,7 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       any script that failed.
 31. **Watch lines.** In `pr`, the round: the verdict line the watch printed on each call, one per
     call in the order the watch printed them, each `verdict=pending` and then the `verdict=green`
-    with its `checks=<n>`. They are the Run report's, never a part of the message, whose For whom
-    already says the checks are green.
+    with its `checks=<n>`. They are the Run report's, never a part of the message.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
@@ -250,7 +236,7 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
    without a decision is not allowed. `none` is common.
 6. **Rulings.** Two groups, each opened by its label on a line of its own, `On the Spec:` and
    then `On the run:`, so a Ruling that changed the Spec is never read as one that only steered
-   the run, and the developer reverses the one they mean to. `On the Spec:` holds the Design
+   the run. `On the Spec:` holds the Design
    forks: one line per line the Spec's Implementation Decisions carries that reads
    `Ruled by the choice-taker on Ticket <this Ticket>`, in Spec order, whichever session wrote it,
    this run's own Ruling included when it wrote one:
@@ -269,10 +255,9 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
    - **A held Ruling.** A Ruling this run holds because its Spec is an issue,
      the forks in [forks.md](forks.md), follows under `On the Spec:` in the same shape, with the Spec issue it was
      posted on once the close's yes posted it, and otherwise with its whole Spec line and its
-     `Criterion:` and `Now reads:` lines, for the developer to carry to the issues: on a no, a
-     refused write or a stop, neither the Spec nor the tracker carries it, so that unposted Ruling
-     is also listed under Pending debt, in the message and so in the Debt file, with or without
-     `--auto`. A Ruling an earlier session held and never posted is not held again: a resume meets
+     `Criterion:` and `Now reads:` lines, for the developer to carry to the issues. That unposted
+     Ruling is also listed under Pending debt, in the message and so in the Debt file, with or
+     without `--auto`. A Ruling an earlier session held and never posted is not held again: a resume meets
      the fork again, and the earlier run's section of the Debt file still names it.
    - **A Ruling on a run question.** A Ruling the `choice-taker` made under `--auto` on a
      question about the run itself, the run questions in [forks.md](forks.md), or, outside the
@@ -280,14 +265,12 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
      `On the run:` and never among the Spec's lines, one line per Ruling in the order the run met
      them, naming both options, the option taken and the norm:
      `<option A> or <option B>: <the option taken>. Norm: <the norm>.` Each slot is read back from
-     the return's own `Fork:`, `Side:` and `Norm:` lines. That Ruling sits in no other file, so this
-     group is the one place the developer reads what was decided for them, and the reason the
-     Run report is written under `--auto`: it is listed on every Playbook, and on a blocked run as
-     well as a finished one. A return shown above a question the developer still answered steered
-     nothing and is not listed.
+     the return's own `Fork:`, `Side:` and `Norm:` lines. It is listed on every Playbook, and on a
+     blocked run as well as a finished one. A return shown above a question the developer still
+     answered steered nothing and is not listed.
    - **A Design fork outside the chain.** A `bug-fix` or `refactoring` run's Design fork Ruling,
      ruled by the Playbook's own Forks section, goes under `On the run:` too, never under
-     `On the Spec:`, since that run has no Spec, in the same shape:
+     `On the Spec:`, in the same shape:
      `<side A> or <side B>: <the side taken>. Norm: <the norm>.` It is also a line of the Pending
      debt on every run, per item 9.
    - **An empty group.** Both labels are written in every Run report, and a group with no Ruling
@@ -295,8 +278,7 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
      this run holds none of its own, `On the run: none` when it ruled no run question. A Playbook
      other than `ticket` has no Spec line to list, so its `On the Spec:` group reads `none`.
 7. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist, and
-   only the steps the run reached: a step it never came to was never considered, so it is not a
-   skip and is not listed.
+   only the steps the run reached.
 8. **Left uncommitted.** The files the run wrote and did not commit, for the developer: the
    Ticket, the Review, the `.gitignore` line when the run appended it, and every file it wrote
    under `.scratch/`, which git ignores: the Digest, the Plan, the Sketch, the Loss ledger and the
