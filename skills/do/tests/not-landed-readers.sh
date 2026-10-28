@@ -52,6 +52,27 @@ points_at_not_landed "bug-fix.md's review step" \
 points_at_not_landed "refactoring.md's review step" \
   "$(item_holding "$refs/refactoring.md" '### [0-9]+\.' "$key" | tr '\n' ' ' | tr -s ' ')"
 
+echo "# skills/do: every pointer to not-landed.md reads Read [not-landed.md](not-landed.md) when <condition>"
+# A link to the file, under any relative path, is a pointer, except SKILL.md's references-list entry
+# and the links not-landed.md makes to itself. Files are flattened, since a pointer may wrap.
+pointers=0
+misshapen=""
+for file in "$refs"/*.md "$here"/../agents/*.md; do
+  [ "$(basename "$file")" = not-landed.md ] && continue
+  while IFS= read -r hit; do
+    [ -n "$hit" ] || continue
+    pointers=$((pointers + 1))
+    grep -qE '^Read \[not-landed\.md\]\(not-landed\.md\) when ' <<<"$hit" ||
+      misshapen="$misshapen${misshapen:+; }$(basename "$file"): $hit"
+  done < <(tr '\n' ' ' <"$file" | tr -s ' ' | grep -oE '(Read )?\[[^]]*\]\(([^)]*/)?not-landed\.md\)( when )?')
+done
+expect "the do skill points at not-landed.md from the steps that read it" test "$pointers" -ge 5
+if [ -z "$misshapen" ]; then
+  ok "every pointer to not-landed.md has the \`Read <file> when <condition>\` shape"
+else
+  fail "every pointer to not-landed.md has the \`Read <file> when <condition>\` shape (misshapen: $misshapen)"
+fi
+
 # A run whose review lands reads mechanics.md and its Playbook and never not-landed.md, so the
 # handling of a return that did not land, left in either, is text every landed run loads for
 # nothing. A line carrying the pointer may name the condition it sends the run on.
