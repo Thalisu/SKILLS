@@ -492,7 +492,7 @@ the same: the claim is fresh, the state reads `verdict=restart` with `worktree=a
 there the run is a first Final integration of this repository and of no other, with the **Gate**
 of this project's facts and the Review at the `review_file=` path the claim prints.
 
-1. **The landing record.** `bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>`, before
+1. **The landing record.** `bash <skill-dir>/scripts/landing-order.sh <the Ticket's path> | tee <state>/order`, before
    the claim and in a call of its own, as step 9a reads it on the run that completes the feature.
    The record's lines are kept as printed, `repositories=` among them, and handed, as printed, to
    `bash <skill-dir>/scripts/landing-route.sh resume` on stdin. The run routes on the one `route=`
@@ -504,23 +504,16 @@ of this project's facts and the Review at the `review_file=` path the claim prin
      the same `route=` line, and claims nothing.
    - An exit 2 stops the run as blocked with the script's stderr line quoted, and claims nothing.
 
-   On `route=out-of-order` nothing is integrated and nothing is written: no claim file under this
-   repository's key, no `spec-<feature-slug>` worktree, no rebase, no review, no ref moved in any
-   repository. The message is three lines after the first line, each copied off the record, and
-   carries no section of a Reply:
-   - `Final integration: not started, <next_landing=> has to land first`. `next_landing=` is the
-     first repository in landing order that has not landed, the only one whose command lands
-     anything now. On a chain of three it may differ from the one `waits_for=` names, whose own
-     command would stop the same way.
-   - `<next_landing=>: open a session in <next_landing_location=>`, the line naming that
-     repository as the place to open a session in, or, when the location reads `unlisted`, its
-     name and that the Spec's `## Repositories` list holds no location for it.
-   - `/do <next_landing_ticket=>` and nothing else on the line, the message's last.
-
-   Nothing stands between those lines: no `Landed:` or `Still to land:` line, no command for
-   this session's own repository, no `Yours:` line, since there is nothing to choose, and no
-   shell line. Under `--auto` the stop is the same lines, with no `choice-taker` forked.
-2. **The claim.** `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>`, before
+   On `verdict=wait` a repository this one consumes from has not landed: the landing command was
+   typed out of order, and the run stops here, before the claim. Nothing is integrated and
+   nothing is written: no claim file under this repository's key, no `spec-<feature-slug>`
+   worktree, no rebase, no review, no ref moved in any repository. The message is the first line,
+   then the lines `bash <skill-dir>/scripts/reply-lines.sh final --door <state>/door --order <state>/order`
+   printed, then the lines `reply-lines.sh repositories` printed from the same two files, copied
+   as they stand, and carries no section of a Reply, no `Yours:` line, since there is nothing to
+   choose, and no shell line. Under `--auto` the stop is the same lines, with no `choice-taker`
+   forked.
+2. **The claim.** `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path> | tee <state>/claim`, before
    anything is read from the tree, so two resumes never both walk it.
    - `claim=claimed` with `takeover=yes`: the run that stopped yielded its claim and this run holds
      it now. The `previous_ticket=`, `previous_claimed_at=` and `yielded_at=` lines are recorded
