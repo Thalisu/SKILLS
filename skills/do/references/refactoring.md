@@ -716,7 +716,8 @@ of these that the run met:
 - a caller in another repository the wave could not reach;
 - a test that went red under a pure reshape and was named rather than edited;
 - a failed exit test the developer chose to keep;
-- a Design fork's Ruling, in the line [Forks and run questions](#forks-and-run-questions) fixes.
+- a Design fork's Ruling. Read [refactoring-design-fork.md](refactoring-design-fork.md) when the
+  run met a Design fork the `choice-taker` ruled, for the line that carries it.
 
 Under `--auto` the Run report carries the rest, each where [reply.md](reply.md) puts it:
 

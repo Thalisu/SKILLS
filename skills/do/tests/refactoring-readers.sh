@@ -22,4 +22,25 @@ for step in "4. Structure" "6. Reshape"; do
     grep -qE 'Read \[refactoring-design-fork\.md\]\(refactoring-design-fork\.md\) when [^ ]' <<<"$flat"
 done
 
+echo "# refactoring-design-fork.md: the whole Design fork procedure, opening on the steps that reach it"
+design="$refs/refactoring-design-fork.md"
+flat="$(paragraph_with "$design" "It is read by" | tr -s ' ')"
+expect "refactoring-design-fork.md opens on a paragraph naming its readers" test -n "$flat"
+carries_each "the opening names step 4, step 6 and the Reply step as its readers" \
+  "step 4" "Structure" -- "step 6" "Reshape" -- "step 15" "Reply" "reply"
+carries_any "the opening names the condition that sends them, two shapes the step cannot settle" \
+  "two shapes" "two target shapes"
+flat="$(tr '\n' ' ' <"$design" | tr -s ' ')"
+carries "refactoring-design-fork.md forks the choice-taker with its brief" \
+  "subagent_type: choice-taker" "Caller:" "Question:" "Options:" "Recommendation:" "Context:"
+carries "refactoring-design-fork.md checks the return before reading a side from it" \
+  "\`settled\`" "\`extreme\`" "Side:" "Losing criterion:"
+carries "refactoring-design-fork.md fixes the Ruling's Pending debt line" \
+  "Ruled by the choice-taker at the <step> step: <the side taken>."
+carries "refactoring-design-fork.md stops on a Design fork no choice-taker ruled" \
+  "on a Design fork no choice-taker" "never forks the \`choice-taker\` a second time"
+flat="$(item_holding "$refactoring" '### [0-9]+\.' "### 15. Reply" | tr '\n' ' ' | tr -s ' ')"
+expect "refactoring.md's Reply step points at refactoring-design-fork.md for the Ruling's line" \
+  grep -qE 'Read \[refactoring-design-fork\.md\]\(refactoring-design-fork\.md\) when [^ ]' <<<"$flat"
+
 exit $((fails > 0))

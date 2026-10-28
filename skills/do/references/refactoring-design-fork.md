@@ -1,5 +1,9 @@
 # A Design fork in a refactoring run
 
+It is read by step 4, Structure, and step 6, Reshape, of [refactoring.md](refactoring.md) when the
+step meets two shapes it cannot settle, and by step 15, Reply, when the run met a Design fork the
+`choice-taker` ruled, for the Ruling's Pending debt line.
+
 A Design fork is ruled inside the run, with or without `--auto`, per
 [ADR 0036](../../../docs/adr/0036-a-design-fork-is-settled-in-the-run-by-a-read-only-choice-taker-and-only-an-extreme-fork-stops-it.md).
 The session takes these steps in order:
