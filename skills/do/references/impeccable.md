@@ -1,5 +1,11 @@
 # The impeccable fork
 
+Read by the session on one run alone, the run whose door prints `kind=front-end` with
+`front_end=impeccable`: a Front-end ticket of a Spec reading `Front-end: impeccable`. The Door of
+[ticket.md](ticket.md) sends that run here, and each of its readers then reads its own section: the
+Door, the Plan step, the build step, the close and the Reply. A run whose door prints anything else
+never opens it.
+
 The fork that builds one Front-end ticket of a Spec reading `Front-end: impeccable`, in the worktree
 the session cut, per
 [ADR 0078](../../../docs/adr/0078-an-impeccable-front-end-ticket-forks-no-planner-and-do-impeccable-stands-in-for-the-builder.md).
