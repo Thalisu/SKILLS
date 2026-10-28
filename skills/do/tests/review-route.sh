@@ -54,4 +54,11 @@ for integration in rebase reapply; do
     "gate=command=bash skills/do/scripts/gate.sh" "caller=Caller: do" "route=fix"
 done
 
+# A resume that ran no gate of its own hands the fix call no gate command: one carried over would be
+# another session's.
+route "landing=$moved" "integration=rebase"
+check_lines "a fix call with no gate of the run's own still names the Review and do as its caller" 1 "$rc" \
+  "fix=fix /repo/.scratch/feature/issues/07-ticket.review.md spec/feature" "caller=Caller: do" "route=fix"
+absent_prefix "a fix call with no gate of the run's own carries no gate line" "gate="
+
 exit $((fails > 0))
