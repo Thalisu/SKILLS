@@ -419,8 +419,8 @@ so the rival shapes stay out of the session's:
   branch named:
   `Yours: direction: keep the Sketch's shape or take the deviation's, by editing the Sketch at <its location>, then type the request again to resume in <worktree>`.
 
-A Design fork the step meets, two target shapes the request and the code cannot settle, goes to
-[Forks and run questions](#forks-and-run-questions) below before the shape is recorded.
+Read [refactoring-design-fork.md](refactoring-design-fork.md) when the step meets two target
+shapes the request and the code cannot settle, before the shape is recorded.
 
 When no boundary is crossed the step reads `skip: no boundary crossed`, and the missing structure
 is still named.
@@ -516,8 +516,8 @@ defect and `/discuss <the rename>` otherwise.
 - **The harness disagrees after a step.** Behaviour changed. The step is undone until it agrees, and
   what disagreed is stated in one line.
 
-A Design fork a step meets, two shapes step 4's target shape cannot settle, goes to
-[Forks and run questions](#forks-and-run-questions) below.
+Read [refactoring-design-fork.md](refactoring-design-fork.md) when a step meets two shapes step
+4's target shape cannot settle.
 
 The steps land as one commit or several, each titled `refactor(<scope>): <the step>` and staged by
 path, the body carrying the pin's command lines.
@@ -752,49 +752,6 @@ A question the run meets is classified before it is asked, and its class decides
 
 An empirical fork never reaches the developer, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md).
-
-### A Design fork
-
-A Design fork is ruled inside the run, with or without `--auto`, per
-[ADR 0036](../../../docs/adr/0036-a-design-fork-is-settled-in-the-run-by-a-read-only-choice-taker-and-only-an-extreme-fork-stops-it.md).
-The session takes these steps in order:
-
-1. Say in one line that the run met a Design fork at its step, step 4 or step 6, and name both
-   sides.
-2. Read the two sides for an Extreme fork. A side read as Extreme stops the run there, by the
-   Extreme stop below, and no `choice-taker` is forked.
-3. Call the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
-   [choice-taker.md](../agents/choice-taker.md), never another agent in its place, with the brief
-   its definition names:
-   - `Caller:` is `do` at the step of the `refactoring` Playbook, `Structure` or `Reshape`.
-   - `Question:` is the fork, `Options:` its two sides, and `Recommendation:` is `none`.
-   - `Repository root:` is the main checkout's absolute path.
-   - `Principles:` is the absolute path `readlink -f <skill-dir>/../../.agents/principles` prints.
-   - `Context:` is the reshape read back, the structure and the target shape step 4 named, the
-     caller inventory of step 1, and the Sketch's location when step 4 filed one. There is no
-     Ticket, Spec or Digest to name.
-4. Check the return before reading a side from it. It is a Ruling only when its first line reads
-   `settled` or `extreme`, and a `settled` one only when its `Side:` line names one of the two
-   sides, its `Fork:` line names those two and no other, and its `Losing criterion:` reads `none`,
-   since no Ticket criterion exists to lose.
-5. On a `settled` Ruling, take its side and carry on in the same turn. On an `extreme` one, stop by
-   the Extreme stop below, its `Fork:`, `Weaker side:`, `Guarantee:` and `Risk class:` lines
-   filling the stop's slots.
-
-A `settled` Ruling is written to no file of the project: no Spec stands behind the run to carry
-it. It reaches the developer in two places. The Reply's Pending debt carries it on every run, as
-one line, since the developer reads a refactor and a design choice rode inside it:
-`Ruled by the choice-taker at the <step> step: <the side taken>. Norm: <the norm, or "no norm: the side easiest to undo">. Fork: <side A> or <side B>.`
-Under `--auto` the Run report lists it under `Rulings`, in its `On the run:` group, per
-[reply.md](reply.md).
-
-On no Ruling (the Agent tool withheld, no `choice-taker` listed, or a return that fails the check)
-the run rules nothing itself, never forks the `choice-taker` a second time, and stops at its step
-as blocked, the unruled stop: the Extreme stop's message with `on a Design fork no choice-taker
-ruled` in place of `on an Extreme fork`, and the reason in place of the clause after the semicolon
-(`the Agent tool is withheld`, `choice-taker is not listed`, with `scripts/link-skills.sh` as what
-links it, or `the choice-taker returned no usable Ruling`, the return quoted whole on a blocker's
-line).
 
 ### The Extreme stop
 

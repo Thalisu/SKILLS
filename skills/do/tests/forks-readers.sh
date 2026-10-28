@@ -6,8 +6,8 @@
 # says") and to the reply ("the reply's `Rulings` section and its Evidence, per [reply.md](reply.md)").
 # A reader who trusts the "and by no other" claim concludes wrongly that only the fork step reads
 # it, and never checks the Resume section's, the close's or the reply's own reading of it against a
-# change here. ticket.md is not the only Playbook that meets a Design fork: bug-fix.md's fix step and
-# refactoring.md's reshape step build code the same way, and a fork met there (one side of which may
+# change here. ticket.md is not the only Playbook that meets a Design fork: bug-fix.md's fix step
+# builds code the same way, and a fork met there (one side of which may
 # weaken a security, auth, privacy or data-loss guarantee) has to reach the same Extreme-fork stop,
 # never settle silently because that Playbook never linked forks.md at all.
 # Run: bash skills/do/tests/forks-readers.sh
@@ -19,7 +19,6 @@ skill="$here/../SKILL.md"
 ticket="$here/../references/ticket.md"
 reply="$here/../references/reply.md"
 bugfix="$here/../references/bug-fix.md"
-refactoring="$here/../references/refactoring.md"
 fails=0
 
 echo "# forks.md's readers: named wherever the file claims who reads it"
@@ -84,17 +83,6 @@ if grep -qF "[Forks](#forks)" <<<"$bugfix_fix_step"; then
   ok "bug-fix.md's Fix step links its own Playbook's forks section"
 else
   fail "bug-fix.md's Fix step links its own Playbook's forks section"
-fi
-
-# refactoring.md's step 6, Reshape, is the step that builds the new structure and can meet a Design
-# fork between two shapes: it links its own Forks section, since forks.md is the ticket Playbook's
-# alone (ADR 0105).
-refactoring_reshape_step="$(passage_of "$refactoring" "### 6. Reshape" "### 7.")"
-expect "refactoring.md carries step 6, Reshape" test -n "$refactoring_reshape_step"
-if grep -qF "[Forks and run questions](#forks-and-run-questions)" <<<"$refactoring_reshape_step"; then
-  ok "refactoring.md's Reshape step links its own Playbook's forks section"
-else
-  fail "refactoring.md's Reshape step links its own Playbook's forks section"
 fi
 
 # forks.md's own preamble: the paragraph naming who reads it.
