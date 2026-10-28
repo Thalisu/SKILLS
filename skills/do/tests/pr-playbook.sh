@@ -1926,7 +1926,7 @@ carries_any "never a merge" \
   "never a merge" "never as a merge" "not a merge" "no merge" "never merges" "never merged"
 carries_any "never to any other branch" \
   "any other branch" "another branch" "no other branch" "never to a branch"
-flat="$(bullets_opening_on <(passage_of "$reply" "## A refusal or a blocked run" "## ") "**A push.**")"
+flat="$(bullets_opening_on <(passage_of "$blocked" "## A refusal or a blocked run" "## ") "**A push.**")"
 expect "reply.md's refusal section carries the **A push.** bullet" test -n "$flat"
 carries_each "the \`pr\` round's push is the exception ADR 0086 authorises" \
   "\`pr\`" -- "round" -- "ADR 0086" -- "authoris" "authoriz" "allows" "permits"
