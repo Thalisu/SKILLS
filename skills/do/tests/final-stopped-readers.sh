@@ -189,4 +189,11 @@ row="$(grep -F "resume of one that finished" "$reply" | head -n 1)"
 outcome="$(awk -F'|' '{ m = $3; gsub(/^ +| +$/, "", m); print m }' <<<"$row")"
 expect "reply.md's outcome= table routes a resume that finished to final-landed" test "$outcome" = '`final-landed`'
 
+echo "# final-stopped.md: instructions only, no ADR given as a reason"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(tr '\n' ' ' <"$final_stopped" 2>/dev/null | tr -s ' ')"
+expect "final-stopped.md has text" test -n "$out"
+check_absent "final-stopped.md links no ADR and cites none as a step's reason" 0 0 \
+  "docs/adr/" "per ADR" "ADR 0"
+
 exit $((fails > 0))

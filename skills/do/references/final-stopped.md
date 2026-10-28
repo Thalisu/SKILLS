@@ -21,13 +21,13 @@ bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path> | tee <state>/
 ```
 
 The yield marks the claim as given up and leaves the claim file as it was written, so the claim
-still keeps a first run out while a resume can take it over, per ADR 0063. A run that died yields
+still keeps a first run out while a resume can take it over. A run that died yields
 nothing, and its claim reads `taken` to every resume until the developer yields it by hand.
 Read [blocked-reply.md](blocked-reply.md) when the Final integration stops, for the Reply of the stop.
 
 A stop touches this repository's landing and no other's. A repository of the feature that landed
 before it stays landed: the run moves no ref there, reverts nothing and removes nothing, since
-what landed was reviewed and is already the developer's to push, per ADR 0084. So that a partial
+what landed was reviewed and is already the developer's to push. So that a partial
 landing is never silent, the run reads the landing record once more after the yield, the same
 `landing-order.sh` call saved over `<state>/order`, on a first run and on a resume alike, and the
 Reply's lines are printed from that read.
@@ -49,8 +49,7 @@ they are neither ticked nor skipped, and the Run report's Run section carries st
 
 The same entry is the landing command of a feature across repositories: a `do` on a `resolved`
 Ticket built in the session's repository, typed there once every repository it consumes from has
-landed, per
-[ADR 0084](../../../docs/adr/0084-a-feature-across-repositories-lands-in-sequence-and-what-landed-stays.md).
+landed.
 Nothing stopped in that repository, since its Final integration never started, and the steps are
 the same: the claim is fresh, the state reads `verdict=restart` with `worktree=absent`, and from
 there the run is a first Final integration of this repository and of no other, with the **Gate**
@@ -82,7 +81,7 @@ of this project's facts and the Review at the `review_file=` path the claim prin
      for the Run report. `takeover=no` means no claim file was there, and the run holds a fresh one.
    - `claim=taken`, exit 1: a claim nobody yielded. Its holder is either still integrating or died
      without yielding, and the script cannot tell which, so the run stops in one line and writes
-     nothing, per ADR 0063. Read [blocked-reply.md](blocked-reply.md) when a resume's claim reads
+     nothing. Read [blocked-reply.md](blocked-reply.md) when a resume's claim reads
      `claim=taken`, for the Reply that quotes the claim's `yield_command=` line. The run composes no
      command of its own for it and never yields another holder's claim itself.
    - `claim=failed`, exit 3: the run stops as blocked with the `reason=` line quoted.
