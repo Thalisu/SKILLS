@@ -36,4 +36,12 @@ carries "a settled Ruling is listed under On the run: with On the Spec: none abo
 carries "anything else asks the question as without the flag, forking nothing in its place" \
   "the question is asked as without the flag" "never forks it a second time"
 
+echo "# trivial-auto.md: it opens on every reader that reaches it and the condition that sends them"
+opening="$(awk '/^# /{next} NF{print; on=1; next} on{exit}' "$auto")"
+expect "trivial-auto.md opens on its readers paragraph" grep -q '^It is read by' <<<"$opening"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(tr '\n' ' ' <<<"$opening" | tr -s ' ')"
+carries "the opening names the reader, the condition that sends it, and no other reader" \
+  "step 1 of [trivial.md](trivial.md)" "the door" "under \`--auto\`" "two files the request fits equally" "by no other"
+
 exit $((fails > 0))

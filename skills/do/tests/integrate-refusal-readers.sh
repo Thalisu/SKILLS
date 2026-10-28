@@ -33,4 +33,12 @@ carries "the reference names every refused= value the door prints" "${printed[@]
 carries "the reply is the first line and the message= line ending nothing integrated" \
   "\`Playbook: integrate\` first line" "\`message=\` line" "\`nothing integrated\`"
 
+echo "# integrate-refusal.md: it opens on every reader that reaches it and the condition that sends them"
+opening="$(awk '/^# /{next} NF{print; on=1; next} on{exit}' "$refusal")"
+expect "integrate-refusal.md opens on its readers paragraph" grep -q '^It is read by' <<<"$opening"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(tr '\n' ' ' <<<"$opening" | tr -s ' ')"
+carries "the opening names the reader, the condition that sends it, and no other reader" \
+  "step 1 of [integrate.md](integrate.md)" "the door" "\`integrate-door.sh\` exits 1" "by no other"
+
 exit $((fails > 0))

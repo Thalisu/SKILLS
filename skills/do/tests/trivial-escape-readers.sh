@@ -39,4 +39,12 @@ flat="$(row 3)"
 carries "exit 3 has the run read the diff against the three questions and stop as for exit 1" \
   "verdict=judgment" "a test file, a new exported symbol, a changed signature" "stops as for exit 1" "its own judgment"
 
+echo "# trivial-escape.md: it opens on every reader that reaches it and the condition that sends them"
+opening="$(awk '/^# /{next} NF{print; on=1; next} on{exit}' "$escape")"
+expect "trivial-escape.md opens on its readers paragraph" grep -q '^It is read by' <<<"$opening"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(tr '\n' ' ' <<<"$opening" | tr -s ' ')"
+carries "the opening names the reader, the condition that sends it, and no other reader" \
+  "step 5 of [trivial.md](trivial.md)" "the door on the diff" "\`trivial-door.sh diff\` exits other than 0" "by no other"
+
 exit $((fails > 0))
