@@ -105,4 +105,17 @@ check_lines "the worktree this run cut is removed and the branch kept with reaso
 gone "the start-over worktree is gone afterwards" worktree_listed "$wt"
 expect "the do/pin branch the door listed is still there" branch_listed do/pin
 
+echo "# diagnosis-undo.sh: a dirty worktree git refuses to remove"
+cd "$tmp" || exit 1
+diagnosis_repo dirty share
+wt="$(branch_worktree "$top" share)"
+printf 'half written\n' >>"$wt/notes.txt"
+run "$ticket_path" worktree=none run_branch=none
+refusal="$(g -C "$top" worktree remove "$wt" 2>&1 | head -1)"
+check_lines "the worktree is kept with git's own reason, the branch with reason worktree-kept, exit 1" 1 "$rc" \
+  "worktree=kept $wt git: $refusal" "branch=kept do/share worktree-kept"
+expect "the dirty worktree is still listed" worktree_listed "$wt"
+expect "the dirty worktree keeps its uncommitted change" grep -qx 'half written' "$wt/notes.txt"
+expect "the do/share branch is still there" branch_listed do/share
+
 exit "$fails"
