@@ -33,6 +33,14 @@ home() { # $1 name, $2 the Spec's Journey: line
   digest="$issues/01-thing.digest.md"
 }
 
+plan_with() { # $1.. the Plan's ## Sources lines: the Plan at $plan
+  {
+    printf '## Sources\n\n'
+    printf '%s\n' "$@"
+    printf '\n## Behaviours\n\n1. Behavior to prove: something\n'
+  } >"$plan"
+}
+
 digest_with() { # $1.. the Digest's ## Sources lines
   {
     printf '# Digest\n\n## Sources\n\n'
@@ -125,5 +133,15 @@ home extreme-planted 'Journey: not needed'
 printf 'keep me\n' >"$root/README.md"
 refuses "digest refuses a sidecar that is not the Ticket's own" names extreme digest "$root" "$ticket_file" "$digest" "$root/README.md"
 expect "a refused sidecar argument removes nothing" test -f "$root/README.md"
+
+# A resumed or retyped run grounds the Ticket again: a current Plan is carried, not re-planned.
+home carried 'Journey: not needed'
+digest_with "spec: $spec $(hash_of "$spec")" "journey: absent"
+plan="$issues/01-thing.plan.md"
+plan_with "ticket: $ticket_file $(hash_of "$ticket_file")" "digest: $digest $(hash_of "$digest")"
+run plan "$root" "${ticket_file#"$root"/}" "$digest" "$plan"
+check_lines "plan carries a Plan whose Sources are exactly the Ticket's and the Digest's records" 0 "$rc" \
+  "ticket=$ticket_file" "ticket_hash=$(hash_of "$ticket_file")" "digest=$digest" "digest_hash=$(hash_of "$digest")" "verdict=carried"
+expect "the carried Plan is left in place" test -f "$plan"
 
 [ "$fails" = 0 ]

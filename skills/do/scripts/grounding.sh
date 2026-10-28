@@ -10,11 +10,18 @@
 #       record that is not a match. With the sidecar resume-state.sh printed as extreme= (it must
 #       be <ticket> with .md replaced by .extreme.md): extreme when both match, the sidecar kept;
 #       otherwise fork, the sidecar removed
+#   grounding.sh plan <root> <ticket> <digest path> <destination>
+#       whether the Plan at <destination>, a .plan.md, carries over: carried when its ## Sources
+#       is exactly the Ticket's and the Digest's records, hashed now; fork otherwise. The ticket=,
+#       ticket_hash=, digest= and digest_hash= lines are the values the session records
 #
-# A record is one ## Sources line, `<name>: <absolute path> <hash>`, or `<name>: absent`. It matches
-# when the section holds exactly one line opening `<name>:` and that line equals it.
+# A record is one ## Sources line, `<name>: <absolute path> <hash>`, or `<name>: absent`, a
+# relative Ticket path joined to <root>. It matches a Digest's section when the section holds
+# exactly one line opening `<name>:` and that line equals it, and a Plan's section matches when it
+# holds exactly two non-blank lines, the Ticket's record and the Digest's.
 #
-# Prints key=value lines, verdict= last. Exit codes: digest 0 reuse, 1 fork, 5 extreme · 2 usage,
+# Prints key=value lines, verdict= last. Exit codes: digest 0 reuse, 1 fork, 5 extreme · plan
+# 0 carried, 1 fork · 2 usage,
 # <root> not a git work tree, or a sidecar that is not the Ticket's own.
 set -uo pipefail
 
@@ -24,6 +31,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 
 usage() {
   echo "usage: grounding.sh digest <root> <ticket> <digest path> [<extreme sidecar>]" >&2
+  echo "       grounding.sh plan <root> <ticket> <digest path> <destination>" >&2
   exit 2
 }
 
@@ -52,6 +60,38 @@ sources_of() { # $1 file: the non-blank lines of its ## Sources section
 
 matches() { # $1 section, $2 record
   [ "$(grep -c -- "^${2%%:*}:" <<<"$1")" = 1 ] && grep -qxF -- "$2" <<<"$1"
+}
+
+plan_matches() { # $1 Plan, $2 the ticket record, $3 the digest record
+  local section
+  section="$(sources_of "$1")"
+  [ "$(grep -c . <<<"$section")" = 2 ] && grep -qxF -- "$2" <<<"$section" && grep -qxF -- "$3" <<<"$section"
+}
+
+ticket_of() { # $1 the door's ticket=: the Ticket's absolute path, or an issue reference as given
+  if [ -f "$(absolute "$1")" ]; then absolute "$1"; else echo "$1"; fi
+}
+
+cmd_plan() {
+  [ $# = 4 ] || usage
+  root="$1"
+  at_root "$root"
+  case "$4" in *.plan.md) ;; *) usage ;; esac
+  local ticket ticket_hash digest digest_hash
+  ticket="$(ticket_of "$2")"
+  ticket_hash="$(hash_at "$ticket")"
+  digest="$(absolute "$3")"
+  digest_hash="$(hash_at "$digest")"
+  echo "ticket=$ticket"
+  echo "ticket_hash=$ticket_hash"
+  echo "digest=$digest"
+  echo "digest_hash=$digest_hash"
+  if [ -f "$4" ] && plan_matches "$4" "$(record ticket "$ticket" "$ticket_hash")" "$(record digest "$digest" "$digest_hash")"; then
+    echo "verdict=carried"
+    return 0
+  fi
+  echo "verdict=fork"
+  return 1
 }
 
 cmd_digest() {
@@ -111,6 +151,10 @@ case "${1:-}" in
   digest)
     shift
     cmd_digest "$@"
+    ;;
+  plan)
+    shift
+    cmd_plan "$@"
     ;;
   *) usage ;;
 esac
