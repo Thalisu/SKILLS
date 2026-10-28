@@ -1089,19 +1089,6 @@ nothing, in the main checkout or anywhere else: which of those files belong to t
 developer's to say. The worktree and its commits stay in place for the resume, and the Ticket
 still reads `claimed`.
 
-The return of `do-impeccable` is the lines and the one terminal verdict a Builder returns, so
-everything below is read with `do-impeccable` in the Builder's place and nothing is added for it:
-the same checks of the return against the branch, the first line and the `resume-state.sh` pairs,
-and the same three routes, `built`, `fork` and `stopped`. Its `behaviour:` lines carry the Ticket's
-acceptance criteria where a Builder's carry the Plan's behaviours, and a criterion it could not
-build comes back as `stopped` or `fork`, never under `built`, and takes that route. With no Plan,
-the re-check before the route is the call with no destination,
-`grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=>`, routed the same way. A re-fork after a `fork` or a cleared `stopped` hands it the same four-key brief. A
-spent time budget is cleared for it as for a Builder, since it asks the same command after each
-criterion's commit: the next Stretch is a new Agent call with `subagent_type: do-impeccable` and
-that same brief, never a Builder or a Planner in its place, and the run never ends as blocked over
-it.
-
 As soon as the Builder returns, before any of the checks below run and before any of their routes
 is taken, revoke the token again, the same call step 3 opened with:
 `bash <skill-dir>/scripts/review-token.sh revoke <the slug>`. The window a live token could reach a
