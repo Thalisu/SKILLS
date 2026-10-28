@@ -1,7 +1,7 @@
 # Forks
 
 What a `ticket` run does with a question it meets mid-build: the empirical fork a probe settles,
-the Design fork the `choice-taker` rules on, and the Extreme fork that stops the run. This file is
+the Design fork the `choice-taker` rules on, and which fork is Extreme. This file is
 the `ticket` Playbook's alone, since its Rulings are written to a Spec and its stops name a Ticket
 and a Spec: the `bug-fix`, `refactoring` and `trivial` Playbooks run with neither and carry their
 own forks and run questions in their own references, per
@@ -26,7 +26,7 @@ goes on:
 |---|---|---|
 | Empirical fork: a fact a script can observe (which timing, which output, whether an API does the thing) | a throwaway probe script | carries on |
 | Design fork: two shapes the Ticket, its Spec and the code cannot settle, each keeping every guarantee whole | the `choice-taker`, whose Ruling the session writes down | carries on |
-| Extreme fork: a Design fork with a side that weakens a guarantee in a risk class, or that cannot be undone once landed | the developer, through `/discuss` | stops, blocked |
+| Extreme fork: a Design fork with a side that weakens a guarantee in a risk class (security, privacy, data loss, auth, billing, migration, idempotency, race), or that cannot be undone once landed | the developer, through `/discuss` | stops, blocked |
 
 A fork stops the run in two cases only: the Extreme stop, and the unruled stop, when no
 `choice-taker` ruled a Design fork. An empirical fork or a `settled` Ruling is never a reason to
@@ -53,8 +53,10 @@ writes a Ruling down, with the Spec's comments and the door's Rulings never in i
 The session takes these steps in order:
 
 1. Say in one line that the run met a Design fork at that step, and name both sides.
-2. Read the two sides for an Extreme fork, per the Extreme fork section below. A side read as
-   Extreme stops the run there, and no `choice-taker` is forked.
+2. Read the two sides for an Extreme fork, as the table above defines one. A side read as
+   Extreme stops the run there, and no `choice-taker` is forked. Read
+   [extreme-fork.md](extreme-fork.md) when a side is read as Extreme here or the `choice-taker`
+   returns `extreme` at step 5.
 3. Call the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
    [choice-taker.md](../agents/choice-taker.md), with the brief below.
 4. Check the return, per the check below, before reading a side from it.
@@ -90,7 +92,7 @@ sections below say, so the Spec gains its one line, is read again and the run ca
 commit for the Ruling. A Design fork is never taken as a run question, the last section of this
 file, whose Ruling amends no file: every later Ticket of the feature reads this one from the Spec.
 An Extreme fork is not handed over by the flag either: a side the session reads as Extreme, or an
-`extreme` return, stops the run under the flag as without it, per the Extreme fork section below.
+`extreme` return, stops the run under the flag as without it.
 
 ### When no `choice-taker` can be forked
 
@@ -347,8 +349,8 @@ Yours: direction: settle what <the story or the criterion> becomes with the comm
 ```
 
 It writes no `<Ticket>.extreme.md` sidecar: the next `/do` on the Ticket reads the Spec as `discuss`
-left it. Its last line is the `/discuss` command the Extreme stop fixes, whole, with nothing after
-it and three replacements:
+left it. Read [extreme-fork.md](extreme-fork.md) when this stop writes its last line: the `/discuss`
+command the Extreme stop fixes, whole, with nothing after it and three replacements:
 
 - `on a finding that changes what the feature is` in place of
   `on an Extreme fork, <side A> or <side B>`;

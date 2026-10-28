@@ -75,23 +75,8 @@ absent "builder.md's preamble no longer has the session run the loop itself" \
 echo "# every pointer to stand-in.md reads \`Read [stand-in.md](stand-in.md) when <condition>\`"
 
 # SKILL.md's Links entry is the references list, not a pointer; stand-in.md links nothing to itself.
-pointers=0
-misshapen=""
-for file in "$here"/../references/*.md "$here"/../agents/*.md; do
-  [ "$file" = "$stand_in" ] && continue
-  while IFS= read -r hit; do
-    [ -n "$hit" ] || continue
-    pointers=$((pointers + 1))
-    grep -qE '^Read \[stand-in\.md\]\(stand-in\.md\) when ' <<<"$hit" ||
-      misshapen="$misshapen${misshapen:+; }$(basename "$file"): $hit"
-  done < <(tr '\n' ' ' <"$file" | tr -s ' ' | grep -oE '(Read )?\[[^]]*\]\([^)]*stand-in\.md[^)]*\)( when )?')
-done
-expect "the do skill points at stand-in.md from the steps that stand in" test "$pointers" -ge 4
-if [ -z "$misshapen" ]; then
-  ok "every pointer to stand-in.md has the \`Read <file> when <condition>\` shape"
-else
-  fail "every pointer to stand-in.md has the \`Read <file> when <condition>\` shape (misshapen: $misshapen)"
-fi
+pointers_shaped "every pointer to stand-in.md, at least one per step that stands in, has the \`Read <file> when <condition>\` shape" \
+  "$here/.." stand-in.md 4
 
 echo "# SKILL.md's references list names stand-in.md with its readers and its condition"
 

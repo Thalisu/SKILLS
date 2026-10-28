@@ -243,6 +243,27 @@ bullets_opening_on() { # $1 file, $2 a fixed string a bullet's marker line carri
     END { flush() }
   ' "$1" | tr -s ' '
 }
+# A pointer is a link to a reference, read with the `Read ` before it and the ` when ` after it where
+# they stand: the references hard-wrap, so a file is flattened before its links are read.
+pointers_to() { # $1 the skill's folder, $2 a reference's file name: every link to it from the skill's references and agents but the file's own, `<file>: <link>` one per line, on stdout
+  local file re="${2//./\\.}"
+  for file in "$1"/references/*.md "$1"/agents/*.md; do
+    [ "$file" = "$1/references/$2" ] && continue
+    tr '\n' ' ' <"$file" | tr -s ' ' |
+      grep -oE "(Read )?\[[^]]*\]\([^)]*$re[^)]*\)( when )?" | sed "s|^|$(basename "$file"): |"
+  done
+}
+pointers_shaped() { # $1 label, $2 the skill's folder, $3 a reference's file name, $4 the fewest pointers the skill holds to it: each reads `Read [<file>](<file>) when `
+  local hits n misshapen
+  hits="$(pointers_to "$2" "$3")"
+  n="$(grep -c . <<<"$hits")"
+  [ "$n" -ge "$4" ] || {
+    fail "$1 (pointers: $n, fewer than $4)"
+    return
+  }
+  misshapen="$(grep -vF ": Read [$3]($3) when " <<<"$hits" | tr '\n' ';')"
+  if [ -z "$misshapen" ]; then ok "$1"; else fail "$1 (misshapen: $misshapen)"; fi
+}
 # The fenced blocks of a section, unindented: a contract that hands a session a command puts it in a
 # block, and a brief's own lines are a block too.
 blocks_of() { # $1 file, $2 the heading whose section holds them: its fenced blocks, unindented

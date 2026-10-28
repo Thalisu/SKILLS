@@ -691,8 +691,9 @@ Route on the first line:
   `choice-taker` forked in this session, the returned Ruling written to the Spec's Implementation
   Decisions, the Ticket criterion rewritten only when that criterion was the losing side. Then the
   Builder is forked again with the same brief, its `Rulings:` key now carrying that Ruling. A
-  `choice-taker` return reading `extreme` ends the run on the Extreme fork's own route in
-  [forks.md](forks.md) and the Builder is not forked again. A second `fork` return naming the same
+  `choice-taker` return reading `extreme`, or a side the session reads as Extreme, ends the run on
+  the Extreme fork's own route and the Builder is not forked again: Read
+  [extreme-fork.md](extreme-fork.md) when either one holds. A second `fork` return naming the same
   two sides with no new commit on the branch ends the run as blocked, the Ruling having settled
   nothing.
 - `stopped`: the reason is the `stopped:` line. A reason the session can clear (a seam that is

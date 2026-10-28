@@ -14,6 +14,7 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 forks="$here/../references/forks.md"
+extreme="$here/../references/extreme-fork.md"
 skill="$here/../SKILL.md"
 ticket="$here/../references/ticket.md"
 resume="$here/../references/resume.md"
@@ -167,8 +168,8 @@ carries "the Design-fork paragraph says the session, never the Planner, forks th
   "the session" "forks the" "choice-taker"
 
 # The blocked stop's bullet naming the step it stopped at: same two retired names.
-step_bullet="$(paragraph_with "$forks" "the step it stopped at")"
-expect "forks.md carries the blocked stop's bullet naming the step it stopped at" test -n "$step_bullet"
+step_bullet="$(paragraph_with "$extreme" "the step it stopped at")"
+expect "extreme-fork.md carries the blocked stop's bullet naming the step it stopped at" test -n "$step_bullet"
 if grep -qF "the shape step" <<<"$step_bullet" || grep -qF "the behaviours step" <<<"$step_bullet"; then
   fail "the blocked stop's bullet names the Plan step, not the retired shape/behaviours steps"
 else
@@ -201,28 +202,28 @@ echo "# an Extreme fork under --auto: the run still stops on its /discuss line, 
 # `/discuss` command it fixes, the Design one as the first to fork the choice-taker by name. Each is
 # read in its own paragraphs naming the flag, so the run-question section's sentence on an `extreme`
 # return, which is about a run question, never answers for a Design fork here.
-extreme_section="$(item_holding "$forks" '### ' "/discuss Ticket <")"
-expect "forks.md carries the section fixing the Extreme stop's /discuss command" test -n "$extreme_section"
+extreme_section="$(item_holding "$extreme" '#+ ' "/discuss Ticket <")"
+expect "extreme-fork.md carries the section fixing the Extreme stop's /discuss command" test -n "$extreme_section"
 flat="$(paragraph_with <(printf '%s\n' "$extreme_section") "--auto" all | tr '\n' ' ' | tr -s ' ')"
 if [ -z "$flat" ]; then
-  fail "forks.md's Extreme fork section says what --auto does to the stop (no paragraph of it names --auto)"
+  fail "extreme-fork.md's Extreme fork section says what --auto does to the stop (no paragraph of it names --auto)"
 else
-  carries_each "forks.md's Extreme fork section has the run stop under --auto, the flag handing the fork to nothing" \
+  carries_each "extreme-fork.md's Extreme fork section has the run stop under --auto, the flag handing the fork to nothing" \
     "stop" -- \
     "as without it" "as without the flag" "the flag as without" "with or without" "hands nothing over" \
     "never hands" "does not hand" "not handed" "never handed" "hands no" "never ruled" "not ruled" \
     "rules nothing" "nothing in the run rules" "changes nothing" "adds nothing" "no route" \
     "all the same" "the same way" "the same stop" "still stops" "leaves the stop" "unchanged" \
     "stays the developer's" "remains the developer's" "the developer's alone"
-  carries_any "forks.md's Extreme fork section follows the choice-taker's extreme return or the session's own reading under --auto" \
+  carries_any "extreme-fork.md's Extreme fork section follows the choice-taker's extreme return or the session's own reading under --auto" \
     "choice-taker" "reading" "read as Extreme" "reads as Extreme"
-  carries_any "forks.md's Extreme fork section stops the run under --auto on its /discuss line" \
+  carries_any "extreme-fork.md's Extreme fork section stops the run under --auto on its /discuss line" \
     "/discuss" "\`discuss\`" "recorded command"
-  carries_any "forks.md's Extreme fork section still writes the sidecar under --auto" \
+  carries_any "extreme-fork.md's Extreme fork section still writes the sidecar under --auto" \
     "sidecar" ".extreme.md"
-  carries_any "forks.md's Extreme fork section writes that sidecar beside a claimed Ticket under --auto" \
+  carries_any "extreme-fork.md's Extreme fork section writes that sidecar beside a claimed Ticket under --auto" \
     "claimed"
-  carries_any "forks.md's Extreme fork section has the next /do read the recorded fork, never rule it a second time" \
+  carries_any "extreme-fork.md's Extreme fork section has the next /do read the recorded fork, never rule it a second time" \
     "resume" "next \`/do\`" "rerun" "second time" "recorded" "typed again"
 fi
 

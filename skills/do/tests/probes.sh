@@ -829,7 +829,7 @@ git worktree remove --force .claude/worktrees/do-tagged
 g branch -D do/tagged >/dev/null
 rm "$issues/40-tagged.md"
 
-# The extreme paragraph of forks.md: a rerun on an unchanged Spec must meet the same Extreme
+# The extreme paragraph of extreme-fork.md: a rerun on an unchanged Spec must meet the same Extreme
 # fork and print the same /discuss command, never fork a choice-taker a second time. The sidecar
 # is the record a first run's stop left beside the Ticket, the way a Review or a Digest is.
 echo "# resume-state.sh: an Extreme stop's persisted record"
@@ -840,16 +840,16 @@ check_lines "an Extreme stop's persisted record resumes on its own /discuss comm
   "extreme=$top/$issues/04-claimed.extreme.md" "discuss=$discuss_line" "commits=2" "verdict=extreme"
 rm "$issues/04-claimed.extreme.md"
 
-# The write side of the same paragraph: the /discuss shape forks.md fixes, filled the way a
+# The write side of the same paragraph: the /discuss shape extreme-fork.md fixes, filled the way a
 # real stop fills it and written as the one-line sidecar the paragraph now instructs, must round
 # trip through resume-state.sh exactly, proving the write and the read agree on the same shape.
-echo "# resume-state.sh: the /discuss shape forks.md fixes, written as the sidecar a stop leaves"
+echo "# resume-state.sh: the /discuss shape extreme-fork.md fixes, written as the sidecar a stop leaves"
 template="$(awk '
   /^```$/ { fence = !fence; next }
   fence && /^\/discuss Ticket/ { print; exit }
-' "$skill/references/forks.md")"
+' "$skill/references/extreme-fork.md")"
 [ -n "$template" ] || {
-  echo "FAIL  forks.md carries no /discuss template to fill"
+  echo "FAIL  extreme-fork.md carries no /discuss template to fill"
   fails=$((fails + 1))
 }
 filled="$(printf '%s\n' "$template" | sed \
@@ -862,7 +862,7 @@ printf '%s\n' "$filled" >"$issues/04-claimed.extreme.md"
 expect "the filled template writes as a single line, per the paragraph's one-line sidecar" \
   test "$(wc -l <"$issues/04-claimed.extreme.md")" = 1
 run "$resume" "$issues/04-claimed.md"
-check_lines "the sidecar written from forks.md's own template reads back byte for byte" 5 "$rc" \
+check_lines "the sidecar written from extreme-fork.md's own template reads back byte for byte" 5 "$rc" \
   "extreme=$top/$issues/04-claimed.extreme.md" "discuss=$filled" "verdict=extreme"
 rm "$issues/04-claimed.extreme.md"
 

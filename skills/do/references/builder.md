@@ -133,8 +133,10 @@ stopped at: <the behaviour line the loop stopped on>
 
 The fork report is the whole of what the session rules on, since it forks the `choice-taker`
 against a Spec this fork never read: both sides, which criterion would lose, and where the build
-stopped. The fork rules on nothing itself and classes nothing as Design or Extreme, per
-[forks.md](forks.md): the `choice-taker`'s own return already reads `settled` or `extreme`.
+stopped. The fork rules on nothing itself and classes nothing as Design or Extreme: the
+`choice-taker`'s own return already reads `settled` or `extreme`. Read
+[extreme-fork.md](extreme-fork.md) when the session reads a side of this report as Extreme or the
+`choice-taker` returns `extreme` on it.
 
 A stretch that stopped for any other reason:
 

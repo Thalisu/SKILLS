@@ -26,6 +26,7 @@ planner="$here/../agents/do-planner.md"
 reply="$here/../references/reply.md"
 run_report="$here/../references/run-report.md"
 forks="$here/../references/forks.md"
+extreme="$here/../references/extreme-fork.md"
 mechanics="$here/../references/mechanics.md"
 stand_in="$here/../references/stand-in.md"
 fails=0
@@ -1758,7 +1759,7 @@ carries_each "the \`choice-taker\` fork and the Spec write stay the session's, n
   -- "forks the \`choice-taker\`" "forks the choice-taker" "the session forks" \
   -- "writes the Ruling to the Spec" "writes the Ruling into the Spec" "the Ruling to the Spec"
 
-echo "# skills/do/references/forks.md: an Extreme fork the Builder meets stops the run the same way"
+echo "# skills/do/references/extreme-fork.md: an Extreme fork the Builder meets stops the run the same way"
 
 # The Extreme stop is the one boundary never-block-on-the-human keeps for the human, and since
 # ADR 0047 the build loop runs inside the Builder's window. The fork's own write guard denies every
@@ -1768,9 +1769,9 @@ echo "# skills/do/references/forks.md: an Extreme fork the Builder meets stops t
 # next `/do` meets the same fork and stops again with nothing recorded. Scoped to the Extreme
 # paragraphs alone, from the risk-class sentence to the `/discuss` shape: the Design fork's own
 # sentence above already names the Builder and would otherwise answer for a half nothing wrote.
-flat="$(passage_of "$forks" "A fork that touches a risk class" "The reply's last line is the \`/discuss\` command" |
+flat="$(passage_of "$extreme" "A fork that touches a risk class" "The reply's last line is the \`/discuss\` command" |
   tr '\n' ' ' | tr -s ' ')"
-expect "forks.md carries the Extreme paragraphs the stop is written in" test -n "$flat"
+expect "extreme-fork.md carries the Extreme paragraphs the stop is written in" test -n "$flat"
 
 # Where the two sides come from when the build step found the fork. Every phrasing accepted names
 # the Builder, since the sides at the Plan step come from the Plan and a sentence about those would
