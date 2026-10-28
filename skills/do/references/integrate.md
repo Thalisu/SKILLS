@@ -3,13 +3,10 @@
 The developer types an integration of their own branches: rebase this branch onto another, or merge
 one branch into another. The run performs that one operation, with the conflict loop the worktree
 Playbooks run as their integration step, over a branch no Ticket stands behind, and stops once the
-operation is complete, per
-[ADR 0029](../../../docs/adr/0029-do-ships-a-fifth-playbook-integrate-and-the-chains-own-step-stays-a-rebase.md).
+operation is complete.
 
-The run works in place, on the developer's own checkout, with no worktree between its work and
-theirs, and nobody watches it while it runs: the developer reads it afterwards, through the Reply.
-So the costly errors are the ones already written to their branch before anyone looks, and every
-rule below guards against one of three:
+The run works in place, on the developer's own checkout, with no worktree. Every rule below guards
+against one of three errors:
 
 - an operation the developer did not name: a merge where they asked for a rebase, a branch they did
   not name moved or written to, or an operation started over one they had already begun;
@@ -22,21 +19,12 @@ A case no rule here names is judged by which of the three it risks.
 
 ## What this run never does
 
-Each of these costs one of the three errors, so none bends to a step's convenience.
-
-- Create a worktree or switch branches: the operation writes to the branch the developer stands on,
-  and the door refuses any other.
+- Create a worktree or switch branches.
 - Pick the operation: the run performs the one the developer named, never picks a merge for itself,
-  and never turns a rebase into a merge or a merge into a rebase. The chain's own integration is a
-  rebase and its landing a fast-forward, so a merge happens only when a human names it.
-- Dispatch a test author or call a review: the Playbook builds nothing, and a reapplied commit is
-  work the branch already carried before the operation, not a behaviour this run adds.
-- Run a Gate, per the amendment to
-  [ADR 0034](../../../docs/adr/0034-a-contested-hunk-takes-the-target-side-and-what-it-sets-aside-is-reapplied-after-the-integration.md):
-  a Gate guards a landing or a review, and this run has neither. No Gate ran green before the
-  operation, so a red one could not tell a break the operation caused from one the branch already
-  carried, and the run may not edit the developer's code to turn it green. The Reply's Pending debt
-  records the check that did not run instead.
+  and never turns a rebase into a merge or a merge into a rebase.
+- Dispatch a test author or call a review.
+- Run a Gate, or edit the developer's code to turn one green. The Reply's Pending debt records the
+  check that did not run instead.
 - Land, push, or claim or close a Ticket: the push is the developer's, named as the next step.
 
 ## The message
@@ -69,8 +57,7 @@ integrate:
 ### 1. Door
 
 Before anything is written. The request names the operation and one or two branches, and the run
-passes them to the door as it read them, never a branch it guessed: the door's checks are what
-stop a wrong branch, and a guessed branch that exists passes every one of them.
+passes them to the door as it read them, never a branch it guessed.
 
 | The request | The door |
 |---|---|
@@ -103,13 +90,9 @@ operation writes to.
 
 Read [integrate-refusal.md](integrate-refusal.md) when `integrate-door.sh` exits 1.
 
-Exit 0 carries `in_progress=` and the operation's three commands, `start=`,
-`continue=` and `abort=`, each with git's conflict-resolution reuse off: the setting is the
-developer's own and may be on, and then a resolution recorded at one stop would be replayed into
-the next stop of the same shape, the class read from what the cache put back instead of from what
-git left. An `in_progress=` other than `none` is an
-operation the developer already started, and a stop in it may hold resolutions of their own: the
-run starts nothing over it and ends in one message naming the operation in progress with its
+Exit 0 carries `in_progress=` and the operation's three commands, `start=`, `continue=` and
+`abort=`, each with git's conflict-resolution reuse off, run as printed. An `in_progress=` other
+than `none` is an operation the developer already started: the run starts nothing over it and ends in one message naming the operation in progress with its
 `continue=` and `abort=` commands, nothing integrated.
 
 Done when the door exited 0 with `in_progress=none`, or the run ended on one of the early ends
@@ -119,8 +102,7 @@ above.
 
 The read-back line, off the door's lines and never the session's wording: `<moves>` rebased onto
 `<onto>`, or `<moves>` merged into `<onto>`, and the branch the operation writes to. It is the
-Reply's `Plan:` line, so a request the session misread shows on the Reply's first lines, before
-the developer reads anything else.
+Reply's `Plan:` line.
 
 Done when the line is recorded for the `Plan:` line.
 
@@ -156,8 +138,8 @@ and every other line of it holds as written:
   merge its entries name `MERGE_HEAD` as the commit whose side was set aside.
 - **The judge's brief.** The repository's top level stands in for the worktree root, and the
   request's line for the run's intent.
-- **No Gate.** The Gate the loop runs after the reapplied commits is skipped, for the reason under
-  **What this run never does**, so its red-Gate stop never arises here.
+- **No Gate.** The Gate the loop runs after the reapplied commits is skipped, and its red-Gate stop
+  never arises here.
 - **A blocked stop.** It leaves the operation open where it stopped and names its abort. There is
   no worktree, no branch of the run's and no Ticket to name.
 
@@ -186,5 +168,5 @@ report carries written under `--auto` alone:
   undo and no push, since nothing moved.
 
 Nothing is landed, nothing is pushed, no review is called, and the Run report's Skipped section
-lists no Gate, land, push or review step, since this Playbook has none: the check that did not run
-is carried under Pending debt instead.
+lists no Gate, land, push or review step: the check that did not run is carried under Pending debt
+instead.
