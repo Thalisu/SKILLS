@@ -154,6 +154,7 @@ route() {
       need ticket
       echo "/do ${key[ticket]}"
       ;;
+    *) usage "unknown outcome=${key[outcome]}" ;;
   esac
 }
 

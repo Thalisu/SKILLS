@@ -136,4 +136,18 @@ run outcome=extreme-fork yours=no playbook=refactoring 'subject=split the export
 same "a refactoring run stopped on an Extreme fork ends on its own /discuss line" \
   "$(printf '%s\n' '/discuss the do refactoring run on "split the exporter" stopped at the build step on an Extreme fork, archived notes are skipped or archived notes are exported; exporting archived notes would give up the archive stays private (privacy). Which side does the reshape take?' 'exit 0')"
 
+run outcome=blocked yours=yes "next_blocker=$blocker" next_blocker_build=notes-web next_blocker_build_location=unlisted
+first="$out"
+run outcome=blocked yours=yes "next_blocker=$blocker" next_blocker_build=notes-web next_blocker_build_location=unlisted
+same "the same input prints the same Next step on every call" "$first"
+
+run outcome=shipped yours=no branch=main
+same "an unknown outcome prints nothing on stdout and exits 2" "$(printf '%s\n' '' 'exit 2')"
+
+run outcome=landed yours=yes
+same "a key the route needs that is missing prints nothing on stdout, not even the Yours: opening, and exits 2" "$(printf '%s\n' '' 'exit 2')"
+
+run yours=no branch=main
+same "an input with no outcome prints nothing on stdout and exits 2" "$(printf '%s\n' '' 'exit 2')"
+
 exit "$((fails > 0))"
