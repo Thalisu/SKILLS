@@ -90,4 +90,18 @@ run tick "$ticket_path" "$plan"
 check_lines "a commit whose Behaviour: line adds words to the behaviour leaves it open" 0 "$rc" "item=1 open"
 check_lines "a commit whose Behaviour: line differs from the behaviour in case alone leaves it open" 0 "$rc" "item=2 open"
 
+echo "# resume-tick.sh tick: a commit no Plan behaviour covers, and a flow commit"
+cd "$tmp" || exit 1
+claimed_ticket stray archive
+behaviour_commit "feat: archive a note" "Archiving a note hides it from the list"
+behaviour_commit "feat: export tags" "Exporting a note keeps its tags"
+exported="$(git -C "$wt" rev-parse --short HEAD)"
+behaviour_commit "test: flow for archiving" ""
+plan_file "Archiving a note hides it from the list"
+run tick "$ticket_path" "$plan"
+check_lines "a commit whose Behaviour: line matches no Plan behaviour is named on a stray= line" 0 "$rc" \
+  "stray=$exported Exporting a note keeps its tags"
+expect "only that commit is stray: neither the ticked one nor the one whose line reads none" \
+  test "$(grep -c '^stray=' <<<"$out")" = 1
+
 exit "$fails"

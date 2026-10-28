@@ -8,7 +8,8 @@
 #   resume-tick.sh tick <Ticket path | issue ref> <Plan path>
 #     one item=<n> <short sha> | item=<n> open per item of the Plan's ## Behaviours section that
 #     carries `Behavior to prove:`, in Plan order, ticked with the oldest commit whose built text
-#     equals the item's text exactly
+#     equals the item's text exactly; then one stray=<short sha> <text> per built text that equals
+#     no item's text, oldest first
 #
 # Exit codes: 0 · 2 usage, an unknown subcommand, a missing argument, an unreadable Plan, or
 # resume-state.sh exiting 2 · 3 the Plan has no ## Behaviours section.
@@ -66,12 +67,13 @@ case "$1" in
       BEGIN {
         m = split(ENVIRON["PAIRS"], line, "\n")
         for (i = 1; i <= m; i++) {
-          sha = line[i]; sub(/ .*/, "", sha)
-          text = substr(line[i], length(sha) + 2)
-          if (!(text in tick)) tick[text] = sha
+          sha[i] = line[i]; sub(/ .*/, "", sha[i])
+          text[i] = substr(line[i], length(sha[i]) + 2)
+          if (!(text[i] in tick)) tick[text[i]] = sha[i]
         }
       }
-      { print "item=" $1 " " (($2 in tick) ? tick[$2] : "open") }
+      { item[$2] = 1; print "item=" $1 " " (($2 in tick) ? tick[$2] : "open") }
+      END { for (i = 1; i <= m; i++) if (!(text[i] in item)) print "stray=" sha[i] " " text[i] }
     '
     ;;
   *) usage ;;
