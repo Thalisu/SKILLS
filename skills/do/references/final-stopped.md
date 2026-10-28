@@ -22,9 +22,8 @@ bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path> | tee <state>/
 
 The yield marks the claim as given up and leaves the claim file as it was written, so the claim
 still keeps a first run out while a resume can take it over, per ADR 0063. A run that died yields
-nothing, and its claim reads `taken` to every resume until the developer yields it by hand. The
-Reply says the Final integration stopped and why, and that `/do <the run's Ticket>`, or a `do` on
-any Ticket of the Spec, resumes it, per [reply.md](reply.md).
+nothing, and its claim reads `taken` to every resume until the developer yields it by hand.
+Read [blocked-reply.md](blocked-reply.md) when the Final integration stops, for the Reply of the stop.
 
 A stop touches this repository's landing and no other's. A repository of the feature that landed
 before it stays landed: the run moves no ref there, reverts nothing and removes nothing, since
@@ -34,9 +33,10 @@ landing is never silent, the run reads the landing record once more after the yi
 Reply's lines are printed from that read.
 
 A resume that stops again yields the claim it holds before its Reply, as every stop of the Final
-integration does, so the next `/do` can take it over. Its blocker is the lines step 9a of
-[ticket.md](ticket.md) has `reply-lines.sh final` print, with `--state <state>/state` added, and
-its Next step is the same `/do`.
+integration does, so the next `/do` can take it over. Its Reply's lines are printed by the
+`reply-lines.sh final` call of step 9a of [ticket.md](ticket.md), with `--state <state>/state`
+added. Read [blocked-reply.md](blocked-reply.md) when a resume stops again, for the Reply of that
+stop.
 
 ## The resume
 
@@ -71,12 +71,10 @@ of this project's facts and the Review at the `review_file=` path the claim prin
    On `route=out-of-order` a repository this one consumes from has not landed: the landing command was
    typed out of order, and the run stops here, before the claim. Nothing is integrated and
    nothing is written: no claim file under this repository's key, no `spec-<feature-slug>`
-   worktree, no rebase, no review, no ref moved in any repository. The message is the first line,
-   then the lines `bash <skill-dir>/scripts/reply-lines.sh final --door <state>/door --order <state>/order`
-   printed, then the lines `reply-lines.sh repositories` printed from the same two files, copied
-   as they stand, and carries no section of a Reply, no `Yours:` line, since there is nothing to
-   choose, and no shell line. Under `--auto` the stop is the same lines, with no `choice-taker`
-   forked.
+   worktree, no rebase, no review, no ref moved in any repository. Its message is printed by
+   `bash <skill-dir>/scripts/reply-lines.sh final --door <state>/door --order <state>/order` and
+   `reply-lines.sh repositories` from the same two files. Read [reply.md](reply.md) when the run
+   stops on `route=out-of-order`, for that message, item 30 of its Sections.
 2. **The claim.** `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path> | tee <state>/claim`, before
    anything is read from the tree, so two resumes never both walk it.
    - `claim=claimed` with `takeover=yes`: the run that stopped yielded its claim and this run holds
@@ -84,10 +82,9 @@ of this project's facts and the Review at the `review_file=` path the claim prin
      for the Run report. `takeover=no` means no claim file was there, and the run holds a fresh one.
    - `claim=taken`, exit 1: a claim nobody yielded. Its holder is either still integrating or died
      without yielding, and the script cannot tell which, so the run stops in one line and writes
-     nothing, per ADR 0063. The blocker is the line `reply-lines.sh final` prints from `<state>`,
-     the Reply quotes `yield_command=` as the script printed it, and carries `Yours: direction:`, per [reply.md](reply.md): wait for that run, or, when
-     it is dead, run the yield command and then the same `/do` again. The run composes no command
-     of its own for it and never yields another holder's claim itself.
+     nothing, per ADR 0063. Read [blocked-reply.md](blocked-reply.md) when a resume's claim reads
+     `claim=taken`, for the Reply that quotes the claim's `yield_command=` line. The run composes no
+     command of its own for it and never yields another holder's claim itself.
    - `claim=failed`, exit 3: the run stops as blocked with the `reason=` line quoted.
 3. **Where it stopped.** `bash <skill-dir>/scripts/final-state.sh <the Ticket's path> | tee <state>/state`, read once,
    the Final integration's counterpart of `resume-state.sh`: the paths the claim printed, the
@@ -133,8 +130,9 @@ of this project's facts and the Review at the `review_file=` path the claim prin
    `<state>/order`: the Reply's lines are printed from this second read, which counts this
    repository as landed, and never from the first.
 
-A resume that finishes ends as the run that ships a Spec ends: the Spec branch landed and removed, the claim released, the Reply and the Next
-step of the landed Final integration in [reply.md](reply.md). On a feature of more than one
+A resume that finishes ends as the run that ships a Spec ends: the Spec branch landed and removed, the claim released.
+Read [reply.md](reply.md) when a resume finishes, for the Reply and the Next step of a landed Final
+integration. On a feature of more than one
 repository it reads the landing record after the release, the `landing-order.sh` call of step 9a of [ticket.md](ticket.md),
 and its Reply's lines are printed by the `reply-lines.sh` calls of step 9a, with
 `--state <state>/state` added to `final`. It lands this repository and no other: one that landed before the stop is read by

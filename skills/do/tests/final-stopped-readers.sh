@@ -141,4 +141,52 @@ flat="$(paragraph_with /dev/stdin "stops again" <<<"$stop_section" | tr -s ' ')"
 expect "the stop's section names a resume that stops again" test -n "$flat"
 carries_any "a resume that stops again yields as any stop does" "yields" "yield"
 
+# A Reply written from two files is two shapes of one Reply, and the developer's `Yours:` line can
+# lose its `yield_command=` or a way out in the copy nobody updated: final-stopped.md carries none
+# of the Reply's text and sends the session to the Reply references at each stop, which carry it.
+echo "# final-stopped.md: the Reply of a stopped Final integration is read in the Reply references"
+reply="$do_dir/references/reply.md"
+blocked_reply="$do_dir/references/blocked-reply.md"
+to_blocked='Read \[blocked-reply\.md\]\(blocked-reply\.md\) when [^ ]'
+to_reply='Read \[reply\.md\]\(reply\.md\) when [^ ]'
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(tr '\n' ' ' <"$final_stopped" | tr -s ' ')"
+check_absent "final-stopped.md carries no Reply shape: no Yours: line, no shell line, no message, blocker or quote of its own" 0 0 \
+  "\`Yours:" "Yours: direction" "no shell line" "The message is the first line" \
+  "The Reply says the Final integration stopped" "Its blocker is" "the Reply quotes \`yield_command=\`"
+flat="$(awk 'BEGIN { RS = "" } !index($0, "stops again") { gsub(/\n/, " "); print }' <<<"$stop_section" | tr -s ' ')"
+expect "the stop's section sends the Reply to blocked-reply.md" grep -qE "$to_blocked" <<<"$flat"
+flat="$(paragraph_with "$final_stopped" "stops again" all | tr -s ' ')"
+expect "a resume that stops again sends its Reply to blocked-reply.md" grep -qE "$to_blocked" <<<"$flat"
+step="$(item_holding "$final_stopped" "$step_marker" "landing-route.sh resume")"
+flat="$(paragraph_with /dev/stdin "out-of-order" all <<<"$step" | tr -s ' ')"
+expect "step 1's route=out-of-order stop sends its message to reply.md" grep -qE "$to_reply" <<<"$flat"
+step="$(item_holding "$final_stopped" "$step_marker" "final-claim.sh claim")"
+flat="$(bullet_on "$step" '`claim=taken`')"
+expect "step 2's claim=taken bullet sends its Reply to blocked-reply.md" grep -qE "$to_blocked" <<<"$flat"
+flat="$(paragraph_with "$final_stopped" "resume that finishes" all | tr -s ' ')"
+expect "a resume that finishes sends its Reply to reply.md" grep -qE "$to_reply" <<<"$flat"
+
+echo "# reply.md and blocked-reply.md: every Reply line of a stopped Final integration stands there"
+item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "**Final integration lines.**")"
+flat="$(bullet_on "$item" "built no Ticket and took no claim")"
+expect "reply.md's item 30 has a bullet for a run that built no Ticket and took no claim" test -n "$flat"
+carries_each "that message carries no Yours: line and no shell line" \
+  "no \`Yours:\` line" "no Yours: line" -- "no shell line"
+carries_each "under --auto that message is the same lines with no choice-taker forked" \
+  "\`--auto\`" -- "same lines" -- "no \`choice-taker\`" "no choice-taker" "\`choice-taker\` is never forked" "never forks"
+flat="$(paragraph_with "$blocked_reply" "read \`taken\`" all | tr -s ' ')"
+carries "blocked-reply.md's claim=taken resume quotes yield_command= on its Yours: line" "yield_command=" "Yours:"
+flat="$(grep -F "Yours: direction: wait for that run" "$blocked_reply")"
+carries "the claim=taken Yours: direction: line offers waiting and running the yield command" \
+  "/do <ticket> again" "<yield_command>"
+flat="$(paragraph_with "$blocked_reply" "Final integration stopped" | tr -s ' ')"
+carries "the stopped Final integration's blocker names the Spec branch and its worktree, on outcome=final-stopped" \
+  "Spec branch" "worktree" "outcome=final-stopped"
+flat="$(paragraph_with "$blocked_reply" "stops again" | tr -s ' ')"
+carries "a resume that stops again ends on outcome=final-stopped" "outcome=final-stopped"
+row="$(grep -F "resume of one that finished" "$reply" | head -n 1)"
+outcome="$(awk -F'|' '{ m = $3; gsub(/^ +| +$/, "", m); print m }' <<<"$row")"
+expect "reply.md's outcome= table routes a resume that finished to final-landed" test "$outcome" = '`final-landed`'
+
 exit $((fails > 0))
