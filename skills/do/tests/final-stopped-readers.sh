@@ -224,4 +224,35 @@ same "every paragraph and bullet of the Door naming verdict=resume-final sends t
 out="$units"
 absent "no paragraph or bullet of the Door sends a verdict=resume-final run to a section of ticket.md" '`## '
 
+# A first run whose Final integration stops must reach the yield before its Reply, and every run
+# whose Final integration lands carries the stop and the resume in its window when the readers of
+# the final integration keep them: mechanics.md and step 9a send a stop to final-stopped.md.
+echo "# mechanics.md and ticket.md step 9a: a Final integration that stops is sent to final-stopped.md"
+to_stopped_on_stop='Read \[final-stopped\.md\]\(final-stopped\.md\) when ([^.]|\.[a-z])*stops'
+mechanics="$do_dir/references/mechanics.md"
+section="$(passage_of "$mechanics" "## The final integration" "## ")"
+expect "mechanics.md's final integration section is found" test -n "$section"
+out="$(tr '\n' ' ' <<<"$section" | tr -s ' ')"
+absent "mechanics.md's final integration carries no paragraph of its own for a stop" \
+  "**A Final integration that stops.**"
+absent "mechanics.md's final integration carries no paragraph of its own for a resume" \
+  "**A resumed Final integration.**"
+absent "mechanics.md's final integration carries no yield call of the stop" "final-claim.sh yield"
+absent "mechanics.md's final integration carries no resume step reading the landing record through landing-route.sh resume" \
+  "landing-route.sh resume"
+absent "mechanics.md's final integration carries no resume step taking the claim over with takeover=yes" \
+  "takeover=yes"
+absent "mechanics.md's final integration carries no resume step reading where it stopped through final-state.sh" \
+  "final-state.sh <the Ticket's path>"
+expect "mechanics.md's final integration reads final-stopped.md when the Final integration stops" \
+  grep -qE "$to_stopped_on_stop" <<<"$out"
+
+step="$(passage_of "$ticket" "**9a. Final integration.**" "**10. Reply.**")"
+expect "ticket.md's step 9a is found" test -n "$step"
+out="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+absent "ticket.md's step 9a makes no yield call of its own: the stop's yield is final-stopped.md's" \
+  "final-claim.sh yield"
+expect "ticket.md's step 9a reads final-stopped.md when the Final integration stops" \
+  grep -qE "$to_stopped_on_stop" <<<"$out"
+
 exit $((fails > 0))

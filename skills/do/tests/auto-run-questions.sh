@@ -321,16 +321,6 @@ flat="$(bullets_opening_on "$final_stopped" "\`verdict=integration\`" | grep -F 
 still_asked_with_the_answer_shown "final-stopped.md's verdict=integration bullet of a stopped Final integration" \
   "$moved_question" "$moved_moment"
 
-# mechanics.md: every bullet that names the question, wherever it sits.
-mech_bullets="$(bullets_opening_on "$mech" "- " | grep -F "(abort / continue)")"
-expect "mechanics.md has a bullet naming the (abort / continue) question" test -n "$mech_bullets"
-n=0
-while IFS= read -r flat; do
-  n=$((n + 1))
-  still_asked_with_the_answer_shown "mechanics.md's bullet $n naming (abort / continue)" \
-    "$moved_question" "$moved_moment"
-done <<<"$mech_bullets"
-
 echo "# a refactoring whose exit test failed: the revert is still asked under --auto, with the choice-taker's answer shown"
 
 revert_question="the revert question"

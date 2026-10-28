@@ -42,7 +42,4 @@ routes_by_script "step 9a of ticket.md" final "${final_routes[@]}"
 flat="$(passage_of "$mech" '- **Before the claim.**' '- **After the release**' | flat_of)"
 routes_by_script "the before-the-claim bullet of mechanics.md" final claim
 
-flat="$(passage_of "$mech" '- **The landing record is read at the entry.**' '- **The claim is a takeover.**' | flat_of)"
-routes_by_script "the resumed Final integration's entry bullet of mechanics.md" resume claim out-of-order
-
 exit "$fails"

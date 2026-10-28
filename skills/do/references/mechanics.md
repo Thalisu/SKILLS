@@ -507,12 +507,12 @@ state is read from that repository's own refs at the moment of the call, so no f
 repository landed and no run remembers it. The run reads the record twice:
 
 - **Before the claim.** The run hands the record's lines, as printed, to
-  `bash <skill-dir>/scripts/landing-route.sh final` on stdin, or to `landing-route.sh resume` on a
-  run that entered on `verdict=resume-final`, and routes on the one `route=` line it prints. Only
+  `bash <skill-dir>/scripts/landing-route.sh final` on stdin, and routes on the one `route=` line it prints. Only
   `route=claim` enters the steps below. On `route=skip-waits` the run claims nothing, cuts no tree
   and integrates nothing, here or there, and its Reply hands over the landing commands in order,
-  per [reply.md](reply.md). On `route=out-of-order` the run stops as the resumed Final integration
-  below says. Every other `route=` line is routed by step 9a of [ticket.md](ticket.md).
+  per [reply.md](reply.md). A run that entered on `verdict=resume-final` routes its record by the resume of
+  final-stopped.md: Read [final-stopped.md](final-stopped.md) when the door printed
+  verdict=resume-final. Every other `route=` line is routed by step 9a of [ticket.md](ticket.md).
 - **After the release**, on a record that printed `repositories=` above 1, saved over
   `<state>/order`, so the Reply's lines are printed from this second read and never from the
   first.
@@ -542,7 +542,8 @@ code:
 - **`claim=taken`, exit 1.** Another run holds it. This run ends here, with nothing blocked: its
   own Ticket landed and reads `resolved`, and its Reply carries the line `reply-lines.sh final`
   prints from the claim. It waits on nothing and retries nothing. On a resume the
-  same line is a stop, as the resumed Final integration below says.
+  same line is a stop: Read [final-stopped.md](final-stopped.md) when the door printed
+  verdict=resume-final.
 - **`claim=failed`, exit 3.** The run stops as blocked with the `reason=` line quoted.
 
 **2. The tree.** The Spec branch itself, checked out in a worktree of its own, from the main
@@ -607,69 +608,10 @@ the branch was removed or already absent.
 run stops as blocked with the `reason=` line quoted, and never deletes the branch or the claim
 file by hand.
 
-**A Final integration that stops.** A rebase question nobody answered, a red gate, a Review that
-did not land, or a stop of the review's own (Read [not-landed.md](not-landed.md) when the review's
-`route=` line reads anything but `route=verify`): the run stops as blocked
-and makes no `release` call. The tree, the Spec branch and the claim file all stay in place, since
-they are what a later run resumes from, and the run's own Ticket stays `resolved`. Before its
-Reply, at every stop the run controls, a first run's or a resume's, it yields the claim:
-
-```
-bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path> | tee <state>/yield
-```
-
-The yield marks the claim as given up and leaves the claim file as it was written, so the claim
-still keeps a first run out while a resume can take it over, per ADR 0063. A run that died yields
-nothing, and its claim reads `taken` to every resume until the developer yields it by hand. The
-Reply says the Final integration stopped and why, and that `/do <the run's Ticket>`, or a `do` on
-any Ticket of the Spec, resumes it, per [reply.md](reply.md).
-
-A stop touches this repository's landing and no other's. A repository of the feature that landed
-before it stays landed: the run moves no ref there, reverts nothing and removes nothing, since
-what landed was reviewed and is already the developer's to push, per ADR 0084. So that a partial
-landing is never silent, the run reads the landing record once more after the yield, the same
-`landing-order.sh` call saved over `<state>/order`, on a first run and on a resume alike, and the
-Reply's lines are printed from that read.
-
-**A resumed Final integration.** A `do` on any Ticket of the Spec whose door printed
-`verdict=resume-final` enters here and nowhere earlier, per `## A stopped Final integration` of
-[ticket.md](ticket.md). Nothing that landed on the Spec branch is built again: the run
-forks no reader, no Planner and no Builder and cuts no worktree for a Ticket. It differs from a
-first Final integration in four places:
-
-- **The landing record is read at the entry.** The same `landing-order.sh` call, before the claim,
-  its lines handed, as printed, to `bash <skill-dir>/scripts/landing-route.sh resume` on stdin,
-  and only `route=claim` goes on to the claim. This is how the landing command of a feature across
-  repositories runs: typed in a session of the next repository to land, it finds no claim, no
-  tree and no Review there, so every step below is that repository's first, run on its own
-  project's facts, and no ref of another repository moves. On `route=out-of-order` the run stops
-  before the `claim` call: no claim file under this repository's key, no tree for its Spec
-  here or there. Its message is the lines `reply-lines.sh` prints from the record, as the stopped
-  Final integration of [ticket.md](ticket.md) says.
-- **The claim is a takeover.** The same `claim` call takes over a claim that was yielded and
-  prints `takeover=yes` with the holder it replaced; of two resumes at once exactly one reads
-  `claimed`. A claim nobody yielded reads `claim=taken`: the run stops in one line, writes nothing,
-  its blocker is the line `reply-lines.sh final` prints from the claim, and its `Yours:` line quotes
-  the `yield_command=` line, the command that declares a dead holder's claim yielded. The run never composes that
-  command and never runs it for the developer.
-- **The state is read, not assumed.** One call,
-  `bash <skill-dir>/scripts/final-state.sh <the Ticket's path> | tee <state>/state`, prints where the Final integration
-  stands, in the keys and the classes `resume-state.sh` prints for a Ticket run: the tree present
-  or absent, a rebase left open with its stop record, uncommitted work, and whether the Review
-  beside the Spec counts. Its verdict names the step the run picks up at: `restart` at the tree or
-  the rebase, `integration` at the open rebase with the `(continue / stop)` or
-  `(abort / continue)` question its `stop=` class calls for, `ask` at the question before a
-  discard, `land` at the fix call on the Review already written, never a second review. Under
-  `--auto` the `(abort / continue)` question and the one before a discard are still asked of the
-  developer, each with the `choice-taker`'s return shown above it, per [forks.md](forks.md).
-- **A moved target is unchanged.** Read [not-landed.md](not-landed.md) when the resume's review
-  returns a `route=` line other than `route=verify`: a resume answers a moved target by its loop,
-  integrating again while the target's tip keeps changing, per
-  [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md).
-
-A resume that stops again yields and replies as any stopped Final integration does. One that
-finishes ends at the release above, and reads the landing record after it as a first run does,
-saved over `<state>/order`.
+A Final integration that stops on a rebase question nobody answered, a red gate, a Review that
+did not land, or a stop of the review's own makes no `release` call. Read
+[final-stopped.md](final-stopped.md) when the Final integration stops, or when the door printed
+verdict=resume-final.
 
 Done when the Spec branch landed on the developer's branch, its tree is removed, the release
 read `claim=released` and, on a feature of more than one repository, the landing record was read a

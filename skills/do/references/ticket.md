@@ -884,12 +884,9 @@ on stdin, and routes on the one `route=` line it prints, choosing no route from 
   quoted, and claims nothing.
 - An exit 2: the run stops as blocked with the script's stderr line quoted, and claims nothing.
 
-Any stop on the way makes no `release` call: the Spec branch, its worktree and the claim stay, the
-Ticket stays `resolved`, and the Reply says how it is resumed. Before that Reply the run yields its
-claim, `bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path> | tee <state>/yield`, so
-the `/do` that resumes can take it over. After the yield it reads the landing record, the same
-`landing-order.sh` call saved over `<state>/order`: a repository that landed before the stop stays
-landed, and the run touches nothing there.
+Any stop on the way makes no `release` call. Read [final-stopped.md](final-stopped.md) when the
+Final integration stops: the claim is yielded there before the Reply, and the landing record read
+again after the yield.
 
 The Reply's Final integration lines are printed from those files, never composed, and copied as
 they stand, per item 30 of [reply.md](reply.md). `<state>/review` is a file the run writes with
