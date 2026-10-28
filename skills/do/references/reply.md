@@ -502,9 +502,9 @@ step is `outcome=final-stopped`, piped with `ticket=` the `/do` argument it was 
 A run whose claim of the Final integration read `taken` is not a stop and carries no `Yours:`
 line: its Ticket landed, another run is integrating the Spec, and there is nothing to type. A
 resume that read `taken` is a stop, the one exception: it came to finish the Final integration and
-could not, and whether the holder is alive is the developer's call, so its message quotes the
-holder, the time it claimed and the yield command as `final-claim.sh` printed them, and its Next
-step is `outcome=final-stopped`:
+could not, and whether the holder is alive is the developer's call, so its blocker is the line
+`final` printed, naming the holder and the time it claimed, and its `Yours:` line quotes the
+`yield_command=` line `final-claim.sh` printed:
 
 ```
 Final integration: not resumed, its claim is held by <holder_ticket> since <claimed_at>
