@@ -25,6 +25,8 @@ absent "reply.md keeps no why deferred to the debt format" "for the reason the f
 absent "reply.md keeps no why for the pr round lines" "so the developer can audit what the run pushed"
 absent "reply.md keeps no why for listing every Risk line" "since a risk class is never dismissed silently"
 absent "reply.md keeps no why for listing a drop after the review" "since no reviewer reads what that integration set aside"
+absent "reply.md keeps no why for writing none in the Debt file" "so the file tells a run that owed nothing apart"
+absent "reply.md keeps no why for keeping the Report line out of the Next step" "so the message stays the five parts"
 
 echo "# run-report.md: instructions only, no ADR argument and no why beside a rule"
 # shellcheck disable=SC2034  # lib.sh's absent reads $out
@@ -54,6 +56,12 @@ absent "run-report.md keeps no why for leaving unreached steps out of Skipped" "
 echo "# blocked-reply.md: instructions only, no ADR argument and no why beside a rule"
 # shellcheck disable=SC2034  # lib.sh's absent reads $out
 out="$(tr '\n' ' ' <"$blocked_reply" | tr -s ' ')"
+absent "blocked-reply.md argues from no ADR" "docs/adr/"
+absent "blocked-reply.md names no ADR as a rule's reason" "per [ADR"
+absent "blocked-reply.md names no plain ADR as a rule's reason" "per ADR"
+absent "blocked-reply.md names no ADR as the reason the pr round pushes" "ADR 0086"
+absent "blocked-reply.md names no ADR as the reason the pr round reruns a check" "ADR 0089"
+absent "blocked-reply.md argues no exception as authorised" "authoris"
 absent "blocked-reply.md names no ADR as the reason a run stops" "ADR 0057"
 absent "blocked-reply.md links no ADR as the reason a run stops" "docs/adr/0057"
 absent "blocked-reply.md keeps no why for a stop that cut nothing" "since nothing was claimed or cut by this run"

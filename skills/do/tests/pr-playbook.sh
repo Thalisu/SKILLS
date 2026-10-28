@@ -1928,8 +1928,8 @@ carries_any "never to any other branch" \
   "any other branch" "another branch" "no other branch" "never to a branch"
 flat="$(bullets_opening_on <(passage_of "$blocked" "## A refusal or a blocked run" "## ") "**A push.**")"
 expect "reply.md's refusal section carries the **A push.** bullet" test -n "$flat"
-carries_each "the \`pr\` round's push is the exception ADR 0086 authorises" \
-  "\`pr\`" -- "round" -- "ADR 0086" -- "authoris" "authoriz" "allows" "permits"
+carries_each "the \`pr\` round's push is the run's own, made by fast-forward only" \
+  "\`pr\`" -- "round" -- "itself" -- "fast-forward"
 carries_each "never named under outward" \
   "outward" -- \
   "never named under" "never names it under" "not named under" "never under \`outward\`" \
@@ -3085,8 +3085,8 @@ carries_each "after its fixer could not reproduce the check" \
   "could not reproduce" "couldn't reproduce" "not reproduced" "failed to reproduce" "cannot reproduce" -- \
   "fixer"
 flat="$(bullets_opening_on <(passage_of "$blocked" "## A refusal or a blocked run" "## ") "**A push.**" |
-  sed 's/\. /.\n/g' | grep -F "0089" | tr '\n' ' ')"
-expect "a sentence of the A push. bullet names ADR 0089" test -n "$flat"
+  sed 's/\. /.\n/g' | grep -F "rerun" | tr '\n' ' ')"
+expect "a sentence of the A push. bullet names the pr rerun" test -n "$flat"
 carries "the pr rerun is authorised, made by the run itself" "rerun" "itself"
 carries "reported on For whom's round lines" "round lines"
 carries_each "never named under outward, never handed over on a Yours: line" \

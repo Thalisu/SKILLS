@@ -56,11 +56,10 @@ carries_each "the Next step says nothing about the Debt file" \
   "Next step" -- \
   "nothing about" "says nothing" "names no" "never names" "does not name" "no mention" \
   "no word" "no line" "nor the Next step" "nor in the Next step" "neither in the"
-carries_any "the message stays the five parts" \
-  "five parts" "five-part" "stays five" "still five"
 
 mapfile -t items < <(passage_of "$reply" "## The message" "## " | numbered_items)
 expect "The message's numbered parts are found" test "${#items[@]}" -gt 0
+expect "The message stays five numbered parts" test "${#items[@]}" = 5
 # shellcheck disable=SC2034 # lib.sh's check_absent reads $out
 out="$(printf '%s\n' "${items[@]}")"
 check_absent "no numbered part of The message names the Debt file" 0 0 \
@@ -96,11 +95,9 @@ carries_each "a run with nothing owed still writes its section, which reads none
   "still writes" "writes it all the same" "writes its section" "still adds" "adds its section" \
   "writes one all the same" -- \
   "\`none\`"
-carries_each "a Ticket with no Debt file is told apart as a run that never wrote its debt down" \
-  "no Debt file" "without a Debt file" "has no Debt file" "Debt file is missing" \
-  "missing Debt file" "no \`.debt.md\`" -- \
-  "never wrote" "never written" "did not write" "was not written" "wrote nothing down" \
-  "never recorded" "never put"
+carries_any "the section of a run that owes nothing reads plain \`none\`, never a \`- none\` bullet" \
+  "plain \`none\`" "bare \`none\`" "not a \`- none\`" "never a \`- none\`" "no \`- none\`" \
+  "not \`- none\`" "never \`- none\`"
 
 echo "# a run refused before any edit writes no section to the Debt file"
 

@@ -47,11 +47,10 @@ Plan, with `.debt.md` in place of `.plan.md`, the way the Run report sits beside
 one section to that file, headed by the run's date and time as one `## <date and time>` heading.
 Under it goes the Pending debt part's text verbatim, one `- ` bullet per Pending debt line, and no
 `## Pending debt` heading of its own. A run that owes nothing still writes its section, which reads
-plain `none` and not a `- none` bullet, so the file tells a run that owed nothing apart from a Ticket with no
-Debt file, one whose runs never wrote their debt down. A later run on the same Ticket appends its
-section below the earlier ones, and never replaces or edits one, be it a resume after a stop or a
-run again. The Reply itself carries no line naming the Debt file: no `Debt:` line beside the
-`Report:` line in the Plan block, and the Next step says nothing about it, so the message stays the five parts.
+plain `none` and not a `- none` bullet. A later run on the same Ticket appends its section below
+the earlier ones, and never replaces or edits one, be it a resume after a stop or a run again. The
+Reply itself carries no line naming the Debt file: no `Debt:` line beside the `Report:` line in
+the Plan block, and the Next step says nothing about it.
 
 A run that ends early writes a shorter message.
 Read [blocked-reply.md](blocked-reply.md) when the run ends blocked or refused.
