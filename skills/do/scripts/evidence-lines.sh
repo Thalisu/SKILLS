@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# evidence-lines.sh: the Context and Forks evidence lines a ticket run's close writes under the
+# Ticket's `## Evidence`, in the shapes `.agents/formats/ticket-format.md` `## Evidence` fixes,
+# printed from the session's two readings of context-usage.sh. Run from anywhere.
+#
+#   evidence-lines.sh < <key=value lines>
+#
+# Reads key=value lines on stdin, unknown keys ignored:
+#   grounded=<tokens>                 the ground reading's current
+#   peak=<tokens> band=<band> forks=<n> fork_kinds=<kinds>   the close reading, as context-usage.sh prints it
+# Prints the Context line, then the Forks line.
+# Exit codes: 0 both lines printed.
+set -euo pipefail
+declare -A in=()
+while IFS= read -r line || [ -n "$line" ]; do
+  case "$line" in *=*) in["${line%%=*}"]="${line#*=}" ;; esac
+done
+printf 'Context: grounded %s, peak %s, %s\n' "${in[grounded]}" "${in[peak]}" "${in[band]}"
+printf 'Forks: %s (%s)\n' "${in[forks]}" "${in[fork_kinds]}"
