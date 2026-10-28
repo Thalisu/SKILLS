@@ -249,9 +249,10 @@ echo "# skills/do/references/ticket.md: the claim step re-hashes the Ticket and 
 flat="$(passage_of "$playbook" "**2. Claim and worktree.**" "**3. Build.**" | tr '\n' ' ' | tr -s ' ')"
 expect "step 2's passage is present to scope the check against" test -n "$flat"
 
-carries_any "step 2 re-hashes the Ticket once the claim is written" \
-  "hashes the Ticket again" "re-hashes the Ticket" "hashed again" "git hash-object" \
-  "the Ticket is hashed again"
+# The re-hash and the rewrite moved into scripts/grounding.sh adopt, proven by
+# skills/do/tests/grounding.sh; the step names the call.
+carries "step 2 re-hashes the Ticket once the claim is written" \
+  "grounding.sh adopt <root> <ticket=> <the recorded Ticket hash> <the destination>"
 
 carries_any "step 2 rewrites the Plan's \`## Sources\` \`ticket:\` line to the post-claim hash in place" \
   "rewrites the Plan's \`## Sources\`" "the Plan's \`## Sources\` \`ticket:\` line is rewritten" \

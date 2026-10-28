@@ -968,24 +968,35 @@ Ticket it proceeds without one, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
 a reversible file write, and an interrupt costs the developer one turn.
 
-On a local Ticket the run first hashes the Ticket right before it writes the claim, `git
-hash-object` under `<root>`, and compares that value against the one it last recorded for
-the Ticket: the door's, or the one it recorded itself when a Ruling of this run rewrote a criterion
-and the reader was forked again. A value that moved stops the run the way step 1's refusals do, in
-one line naming the Ticket, with nothing claimed. That comparison is what keeps the adoption below
-honest: the hash taken after the claim covers whatever the file holds, so it absorbs only the
-claim's own edit when the file matched the recorded value the moment before the write.
+On a local Ticket the run first re-hashes the Ticket right before it writes the claim, against the
+value it last recorded for it: the `ticket_hash=` step 1's `grounding.sh plan` printed, or the one
+it recorded itself when a Ruling of this run rewrote a criterion and the reader was forked again.
 
-The claim moves the Ticket's hash, so on a local Ticket the run hashes the Ticket again, `git
-hash-object` under `<root>` over the claimed file, and the Plan's `## Sources` `ticket:` line
-is rewritten in place to that hash, the way
-[ADR 0050](../../../docs/adr/0050-a-ruling-that-rewrites-no-criterion-moves-the-hashes-and-not-the-digest.md)
-rewrites the Digest's lines: nothing the Plan was cut from moved, only the status line. The new hash
-is also the one the run holds as the door's recorded value from here on. Without it a resume, which
-hashes the claimed Ticket afresh, never matches the pre-claim record and forks the Planner again
-over a claim.
+```sh
+bash <skill-dir>/scripts/grounding.sh claim <root> <ticket=> <the recorded Ticket hash>
+```
 
-Then the Spec branch, on every start and start-over and after the re-hash, never before the claim:
+- `verdict=unmoved` (exit 0): the session writes the claim.
+- `verdict=moved` (exit 3): the run stops the way step 1's refusals do, in one line naming the
+  Ticket, with nothing claimed.
+
+Once the claim is written, the run adopts the claimed Ticket's hash:
+
+```sh
+bash <skill-dir>/scripts/grounding.sh adopt <root> <ticket=> <the recorded Ticket hash> <the destination>
+```
+
+- `verdict=adopted` (exit 0): the Plan's `## Sources` `ticket:` line is rewritten in place to the
+  claimed Ticket's hash, the way
+  [ADR 0050](../../../docs/adr/0050-a-ruling-that-rewrites-no-criterion-moves-the-hashes-and-not-the-digest.md)
+  rewrites the Digest's lines, and its `ticket_hash=` line is the recorded Ticket hash from here on.
+- `verdict=refused` (exit 1): the run stops in one line naming the Plan.
+
+A Ticket step 1 wrote no Plan for, an impeccable Front-end ticket, runs no adopt: its recorded
+Ticket hash from here on is the `ticket_hash=` line a second `grounding.sh claim` prints once the
+claim is written, its `verdict=moved` the claim's own edit.
+
+Then the Spec branch, on every start and start-over and after the adoption, never before the claim:
 `bash <skill-dir>/scripts/spec-branch.sh cut <the Ticket's path>`. It prints `spec_branch=`,
 `action=`, `upstream=`, `tip=` and `reason=`. `action=cut` is a first run: it created
 `spec/<feature-slug>` at the tip of the branch the main checkout is on and recorded that branch as

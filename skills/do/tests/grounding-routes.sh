@@ -63,4 +63,18 @@ flat="$(paragraph_with "$ticket" "The return of \`do-impeccable\` is the lines" 
 carries "do-impeccable's return is re-checked by grounding.sh verify with no destination" \
   "grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=>\`"
 
+echo "# ticket.md / step 2: the Ticket's re-hash at the claim"
+step="$(passage_of "$ticket" "**2. Claim and worktree.**" "**3. Build.**" | tr '\n' ' ' | tr -s ' ')"
+flat="$step"
+claim_at="$(first_at "grounding.sh claim <root> <ticket=> <the recorded Ticket hash>")"
+write_at="$(first_at "the session writes the claim")"
+adopt_at="$(first_at "grounding.sh adopt <root> <ticket=> <the recorded Ticket hash> <the destination>")"
+expect "step 2 runs grounding.sh claim before the claim is written, and grounding.sh adopt after it" \
+  test "$claim_at" -gt 0 -a "$write_at" -gt "$claim_at" -a "$adopt_at" -gt "$write_at"
+carries_each "step 2 routes on the claim and adopt verdicts" \
+  "verdict=unmoved" -- "verdict=moved" -- "verdict=adopted" -- "verdict=refused"
+carries "adopt's ticket_hash= is the recorded Ticket hash from then on" \
+  "\`ticket_hash=\` line is the recorded Ticket hash from here on"
+no_session_compare "step 2 leaves no hash comparison to the session"
+
 [ "$fails" = 0 ]
