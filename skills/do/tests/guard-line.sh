@@ -118,13 +118,13 @@ carries_each "the Builder's fallback adds no second line when \`Planner/Builder:
   "no second" "not a second" "adds no" "writes no" "records no" "no line of its own" \
   "no further line" "no per-fork line" "not again" "nothing more"
 
-echo "# skills/do/references/reply.md: the Plan line tells the developer which mechanism held"
+echo "# skills/do/references/run-report.md: the Plan line tells the developer which mechanism held"
 
 # ADR 0039: the Reply is the only place a run's lines reach the developer, so the verdict the probe
 # took is lost unless the Run list's Plan line carries it. Found by what it says, inside `## Run`
 # only, the way builder.sh finds the `flow:` home.
 reply="$here/../references/reply.md"
-plan_item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "Plan line")"
+plan_item="$(item_holding <(passage_of "$here/../references/run-report.md" "## Run" "## Sections") '[0-9]+\.' "Plan line")"
 expect "the Run list carries a Plan line" test -n "$plan_item"
 # shellcheck disable=SC2034 # lib.sh's carries_each reads $flat
 flat="$(tr '\n' ' ' <<<"$plan_item" | tr -s ' ')"

@@ -110,10 +110,10 @@ check_absent "the recovery command is no longer given for any target moved retur
 # The `## Run` item is read from the marker of the item that names the state the integration
 # reached to the next marker: the list is renumbered whenever an item is added above, so the item
 # is found by the state it records and never by the number it happens to carry.
-echo "# reply.md: the drops of an integration after the review reach the reply"
-flat="$(item_holding "$here/../references/reply.md" '[0-9]+\.' "The state the integration reached" |
+echo "# run-report.md: the drops of an integration after the review reach the reply"
+flat="$(item_holding "$here/../references/run-report.md" '[0-9]+\.' "The state the integration reached" |
   tr '\n' ' ' | tr -s ' ')"
-expect "reply.md carries the integration line" test -n "$flat"
+expect "run-report.md carries the integration line" test -n "$flat"
 
 after=(
   "integration that ran after the review" "integration ran after the review"

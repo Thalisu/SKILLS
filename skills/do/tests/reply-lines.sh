@@ -677,9 +677,9 @@ item29="$(item_holding "$reply" '[0-9]+\.' '**Spec landing lines.**')"
 item30="$(item_holding "$reply" '[0-9]+\.' '**Final integration lines.**')"
 elsewhere_passage="$(flat_section "$elsewhere_ref" '## At the Plan step')"
 out="$item29"
-check "reply.md's Spec landing lines are the ones reply-lines.sh landing printed" 0 0 'reply-lines.sh landing'
+check "run-report.md's Spec landing lines are the ones reply-lines.sh landing printed" 0 0 'reply-lines.sh landing'
 out="$item30"
-check "reply.md's Final integration lines are the ones reply-lines.sh final and repositories printed" 0 0 \
+check "run-report.md's Final integration lines are the ones reply-lines.sh final and repositories printed" 0 0 \
   'reply-lines.sh final' 'reply-lines.sh repositories'
 out="$elsewhere_passage"
 check "elsewhere.md's work-for-another-repository stop is the lines reply-lines.sh elsewhere printed" 0 0 'reply-lines.sh elsewhere'

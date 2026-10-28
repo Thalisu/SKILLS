@@ -24,6 +24,7 @@ agent="$here/../agents/do-builder.md"
 contract="$here/../references/builder.md"
 planner="$here/../agents/do-planner.md"
 reply="$here/../references/reply.md"
+run_report="$here/../references/run-report.md"
 forks="$here/../references/forks.md"
 mechanics="$here/../references/mechanics.md"
 stand_in="$here/../references/stand-in.md"
@@ -947,7 +948,7 @@ carries_each "nothing but those lines crosses back: no diff, no test output, no 
   "no file's contents" "never the contents of a file" "never file contents" "no file contents" \
   "never a file's content" "never the contents of any file" "never a line of a file"
 
-echo "# skills/do/references/reply.md: the \`flow:\` lines the fork returns have a home in the Run list"
+echo "# skills/do/references/run-report.md: the \`flow:\` lines the fork returns have a home in the Run list"
 
 # Where a returned `flow:` line lands. The return above fixes it as one of the lines that cross
 # back, and ADR 0039 makes the Reply the one place a line reaches the developer: a line with no
@@ -956,7 +957,7 @@ echo "# skills/do/references/reply.md: the \`flow:\` lines the fork returns have
 # it an entry of its own both count, the way gated-once.sh and reapply-step.sh find their items;
 # `passage_of` keeps the search inside `## Run`, since the `## Sections` list names the flows too,
 # under Evidence, and a Run line the developer never gets is not answered by an evidence line.
-flow_item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "flow")"
+flow_item="$(item_holding <(passage_of "$run_report" "## Run" "## Sections") '[0-9]+\.' "flow")"
 expect "the Run list carries a home for the \`flow:\` lines the Builder returns" test -n "$flow_item"
 
 # The half that costs the developer something. A flow the fork authored comes back with its commit
@@ -970,7 +971,7 @@ carries_any "the home takes a criterion whose flow was skipped, with the reason 
   "the reason none" "its skip" "skipped" "the reason it was not" "the reason it did not" \
   "fallback:" "the \`fallback:\` line"
 
-echo "# skills/do/references/ticket.md, skills/do/references/reply.md: the Builder's \`fallback:\` lines reach the Reply, naming why no Implementer was dispatched"
+echo "# skills/do/references/ticket.md, skills/do/references/run-report.md: the Builder's \`fallback:\` lines reach the Reply, naming why no Implementer was dispatched"
 
 # A Builder that wrote the code itself, because `do-implementer` is not linked or its dispatch was
 # refused, says so on a `fallback:` line of its return. A session that routes `built` off the
@@ -988,7 +989,7 @@ carries_each "the \`built\` route copies the returned \`fallback:\` lines into t
 # The Run list is where the copied line lands. Its home is found by the Implementer it speaks of,
 # not by its number, so folding it into the Build lines and giving it an item of its own both count;
 # the Planner's fallbacks in the Plan line carry no Implementer and never answer for it.
-implementer_item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "mplementer")"
+implementer_item="$(item_holding <(passage_of "$run_report" "## Run" "## Sections") '[0-9]+\.' "mplementer")"
 expect "the Run list carries a home for the Builder's lines on the Implementer" test -n "$implementer_item"
 flat="$(tr '\n' ' ' <<<"$implementer_item" | tr -s ' ')"
 carries_each "the home takes the Builder's \`fallback:\` lines with the reason no Implementer was dispatched" \
@@ -998,9 +999,9 @@ carries_each "the home takes the Builder's \`fallback:\` lines with the reason n
   "dispatch is refused" "dispatch refused" "refuses the dispatch" "refused dispatch" "is refused" \
   "was refused" "is denied" "denies the dispatch" "dispatch denied"
 
-echo "# skills/do/references/ticket.md, reply.md, builder.md: the Builder's \`fallback:\` and refused-changeset lines land in the Run report"
+echo "# skills/do/references/ticket.md, run-report.md, builder.md: the Builder's \`fallback:\` and refused-changeset lines land in the Run report"
 
-# ADR 0091: Build lines sit under reply.md's `## Run`, never part of the five-part message, and a
+# ADR 0091: Build lines sit under run-report.md's `## Run`, never part of the five-part message, and a
 # run without `--auto` writes no Run report. A passage that sends the `fallback:` line or a refused
 # changeset's build line to "the Reply" has the session write it into the message, where reply.md
 # forbids it, or nowhere. The `built` bullet's opening clause already names the Run report for the
@@ -1011,7 +1012,7 @@ flat="$(bullets_opening_on <(passage_of "$playbook" "Route on the first line:" "
 expect "the \`built\` route has a clause saying what the \`fallback:\` line tells the developer" test -n "$flat"
 carries_each "the \`built\` route's \`fallback:\` clause names the Run report as where the line lands" "Run report"
 
-build_item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "Build lines")"
+build_item="$(item_holding <(passage_of "$run_report" "## Run" "## Sections") '[0-9]+\.' "Build lines")"
 flat="$(bullets_opening_on <(printf '%s\n' "$build_item") "\`fallback:\`" | head -n 1)"
 expect "the Run list's Build lines carry the Builder's \`fallback:\` lines" test -n "$flat"
 carries_each "the Build lines' \`fallback:\` sentence names the Run report as where the line lands" "Run report"

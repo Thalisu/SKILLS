@@ -69,8 +69,9 @@ check_absent "no numbered part of The message names the Debt file" 0 0 \
 echo "# a run under --auto writes the same section to the Debt file as well as the Run report"
 
 # The debt skill reads the Debt file whatever flag the run had: an --auto run whose Run report held
-# the Debt file's place would leave its debt where that skill never reads it.
-flat="$(passage_of "$reply" "## The message" "## " | debt_file_paragraphs)"
+# the Debt file's place would leave its debt where that skill never reads it. The sentence moved to
+# run-report.md with the Run report's other rules, read under `--auto` alone.
+flat="$(passage_of "$here/../references/run-report.md" "## The file" "## " | debt_file_paragraphs)"
 carries_each "under --auto the Debt file section is written as well as the Run report" \
   "under \`--auto\`" "with \`--auto\`" "an \`--auto\` run" "\`--auto\` runs" -- \
   "as well as the Run report" "besides the Run report" "in addition to the Run report" \

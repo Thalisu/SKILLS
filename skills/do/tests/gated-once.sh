@@ -116,10 +116,10 @@ carries "the passage hands the fix call the command= line when the run's own gat
 carries "the passage hands the fix call no command= line when it reaches the fix call with no Gate of its own" \
   "hands the fix call no \`command=\` line"
 
-# reply.md's Gate line item must give the writer something to record on the same no-gate-of-its-own
+# run-report.md's Gate line item must give the writer something to record on the same no-gate-of-its-own
 # path, since there is no command= line to quote there.
-echo "# reply.md: the Gate line item covers a run with no Gate of its own too"
-flat="$(item_holding "$refs/reply.md" '[0-9]+\.' "The \`command=\` line the gate printed after the last edit" |
+echo "# run-report.md: the Gate line item covers a run with no Gate of its own too"
+flat="$(item_holding "$refs/run-report.md" '[0-9]+\.' "The \`command=\` line the gate printed after the last edit" |
   tr '\n' ' ' | tr -s ' ')"
 carries_any "the Gate line item names the no-Gate-of-its-own path" "${skipped[@]}"
 carries "the Gate line item tells the writer to record that no gate ran" "no gate ran in this session"

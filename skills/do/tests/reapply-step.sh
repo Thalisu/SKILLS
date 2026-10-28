@@ -96,10 +96,10 @@ carries "a block carrying remove the file reapplies as the file removed, not wri
 # The `## Run` item is read from the marker of the item that names the state the integration
 # reached to the next marker: the list is renumbered whenever an item is added above, so the item
 # is found by the state it records and never by the number it happens to carry.
-echo "# reply.md: the integration line names what came back and what did not"
-flat="$(item_holding "$here/../references/reply.md" '[0-9]+\.' "The state the integration reached" |
+echo "# run-report.md: the integration line names what came back and what did not"
+flat="$(item_holding "$here/../references/run-report.md" '[0-9]+\.' "The state the integration reached" |
   tr '\n' ' ' | tr -s ' ')"
-expect "reply.md carries the integration line" test -n "$flat"
+expect "run-report.md carries the integration line" test -n "$flat"
 carries "the integration line carries the counts of mechanical and contested hunks" \
   "the counts of \`mechanical\` and \`contested\` hunks"
 carries "each reapplied commit sits on a line of its own, with the entry's id and the commit's short sha" \

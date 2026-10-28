@@ -16,14 +16,15 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 refs="$here/../references"
 reply="$refs/reply.md"
+run_report="$refs/run-report.md"
 fails=0
 spec_label="On the Spec:"
 run_label="On the run:"
 
-echo "# reply.md's Rulings item: two labelled groups, and which Ruling goes under which"
+echo "# run-report.md's Rulings item: two labelled groups, and which Ruling goes under which"
 
-item="$(item_holding "$reply" '[0-9]+\.' "**Rulings.**")"
-expect "reply.md carries the Rulings item of its Sections list" test -n "$item"
+item="$(item_holding "$run_report" '[0-9]+\.' "**Rulings.**")"
+expect "run-report.md carries the Rulings item of its Sections list" test -n "$item"
 
 flat="$(tr '\n' ' ' <<<"$item" | tr -s ' ')"
 carries "the Rulings item names both groups by the label the developer reads" "$spec_label" "$run_label"
@@ -64,10 +65,10 @@ carries_each "a Ruling under On the run: names both sides, the side taken and th
 flat="$(grep -F -- "\`none\`" <<<"$units" | grep -iE "group|$spec_label|$run_label" | tr '\n' ' ')"
 expect "the Rulings item says what a group with no Ruling reads" test -n "$flat"
 
-echo "# reply.md's example reply: its Rulings block shows the two groups"
+echo "# run-report.md's example Run report: its Rulings block shows the two groups"
 
-example="$(passage_of <(passage_of "$reply" "## Whole replies" "## Whole replies") "## Rulings" "## ")"
-expect "reply.md's example reply carries a Rulings block" test -n "$example"
+example="$(passage_of <(passage_of "$run_report" "## Example" "## Example") "## Rulings" "## ")"
+expect "run-report.md's example Run report carries a Rulings block" test -n "$example"
 expect "the example's Rulings block carries the On the Spec: line" grep -q "^$spec_label" <<<"$example"
 expect "the example's Rulings block carries the On the run: line" grep -q "^$run_label" <<<"$example"
 

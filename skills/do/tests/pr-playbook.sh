@@ -439,9 +439,9 @@ carries_any "which the run never runs" \
 
 # Item 10 already says a landed run's push carries no `Yours:` line and is never named under
 # `outward`, so those words are read off the sentence naming `gh pr merge` and the one after it.
-echo "# reply.md / ## Sections item 10: a green pr run's Next step ends with gh pr merge <n>, never run, no Yours:, never under outward"
-item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "10. **Next step.**" | tr '\n' ' ' | tr -s ' ')"
-expect "reply.md's Sections carry item 10, Next step" test -n "$item"
+echo "# reply.md / ## Sections item 3: a green pr run's Next step ends with gh pr merge <n>, never run, no Yours:, never under outward"
+item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "3. **Next step.**" | tr '\n' ' ' | tr -s ' ')"
+expect "reply.md's Sections carry item 3, Next step" test -n "$item"
 flat="$item"
 carries "the item names \`gh pr merge <n>\`" "gh pr merge <n>"
 flat="$(sed 's/\. /.\n/g' <<<"$item" | awk 'index($0, "gh pr merge") { print; getline; print; exit }' | tr '\n' ' ')"
@@ -528,16 +528,16 @@ carries_any "and follows nothing" \
 # The developer reading a `--auto` Run report sees how many rounds the watch took and how many checks
 # ran, while the Reply stays its five parts, which every grader and reply-message-parts.sh read: a
 # round section in the message breaks them. `### Watch` and `### Reply` already name the
-# verdicts and `checks=<n>`, and reply.md's `## Run` list is renumbered whenever an item lands, so
+# verdicts and `checks=<n>`, and run-report.md's `## Run` list is renumbered whenever an item lands, so
 # each check reads the item or the piece that names the round, never the whole step or section.
-echo "# reply.md / ## Run and pr.md / ### Watch: the pr watch's round is a Run section line, each call's verdict in order with the check count, written under --auto only, never a part of the Reply"
-run_list="$(passage_of "$reply" "## Run" "## " 2>/dev/null)"
+echo "# run-report.md / ## Run and pr.md / ### Watch: the pr watch's round is a Run section line, each call's verdict in order with the check count, written under --auto only, never a part of the Reply"
+run_list="$(passage_of "$here/../references/run-report.md" "## Run" "## " 2>/dev/null)"
 flat=""
 for key in "verdict=pending" "pr-watch.sh" "watch"; do
   flat="$(item_holding <(printf '%s\n' "$run_list") '[0-9]+\.' "$key" | tr '\n' ' ' | tr -s ' ')"
   [ -n "$flat" ] && break
 done
-expect "an item of reply.md's \`## Run\` list names the \`pr\` watch's round" test -n "$flat"
+expect "an item of run-report.md's \`## Run\` list names the \`pr\` watch's round" test -n "$flat"
 carries_any "as the \`pr\` Playbook's" "\`pr\`" "pr Playbook" "pr run"
 carries_each "with the verdict of each pending call and the green one with its check count" \
   "verdict=pending" -- "verdict=green" -- "checks="
@@ -561,8 +561,8 @@ carries_any "never as a section of the Reply" \
 # choose: a run that stops on that verdict reads as broken, a `Yours:` line reads as a choice, and a
 # run that merges takes the approval out of their hands. The Fix step already says "every check is green",
 # "no `Yours:`" and "gh pr merge <n>" for a green watch, so each of those is read off the piece of the
-# step that names `awaiting-approval`, and item 10's off the sentence that names the approval.
-echo "# pr.md / ### Watch and ### Reply, reply.md item 10: a watch awaiting a required approval ends on a Reply saying only the approval is missing, no Yours:, gh pr merge <n> never run"
+# step that names `awaiting-approval`, and item 3's off the sentence that names the approval.
+echo "# pr.md / ### Watch and ### Reply, reply.md item 3: a watch awaiting a required approval ends on a Reply saying only the approval is missing, no Yours:, gh pr merge <n> never run"
 flat="$(piece_with "verdict=awaiting-approval")"
 expect "a bullet or paragraph of the watch step names \`verdict=awaiting-approval\`" test -n "$flat"
 carries_any "it hands on to step $reply_n, the Reply, as a green watch does" \
@@ -589,11 +589,11 @@ expect "naming the approval before \`gh pr merge <n>\`" test "$approval_at" -gt 
 carries_any "which the run never runs" \
   "never runs" "does not run" "doesn't run" "never run" "not run" "never merges" "does not merge" \
   "doesn't merge" "never merge" "merges nothing"
-item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "10. **Next step.**" | tr '\n' ' ' | tr -s ' ')"
+item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "3. **Next step.**" | tr '\n' ' ' | tr -s ' ')"
 flat="$(sed 's/ | /\n/g' <<<"$item" | awk 'index($0, "`pr-awaiting-approval`")' | tr '\n' ' ')"
-expect "a row of reply.md's item 10 sends a watch that read \`awaiting-approval\` to \`next-step.sh\`'s \`pr-awaiting-approval\` route" test -n "$flat"
+expect "a row of reply.md's item 3 sends a watch that read \`awaiting-approval\` to \`next-step.sh\`'s \`pr-awaiting-approval\` route" test -n "$flat"
 flat="$(sed 's/\. /.\n/g' <<<"$item" | awk 'index($0, "awaiting-approval") && !index($0, "|")' | tr '\n' ' ')"
-expect "a sentence of reply.md's item 10 names a \`pr\` run missing an approval" test -n "$flat"
+expect "a sentence of reply.md's item 3 names a \`pr\` run missing an approval" test -n "$flat"
 carries_any "under the same no-\`Yours:\` rule" \
   "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "never a \`Yours:\`" "not a \`Yours:\`" \
   "same rule" "same way"
@@ -2048,8 +2048,8 @@ carries_each "the compose line sits under its check's round line, one per compos
 # A pushed round moves the remote head past the developer's own checkout of it: a Next step naming
 # only the merge leaves their next commit on a stale head, whose push the remote then refuses. The
 # green-watch bullet already names `gh pr merge <n>` and `outward`, so the words are read off the
-# piece of the Reply step naming the pull, and off the sentence of item 10 naming it and the next.
-echo "# pr.md / ### Reply and reply.md item 10: a pr run that pushed names git pull --ff-only origin <head> for the developer's checkout ahead of gh pr merge <n>, runs neither, names neither under outward"
+# piece of the Reply step naming the pull, and off the sentence of item 3 naming it and the next.
+echo "# pr.md / ### Reply and reply.md item 3: a pr run that pushed names git pull --ff-only origin <head> for the developer's checkout ahead of gh pr merge <n>, runs neither, names neither under outward"
 pull_line="git pull --ff-only origin <head>"
 reply_step="$(passage_of "$pr_fix" "$reply_h" "##" 2>/dev/null)"
 flat="$(piece_in="$reply_step" piece_with "$pull_line")"
@@ -2067,13 +2067,13 @@ carries_each "nor names either under \`outward\`" \
   "never names them under" "never names either under" "never names it under" "never names either" \
   "never named under" "not named under" "nor names them under" "nor names either" "nor under" \
   "never under \`outward\`" "neither under" "never as \`outward\`" "never an \`outward\`"
-item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "10. **Next step.**" | tr '\n' ' ' | tr -s ' ')"
-expect "reply.md's Sections carry item 10, Next step" test -n "$item"
+item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "3. **Next step.**" | tr '\n' ' ' | tr -s ' ')"
+expect "reply.md's Sections carry item 3, Next step" test -n "$item"
 flat="$(sed 's/ | /\n/g' <<<"$item" | awk 'index($0, "pushed=yes")' | tr '\n' ' ')"
-expect "a row of item 10 pipes whether a \`pr\` run pushed into \`next-step.sh\`" test -n "$flat"
+expect "a row of item 3 pipes whether a \`pr\` run pushed into \`next-step.sh\`" test -n "$flat"
 carries "with its \`<head>\`, the pull the script names ahead of the merge" "head=<head>"
 flat="$(sed 's/\. /.\n/g' <<<"$item" | awk 'index($0, "pushed a round")' | tr '\n' ' ')"
-expect "a sentence of item 10 names a \`pr\` run that pushed a round" test -n "$flat"
+expect "a sentence of item 3 names a \`pr\` run that pushed a round" test -n "$flat"
 carries_each "the push reported on For whom's round lines" "For whom" -- "round line" "round lines"
 carries_each "never an \`outward\` hand-over" \
   "outward" -- \

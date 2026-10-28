@@ -62,7 +62,7 @@ else
   fail "resume.md's Resume section links forks.md"
 fi
 
-# ticket.md's Reply step links forks.md for the Rulings it carries, and reply.md's own
+# ticket.md's Reply step links forks.md for the Rulings it carries, and run-report.md's own
 # Rulings section reads forks.md too. The step is found by its name: its number moves whenever the
 # checklist above it gains or loses a step, and the reader that has to link forks.md is the Reply.
 reply_step="$(sed -n '/\*\*[0-9]\+\. Reply\.\*\*/,$p' "$ticket")"
@@ -72,8 +72,8 @@ if grep -qF "[forks.md](forks.md)" <<<"$reply_step"; then
 else
   fail "ticket.md's Reply step links forks.md"
 fi
-expect "reply.md's Rulings section links forks.md" \
-  grep -qF "the forks in [forks.md](forks.md)" "$reply"
+expect "run-report.md's Rulings section links forks.md" \
+  grep -qF "the forks in [forks.md](forks.md)" "$here/../references/run-report.md"
 
 # bug-fix.md's step 6, Fix, is the step that builds the fix and can meet a Design fork between two
 # shapes: it links its own Playbook's Design fork reference, since forks.md is the ticket Playbook's

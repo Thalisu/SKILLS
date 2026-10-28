@@ -1030,7 +1030,7 @@ What this Playbook puts in the message: under pending debt, the flows the develo
 consumer flows not run, naming the consuming Ticket off the check's `consumer=` lines as the
 Pending debt of [reply.md](reply.md) words it, beside a criterion the flows step skipped for no
 end-to-end command, with the command that would fill it; and the next step, the stdout of
-`scripts/next-step.sh` copied whole, on the `outcome=` item 10 of the Sections of
+`scripts/next-step.sh` copied whole, on the `outcome=` item 3 of the Sections of
 [reply.md](reply.md) names for the run: `outcome=landed` when the review landed on the developer's
 branch, `outcome=unlanded` when nothing landed, `outcome=spec-landed` piped with the Completion
 check's output when the run landed on a Spec branch, the blocked stop of step 7's outcome when it

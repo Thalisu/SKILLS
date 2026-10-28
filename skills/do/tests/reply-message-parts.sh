@@ -63,6 +63,10 @@ echo "# they are named as the Run report's, written to a file only under --auto"
 
 flat="$(awk 'BEGIN { RS = "" } index($0, "Run report") { gsub(/\n/, " "); print }' <<<"$section" | tr -s ' ')"
 expect "The message names the Run report" test -n "$flat"
+# The Run report's own rules moved to run-report.md, read under `--auto` alone.
+file_section="$(passage_of "$here/../references/run-report.md" "## The file" "## ")"
+flat="$(awk 'BEGIN { RS = "" } index($0, "Run report") { gsub(/\n/, " "); print }' <<<"$file_section" | tr -s ' ')"
+expect "run-report.md's The file names the Run report" test -n "$flat"
 carries_any "the Run report holds the Run section" "Run section" "[Run](" "## Run"
 carries "the Run report holds the seven other sections" \
   "Inherited" "Commits" "Evidence" "Principles" "Rulings" "Skipped" "Left uncommitted"
