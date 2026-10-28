@@ -1,17 +1,15 @@
 # Playbook: trivial
 
-A Trivial change is one no test could tell before from after, so the existing suite is its whole
+A Trivial change is one no test could tell before from after, and the existing suite is its whole
 gate: a typo, a doc line, a comment, a formatting fix, a log wording, a rename inside one file,
-dead code, a lint fix (the glossary in [CONTEXT.md](../../../CONTEXT.md), and
-[ADR 0010](../../../docs/adr/0010-the-trivial-playbook-takes-only-a-behaviour-preserving-change-judged-by-structure.md)).
-It runs in place on the developer's branch, creates no worktree, dispatches no test author, calls no
-review and lands as one commit, so a one-line change costs one message.
+dead code, a lint fix (the glossary in [CONTEXT.md](../../../CONTEXT.md)). It runs in place on the
+developer's branch, creates no worktree, dispatches no test author, calls no review and lands as
+one commit.
 
-No reviewer reads that commit, so the door is the only guard between a behaviour change and the
-developer's branch. Size is never the test. The door is judged by structure, twice:
+Size is never the test. The door is judged by structure, twice:
 
 - on the request, before any edit (step 1);
-- on the diff, before the commit (step 5), by a script a reviewer can rerun.
+- on the diff, before the commit (step 5), by a script.
 
 A case no step names is judged the same way: a change a test could tell before from after is not
 Trivial, however small, and goes to the Playbook that owns it.
@@ -41,8 +39,8 @@ The copy in the Run report is the record of them, and without `--auto` the run w
 the checklist nor any of those lines is required as text written mid-run, and a session that writes
 them as it goes is free to.
 
-There is no loop line, no claim line and no protected-branch warning, since a protected branch is a
-refusal here. Nothing is pushed.
+There is no loop line, no claim line and no protected-branch warning: a protected branch is a
+refusal. Nothing is pushed.
 
 ### Where the run ends its turn
 
@@ -90,8 +88,7 @@ is edited and nothing is written.
 
 1. **A bug.** The request describes behaviour that is wrong: a crash, a wrong value, a wrong
    branch, an off-by-one, a missing case, a "typo" inside a string or a condition the code reads
-   at runtime. A test could tell before from after, so it goes to `bug-fix` red-first, whatever
-   its size: `/do bug-fix: <the request>`.
+   at runtime. It goes to `bug-fix` red-first, whatever its size: `/do bug-fix: <the request>`.
 2. **A new exported symbol, a changed signature, or a change the user sees.** The request asks
    for one: a new export, an export renamed, a parameter added or removed, a type widened, a
    label, an output, a message a user reads, a flag or a default changed. Where it goes depends on
@@ -114,9 +111,8 @@ is edited and nothing is written.
    - Dead code holds only when the name has no caller.
    - A reference or a caller found means the change is a reshape: `refactoring`.
 4. **A protected branch.** `bash <skill-dir>/scripts/trivial-door.sh branch`. `protected=yes` ends
-   the run in one message naming the branch and the rule the script prints, which is the rule
-   `test-triage` uses: a protected branch takes no commit. The developer switches branches and
-   types the request again.
+   the run in one message naming the branch and the rule the script prints. The developer switches
+   branches and types the request again.
 5. **A dirty target file.** `git status --short -- <target files>`. A line for a target file ends
    the run in one message naming the file and the reason: the change would ride with the
    developer's work in progress, and the restore steps 4 and 5 run on a stop would destroy it.
@@ -127,8 +123,7 @@ section.
 
 ### 2. Discover
 
-`skip: no symbol created`. The Discovery rule's batch runs before the first symbol is created, and
-a Trivial change creates none: a request that would create one failed the door.
+`skip: no symbol created`.
 
 ### 3. Edit
 
@@ -167,8 +162,8 @@ run, per [prove-it-works](../../../.agents/principles/prove-it-works.md).
 
 A check that does not come back green stops the run before the commit, one of two ways.
 
-**Red.** A red check is a failed door check, never a fix to make: a test could tell before from
-after. The run takes these steps in order, and commits nothing on either outcome:
+**Red.** A red check is a failed door check, never a fix to make. The run takes these steps in
+order, and commits nothing on either outcome:
 
 1. Restore the touched files: `git checkout -- <files>`.
 2. Re-run the same suite on the restored tree.
@@ -190,22 +185,6 @@ Done when both lines are quoted, or read `skip: <reason>`.
 `bash <skill-dir>/scripts/trivial-door.sh diff <touched files>`. Its command line and its lines are
 quoted in the Run report's Evidence, and its `verdict=` line is recorded for the Run section.
 
-The script is the lever a reviewer reruns, per
-[build-the-lever](../../../.agents/principles/build-the-lever.md). It reads the diff this way:
-
-- its test-file classes come from the policy's `skip-patterns.sh` when the policy is installed, and
-  from a built-in list otherwise;
-- an exported symbol or a changed signature is matched by pattern for JavaScript, TypeScript and
-  Python;
-- a new export whose name a touched file already declared before the edit, a helper made exported
-  or a declaration moved from another touched file, is an extract (`extracted_export=`), and any
-  other new export is a new symbol (`new_export=`);
-- an export dropped while its name is still declared in the file is a narrowed contract
-  (`unexported=`), and an export deleted whole is dead code (`removed_export=`), which passes
-  unless the same file gained a new export, the pair a rename prints;
-- the initializer of an exported variable is not part of its head, so a log wording held in an
-  exported constant passes the script and is the covering suite's to judge.
-
 Exit 0 prints `verdict=trivial`, and the run goes on to the commit.
 
 Read [trivial-escape.md](trivial-escape.md) when `trivial-door.sh diff` exits other than 0.
@@ -220,7 +199,7 @@ second `-m` is the body, a paragraph of its own under the title.
 
 - **Staging.** By path only: never `-A`, never `.`, never a file the run did not touch.
 - **Title.** A conventional commit, `type(scope): subject`, with the type one of `docs`, `style`,
-  `refactor` or `chore`, never `feat` or `fix`, which a Trivial change is not.
+  `refactor` or `chore`, never `feat` or `fix`.
 - **Body.** The gate as it ran: each command with its result, or its skip reason.
 
 Nothing is pushed. Done when the commit's short sha is recorded for the Run report's Commits section.
