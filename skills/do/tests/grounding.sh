@@ -65,4 +65,16 @@ home not-needed 'Journey: not needed, the run is a script'
 run digest "$root" "$ticket_file" "$digest"
 check_lines "digest prints journey=none for a Journey: line reading not needed" 1 "$rc" "journey=none"
 
+# A developer amended the Spec or the journey after the Digest was cut: the run names each one.
+home moved 'Journey: journey.md'
+printf 'steps\n' >"$feature/journey.md"
+digest_with "spec: $spec $(hash_of "$spec")" "journey: $feature/journey.md $(hash_of "$feature/journey.md")"
+printf 'amended\n' >>"$spec"
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest forks naming the Spec when only the Spec moved" 1 "$rc" "moved=spec" "verdict=fork"
+absent "digest names no journey when only the Spec moved" "moved=journey"
+printf 'amended\n' >>"$feature/journey.md"
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest forks naming both when the Spec and the journey moved" 1 "$rc" "moved=spec" "moved=journey" "verdict=fork"
+
 [ "$fails" = 0 ]

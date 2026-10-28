@@ -69,8 +69,16 @@ cmd_digest() {
   if [ -f "$3" ]; then
     echo "digest=present"
     section="$(sources_of "$3")"
-    if matches "$section" "$(record spec "$spec" "$spec_hash")" &&
-      matches "$section" "$(record journey "$journey" "$journey_hash")"; then
+    local moved=0
+    matches "$section" "$(record spec "$spec" "$spec_hash")" || {
+      echo "moved=spec"
+      moved=1
+    }
+    matches "$section" "$(record journey "$journey" "$journey_hash")" || {
+      echo "moved=journey"
+      moved=1
+    }
+    if [ "$moved" = 0 ]; then
       echo "verdict=reuse"
       return 0
     fi
