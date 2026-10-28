@@ -401,8 +401,9 @@ and the run goes on. Its return names which of the two held on a `fallback:` lin
 - The Gate is the session's, run in the worktree after the last edit and before the integration,
   per [mechanics.md](mechanics.md). The fork runs the project's single-file command per cycle
   and never the gate.
-- The flows are the fork's, authored or extended after the feature exists, by the E2E author of
-  [build-loop.md](build-loop.md), each committed and reported on a `flow:` line.
+- The flows are the fork's, authored or extended after the feature exists, by the build loop's E2E
+  author (Read [build-loop.md](build-loop.md) when a flow is authored), over the criteria the Digest's `## Observable criteria` names.
+  The fork commits each one and reports it on a `flow:` line.
   Read [flows.md](flows.md) when the Digest's `## Observable criteria` section names a criterion,
   or reads a `none` the reader marked as read from neither a Path nor a story. On any other `none`
   no flow is authored: the return closes the flows with `no criterion a user can observe` on a
