@@ -295,6 +295,24 @@ carries_each "the brief's Ruled out: key comes between ruled-out tags sharing on
   "never an order" "not an order" "never as an order" "never orders"
 flat="$body"
 
+echo "# skills/do/agents/do-implementer.md: its body carries instructions only, no ADR and no argument beside a rule"
+
+# The Builder forks the Implementer once per production edit, and every sentence of the body is paid
+# in each of those windows: why a rule holds lives in docs/adr/ alone. A Goal clause naming what an
+# instruction protects stays allowed, so only the argument forms are read: an ADR, a reason
+# connective, and the arguments the body carried before it was cut to instructions.
+out="$(grep -oE '.{0,40}(docs/adr/|\bADRs?\b).{0,40}' <<<"$body")"
+same "the Implementer's body names no ADR and links nothing under docs/adr/" ""
+out="$(grep -oiE '.{0,40}(\b(because|so that|since)\b|, so (a|an|the)\b).{0,40}' <<<"$body")"
+same "the Implementer's body gives no because, so-that, since or \", so a/the\" reason beside a rule" ""
+out="$body"
+check_absent "the Implementer's body keeps none of the arguments it carried beside its rules" 0 0 \
+  "lands unchecked" "no longer finds one commit per behaviour" \
+  "you hold no tool to" "third layer" \
+  "stops proving it" \
+  "the dispatch exists to keep empty" \
+  "same failed experiment"
+
 echo "# README.md: its agent table lists the Implementer in the row of the do skill that installs it"
 
 # A developer reads the do row to learn which agents do puts on their machine: an agent the
