@@ -81,6 +81,16 @@ landing_line() { # the landing record's next_landing= routes; a feature with no 
   esac
 }
 
+merge_lines() { # $1 awaiting when a required approval is missing: the pr routes
+  need pr pushed
+  [ "$1" = awaiting ] && echo "Once the required approval on pull request #${key[pr]} is given:"
+  if [ "${key[pushed]}" = yes ]; then
+    need head
+    echo "On your checkout of ${key[head]}: git pull --ff-only origin ${key[head]}"
+  fi
+  echo "gh pr merge ${key[pr]}"
+}
+
 main() {
   [ "$#" = 0 ] || usage "takes no argument"
   read_keys
@@ -89,6 +99,8 @@ main() {
     landed) push_line ;;
     spec-landed | setup-resolved) next_line ;;
     final-landed | landing-wait) landing_line ;;
+    pr-green) merge_lines green ;;
+    pr-awaiting-approval) merge_lines awaiting ;;
     claim-taken) echo "Another run is integrating the Spec, and there is nothing to type." ;;
     final-stopped)
       need ticket

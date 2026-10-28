@@ -71,4 +71,16 @@ run outcome=final-stopped yours=no ticket=.scratch/notes-export/issues/03-export
 same "a stopped Final integration, or a resume stopped again or on a claim nobody yielded, ends on /do of the run's Ticket alone" \
   "$(printf '%s\n' '/do .scratch/notes-export/issues/03-export-job.md' 'exit 0')"
 
+run outcome=pr-green yours=no pr=42 pushed=no verdict=green
+same "a pr run whose watch read green ends on the merge of its pull request" \
+  "$(printf '%s\n' 'gh pr merge 42' 'exit 0')"
+
+run outcome=pr-awaiting-approval yours=no pr=42 pushed=no
+same "a pr run awaiting a required approval names the approval before the merge" \
+  "$(printf '%s\n' 'Once the required approval on pull request #42 is given:' 'gh pr merge 42' 'exit 0')"
+
+run outcome=pr-green yours=no pr=42 pushed=yes head=notes-export
+same "a pr run that pushed a round names the pull of the developer's local head before the merge" \
+  "$(printf '%s\n' 'On your checkout of notes-export: git pull --ff-only origin notes-export' 'gh pr merge 42' 'exit 0')"
+
 exit "$((fails > 0))"
