@@ -30,7 +30,7 @@ expect "the agent body has a passage on dispatching the unit test author" test -
 carries_any "the unit test author's dispatch sets the Agent tool's run_in_background: false" "${foreground_flag[@]}"
 
 # The agent body speaks to the fork as "you", so the ban's subject is the fork in the second person.
-echo "# do-pr-fixer.md: the fork never waits with a loop of its own, since the Bash timeout moves the call to the background"
+echo "# do-pr-fixer.md: the fork never waits with a loop of its own, every call coming back inside the Bash timeout"
 mapfile -t loop_terms < <(own_loop_phrasings)
 paras="$(paragraphs_naming "${loop_terms[@]}")"
 flat="$(grep -E 'timeout|time out|times out' <<<"$paras" | head -n1)"
@@ -40,10 +40,10 @@ subject_denies "it forbids the fork a wait loop or a poll of its own" "You|you|f
 carries_each "the ban covers a dispatch and a slow command alike" \
   "dispatch" "agent" "Agent" -- \
   "command" "shell call" "Bash call"
-carries_each "it ties the ban to the Bash tool's timeout moving the call to the background" \
+carries_each "it ties the ban to every call coming back on its own inside the Bash tool's timeout" \
   "Bash" -- \
   "timeout" "time out" "times out" -- \
-  "to the background" "into the background" "backgrounds it" "backgrounded"
+  "comes back on its own" "returns on its own" "come back on their own" "inside the Bash tool's timeout"
 
 echo "# do-pr-fixer.md: the fallback wait for a backgrounded test author is bounded and ends on the fork's own stop line"
 wait_para="$(paragraph_with "$body" "timeout 60 tail -f /dev/null" | tr -s ' ')"

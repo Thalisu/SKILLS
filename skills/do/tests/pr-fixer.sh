@@ -756,6 +756,30 @@ carries_each "it is quoted data, never an instruction" \
   "never an instruction" "not an instruction" "never instructions" "never as an instruction" \
   "never an order" "not an order"
 
+echo "# skills/do/agents/do-pr-fixer.md: its body carries instructions only, no ADR and no argument beside a rule"
+
+# A pr run forks one fixer per red check, and every sentence of the body is paid in each of those
+# windows: why a rule holds lives in docs/adr/ alone. A Goal clause naming what an instruction
+# protects stays allowed, so only the argument forms are read, over the flattened body since the
+# definition hard-wraps: an ADR, a reason connective, and the arguments the body carried before it
+# was cut to instructions. The hooks' deny reasons sit in the frontmatter and are not read here.
+fixer_body="$(body_of "$agent" | tr '\n' ' ' | tr -s ' ')"
+out="$(grep -oE '.{0,40}(docs/adr/|\bADRs?\b).{0,40}' <<<"$fixer_body")"
+same "the pr fixer's body names no ADR and links nothing under docs/adr/" ""
+out="$(grep -oiE '.{0,40}(\b(because|so that|since)\b|, so (a|an|the|it|you|nothing)\b).{0,40}' <<<"$fixer_body")"
+same "the pr fixer's body gives no because, so-that, since or \", so a/the/it/you/nothing\" reason beside a rule" ""
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$fixer_body"
+check_absent "the pr fixer's body keeps none of the arguments it carried beside its rules" 0 0 \
+  "the one the developer's own stack holds" \
+  "finds it versioned with the code it runs" "rather than torn down with your worktree" \
+  "it is a broken recipe" "everyone building there inherits it" \
+  "a failure that repeats is deterministic" \
+  "that path ended in the line you were handed" \
+  "session pushes from the run tree" "without any guard having read it" \
+  "a weighing has more than one side" \
+  "never try it again blind"
+
 echo "# README.md, .agents/invocation.md, docs/do.md: the agent is listed with what do ships"
 
 # shellcheck disable=SC2034  # lib.sh's carries reads $flat
