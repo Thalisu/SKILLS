@@ -59,7 +59,9 @@ select_shape() { # the sources present -> one FinalShape word, or failed no-shap
   done
   local door claim order
   door="$(v door verdict)" claim="$(v claim claim)" order="$(v order verdict)"
-  if [ -z "${given[claim]-}" ] && [ "$order" = wait ]; then
+  if [ "$door" = resume-final ] && [ -z "${given[claim]-}" ] && [ "$order" = wait ]; then
+    echo out-of-order
+  elif [ -z "${given[claim]-}" ] && [ "$order" = wait ]; then
     echo waiting
   elif [ "$claim" = taken ] && [ "$door" = resume-final ]; then
     echo not-resumed
@@ -93,7 +95,7 @@ resume_line() { # the opener of a resumed Final integration
 }
 
 cmd_final() {
-  local shape branch holder since number own waits location resumed=no
+  local shape branch holder since number own waits location next resumed=no
   shape="$(select_shape)" || {
     echo "$shape"
     exit 3
@@ -112,6 +114,10 @@ cmd_final() {
         }
         echo "Final integration: the Spec is being integrated by another run, $holder since $since; Ticket $number landed and reads resolved"
       fi
+      ;;
+    out-of-order)
+      value_of next order next_landing
+      echo "Final integration: not started, $next has to land first"
       ;;
     waiting)
       value_of own order own

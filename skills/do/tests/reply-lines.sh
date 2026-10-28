@@ -191,4 +191,9 @@ same "final with no claim on a record that waits says the feature is complete an
   "Final integration: not started, the feature is complete and web waits for api to land, at /home/dev/api
 Open: none"
 
+run final --door "$resume_door" --state "$state" --order "$wait_order"
+check_lines "final on a landing command typed too early: exit 0" 0 "$rc"
+same "final on a landing command typed too early names the repository that has to land first, with no resumed line" \
+  "Final integration: not started, api has to land first"
+
 exit "$((fails > 0))"
