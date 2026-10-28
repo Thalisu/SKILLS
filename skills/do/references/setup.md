@@ -278,7 +278,7 @@ and a worktree cut before the setup is committed would not carry it.
 
 The Reply is one message: `Playbook: setup` on the first line, one line saying the Ticket is
 resolved, the six steps in the table's order, each marked `done`, then the check's lines and
-`reload=done` as its evidence, and last the stdout of `next-step.sh`, copied whole:
+`reload=done` as its evidence, and as the Reply's last line the stdout of `next-step.sh`, copied whole:
 
 ```
 { echo outcome=setup-resolved; echo yours=no

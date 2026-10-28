@@ -325,20 +325,9 @@ out="$flat"
 absent "the /do it names carries no flag before the path" "/do --"
 expect "the /do it names carries no flag after the path" \
   bash -c '! grep -qE "/do <[^>]*> --" <<<"$1"' _ "$flat"
-whole="$flat"
-for value in wait none ambiguous; do
-  flat="$(sed 's/\. /.\n/g' <<<"$whole" | grep -F -e "next=$value" -e "\`$value\`" | tr '\n' ' ')"
-  expect "the close names next=$value" test -n "${flat// /}"
-  case "$value" in
-    wait) carries_any "next=wait: every open Ticket is held by another run" \
-      "another run" "other runs" "held" "claimed" ;;
-    none) carries_any "next=none: nothing else in the Spec is open" \
-      "nothing else" "Nothing else" "no other" "No other" "nothing is open" "nothing open" \
-      "none open" "nothing left" ;;
-    ambiguous) carries_any "next=ambiguous: an open Ticket's status cannot be read" \
-      "cannot be read" "can't be read" "unreadable" "could not be read" "not be read" ;;
-  esac
-done
+# The wait, none and ambiguous lines are printed by next-step.sh, whose own test proves them.
+carries "the last line is next-step.sh's output on the setup-resolved route, fed the check's lines" \
+  "outcome=setup-resolved" "bash <skill-dir>/scripts/next-step.sh"
 
 echo "# setup.md / ## The re-check: any developer message re-runs the check, and the next missing step is shown in the same shape"
 flat="$(passage_of "$setup" "## The re-check" "## " 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
