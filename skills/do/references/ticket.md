@@ -1150,7 +1150,8 @@ its Loss ledger judged and reapplied with no **Gate** of the run's own, then mak
 the Review the run already has from the printed lines, with no fixed count; on `route=resume`, a
 `not landed: target moved` right after an integration that ticked as a no-op, the run goes through
 the all-ticked bullet of the Resume above in the same run, and the step ends on that path's own
-landing line; on `route=blocked` it stops as blocked. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
+landing line; on `route=blocked` it stops as blocked. Read [not-landed.md](not-landed.md) when
+the `route=` line reads anything but `route=verify`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 

@@ -370,7 +370,8 @@ No Ticket exists to hand over, so the Review names the branch and its fixed poin
 
 The return is recorded for the Run report's Run section, one line per part, and routed on the
 `route=` line of `review-route.sh`, as the review in [mechanics.md](mechanics.md) says, with the
-request that started the run as `rerun=`:
+request that started the run as `rerun=`. Read [not-landed.md](not-landed.md) when the `route=`
+line reads anything but `route=verify`.
 
 - `route=fix` integrates again in the same run, its Loss ledger keyed by the branch, and lands
   through the fix call on the Review the run already has, from the printed lines, with no fixed

@@ -615,7 +615,8 @@ review says. The token is minted under the slug of the tree, `spec-<feature-slug
 `final-state.sh` prints as `token_slug=`, and never under a Ticket's slug: a resume may come
 through any Ticket of the Spec built in this repository, and it must find the token the marker beside the Review holds. The review fixes its `Act on` Findings and, when the Review is Green, lands the Spec
 branch on the developer's branch by fast-forward. The return is read as the review says, and
-`not landed: target moved` is answered as it says, in the same run.
+`not landed: target moved` is answered as it says, in the same run. Read
+[not-landed.md](not-landed.md) when the return's `route=` line reads anything but `route=verify`.
 
 **6. The release.** On `landed at <commit>` and on nothing else, the run leaves the tree with a
 bare `cd` to the main checkout, removes it with `git worktree remove <tree>`, and makes one call:
@@ -862,6 +863,9 @@ call of the loop below, `resume` for the fix call of the in-run Resume path.
 - `route=blocked`, exit 4: the run stops as blocked, as `### Not landed for any other reason`
   says, with the `reason=` line quoted, the `yours=` and `by_hand=` lines as printed, and the
   `undo=` line when one is printed.
+
+Read [not-landed.md](not-landed.md) when the `route=` line reads anything but `route=verify`, on
+the first review's return and on every fix call's.
 
 ### Not landed: target moved
 

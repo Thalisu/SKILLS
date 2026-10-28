@@ -594,7 +594,8 @@ when the Review is Green. The run fixes no Finding and lands nothing itself.
 
 The return is recorded for the Run report's Run section, one line per part, as the shared section says,
 and routed on the `route=` line of `review-route.sh`, with the request that started the run as
-`rerun=`. The five returns are the ones the `ticket` Playbook gets:
+`rerun=`. Read [not-landed.md](not-landed.md) when the `route=` line reads anything but
+`route=verify`. The five returns are the ones the `ticket` Playbook gets:
 
 - **Landed.** `route=verify`, and the run goes to the verification.
 - **Not landed: target moved.** On `route=fix` the run integrates again in the same run, its Loss
