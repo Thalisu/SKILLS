@@ -15,6 +15,7 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 reply="$here/../references/reply.md"
+blocked="$here/../references/blocked-reply.md"
 mech="$here/../references/mechanics.md"
 fails=0
 
@@ -28,8 +29,8 @@ carries "item 11 says a landed run stopped at the close's destroy stop carries a
 carries "item 11 keeps that push on the Next step line and never under outward" \
   "still stays on this Next step line" "never named under \`outward\`"
 
-echo "# reply.md's outward-push sentence carries the close's destroy-stop exception"
-flat="$(flat_section "$reply" "## A refusal or a blocked run")"
+echo "# blocked-reply.md's outward-push sentence carries the close's destroy-stop exception"
+flat="$(flat_section "$blocked" "## A refusal or a blocked run")"
 carries "the outward-push sentence exempts the close's destroy stop on a landed run" \
   "names that push under \`outward\`" "except the close's \`destroy\` stop on a landed"
 carries "the exempted push already sits on the Next step line, never renamed under outward" \

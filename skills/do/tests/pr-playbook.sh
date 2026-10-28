@@ -16,6 +16,7 @@ skill="$here/../SKILL.md"
 pr="$here/../references/pr.md"
 pr_fix="$here/../references/pr-fix.md"
 reply="$here/../references/reply.md"
+blocked="$here/../references/blocked-reply.md"
 fails=0
 
 # pr.md's steps are renumbered whenever one is added or absorbed into another, so a pin finds a step
@@ -315,9 +316,9 @@ carries_each "that paragraph hands a failure whose cause is the CLI not being lo
 # reply.md asks every refusal at a door for a `Yours:` line, and the run writing the `pr` door's
 # refusals follows it: unless the exception lists those two stops beside the `ticket` door's, the
 # run adds a `Yours: direction:` line the stop never offers, and a grader fails it.
-echo "# reply.md / ## A refusal or a blocked run: the pr door's two stops hand over no choice, each with the one input it names"
-flat="$(paragraph_with "$reply" "Every blocked Reply, and every refusal at a door" | tr -s ' ')"
-expect "reply.md has the paragraph asking every refusal at a door for its line" test -n "$flat"
+echo "# blocked-reply.md / ## A refusal or a blocked run: the pr door's two stops hand over no choice, each with the one input it names"
+flat="$(paragraph_with "$blocked" "Every blocked Reply, and every refusal at a door" | tr -s ' ')"
+expect "blocked-reply.md has the paragraph asking every refusal at a door for its line" test -n "$flat"
 carries "the \`ticket\` door's Build repository stops stay listed as exceptions" \
   "verdict=elsewhere" "verdict=unbuildable"
 except_at="$(first_at "except" "Except" "other than" "save for" "apart from")"
@@ -1119,9 +1120,9 @@ carries_any "and opening nothing, no \`gh pr create\`" \
 # A branch-pair run that stops on a branch that does not exist, or on a pair with nothing to open,
 # hands over no choice: unless reply.md's exception lists both beside the `pr` door's other stops,
 # the run writes a `Yours:` line under them and the developer reads a blocked run waiting on them.
-echo "# reply.md / ## A refusal or a blocked run: a branch-pair run's stops on a missing branch and on nothing to open hand over no choice, each with the one input it names"
-flat="$(paragraph_with "$reply" "Every blocked Reply, and every refusal at a door" | tr -s ' ')"
-expect "reply.md has the paragraph asking every refusal at a door for its line" test -n "$flat"
+echo "# blocked-reply.md / ## A refusal or a blocked run: a branch-pair run's stops on a missing branch and on nothing to open hand over no choice, each with the one input it names"
+flat="$(paragraph_with "$blocked" "Every blocked Reply, and every refusal at a door" | tr -s ' ')"
+expect "blocked-reply.md has the paragraph asking every refusal at a door for its line" test -n "$flat"
 except_at="$(first_at "except" "Except" "other than" "save for" "apart from")"
 expect "the paragraph lists exceptions" test "$except_at" -gt 0
 flat="${flat:$((except_at > 0 ? except_at - 1 : 0))}"
@@ -1145,7 +1146,7 @@ carries_each "nothing to open names the commits the head still needs, or another
 # different kind of choice, and a stop listed among reply.md's exceptions reads as a branch that does
 # not exist. The pr.md piece is the one the unpublished-head case above reads; the reply.md slice is
 # the exception list the case above reads, past its first "except".
-echo "# pr.md / ### Pull request and reply.md / ## A refusal or a blocked run: the stop on a head the remote does not have carries exactly one Yours: outward: line, the push to type, and is no exception"
+echo "# pr.md / ### Pull request and blocked-reply.md / ## A refusal or a blocked run: the stop on a head the remote does not have carries exactly one Yours: outward: line, the push to type, and is no exception"
 flat="$(piece_in="$pull_request" piece_with "${unpublished_head_keys[@]}")"
 expect "a bullet or paragraph of $pull_h takes a head the remote does not have" test -n "$flat"
 carries "the Reply hands over the push of that head, then the request again" \
@@ -1155,8 +1156,8 @@ carries_any "as one \`Yours:\` line" \
   "exactly one Yours:" "a single Yours:" "only \`Yours:\` line" "only Yours: line"
 yours_lines="$(grep -oE 'Yours: [a-z-]+:' <<<"$flat" | wc -l)"
 expect "and no other \`Yours: <class>:\` line beside it" test "$yours_lines" -eq 1
-flat="$(paragraph_with "$reply" "Every blocked Reply, and every refusal at a door" | tr -s ' ')"
-expect "reply.md has the paragraph asking every refusal at a door for its line" test -n "$flat"
+flat="$(paragraph_with "$blocked" "Every blocked Reply, and every refusal at a door" | tr -s ' ')"
+expect "blocked-reply.md has the paragraph asking every refusal at a door for its line" test -n "$flat"
 except_at="$(first_at "except" "Except" "other than" "save for" "apart from")"
 flat="${flat:$((except_at > 0 ? except_at - 1 : 0))}"
 unlisted_at="$(first_at "no branch on the remote" "unpublished" "never published" "not published" \
@@ -3083,7 +3084,7 @@ carries_each "the one rerun is gh run rerun --failed on the run of the pull requ
 carries_each "after its fixer could not reproduce the check" \
   "could not reproduce" "couldn't reproduce" "not reproduced" "failed to reproduce" "cannot reproduce" -- \
   "fixer"
-flat="$(bullets_opening_on <(passage_of "$reply" "## A refusal or a blocked run" "## ") "**A push.**" |
+flat="$(bullets_opening_on <(passage_of "$blocked" "## A refusal or a blocked run" "## ") "**A push.**" |
   sed 's/\. /.\n/g' | grep -F "0089" | tr '\n' ' ')"
 expect "a sentence of the A push. bullet names ADR 0089" test -n "$flat"
 carries "the pr rerun is authorised, made by the run itself" "rerun" "itself"
@@ -3869,7 +3870,7 @@ flat="$(piece_in="$push_item" piece_with "quoting its fixer's return" "one line 
 expect "a paragraph of the push item stops quoting each fixer's return" test -n "$flat"
 yours_direction_once "the no-pick, empty-set stop carries exactly one \`Yours: direction:\` line"
 carries_any "and follows nothing" "${follows_nothing[@]}"
-flat="$(paragraph_with <(passage_of "$reply" "## A refusal or a blocked run" "## ") "six stops of the \`pr\` door")"
+flat="$(paragraph_with <(passage_of "$blocked" "## A refusal or a blocked run" "## ") "six stops of the \`pr\` door")"
 expect "reply.md names the six stops of the \`pr\` door that owe no \`Yours:\` line, the fork head's among them" test -n "$flat"
 expect "and its exception list names the fork-head stop" grep -qiE 'head lives in a fork|fork head|head in a fork' <<<"$flat"
 expect "and none of them is a fixer's return, a failed watch or a failed pr-log.sh" \

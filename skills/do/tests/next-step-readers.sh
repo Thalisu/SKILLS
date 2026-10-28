@@ -10,13 +10,14 @@ script="$here/../scripts/next-step.sh"
 fails=0
 
 for name in reply ticket setup bug-fix refactoring integrate pr mechanics forks; do
-  file="$refs/$name.md"
-  if grep -qF 'scripts/next-step.sh' "$file"; then
+  files=("$refs/$name.md")
+  [ "$name" = reply ] && files+=("$refs/blocked-reply.md")
+  if grep -qF 'scripts/next-step.sh' "${files[@]}"; then
     ok "$name.md names next-step.sh as the source of its Next step"
   else
     fail "$name.md names next-step.sh as the source of its Next step"
   fi
-  outcomes="$(grep -oE 'outcome=[a-z-]+' "$file" | sort -u)"
+  outcomes="$(grep -hoE 'outcome=[a-z-]+' "${files[@]}" | sort -u)"
   if [ -z "$outcomes" ]; then
     fail "$name.md names the outcome= it passes to next-step.sh"
     continue

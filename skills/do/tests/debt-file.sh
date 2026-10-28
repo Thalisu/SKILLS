@@ -14,6 +14,7 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 reply="$here/../references/reply.md"
+blocked="$here/../references/blocked-reply.md"
 ticket="$here/../references/ticket.md"
 do_doc="$here/../../../docs/do.md"
 fails=0
@@ -104,9 +105,9 @@ echo "# a run refused before any edit writes no section to the Debt file"
 
 # The debt skill reads every section as a run that built something: a refused run that wrote one,
 # even reading none, would pass there for a run that built and owed nothing.
-flat="$(bullets_opening_on <(passage_of "$reply" "## A refusal or a blocked run" "## ") \
+flat="$(bullets_opening_on <(passage_of "$blocked" "## A refusal or a blocked run" "## ") \
   "**Refused before any edit.**" | head -n 1)"
-expect "reply.md's Refused before any edit bullet is found" test -n "$flat"
+expect "blocked-reply.md's Refused before any edit bullet is found" test -n "$flat"
 carries_each "a run refused before any edit writes no section to the Debt file" \
   "Debt file" -- \
   "no section" "writes nothing" "adds nothing to the Debt file" "nothing to the Debt file" \
@@ -130,9 +131,9 @@ carries_each "a later run never replaces or edits an earlier section" \
   "or edits" "nor edits" "never edits" "not edit" "or changes" "nor changes" "or rewrites" \
   "nor rewrites" "or touches" "nor touches"
 
-flat="$(bullets_opening_on <(passage_of "$reply" "## A refusal or a blocked run" "## ") \
+flat="$(bullets_opening_on <(passage_of "$blocked" "## A refusal or a blocked run" "## ") \
   "**Stopped after work exists.**" | head -n 1)"
-expect "reply.md's Stopped after work exists bullet is found" test -n "$flat"
+expect "blocked-reply.md's Stopped after work exists bullet is found" test -n "$flat"
 affirms "a run stopped after work exists writes its section to the Debt file" \
   "Debt file" -- \
   "writes" "adds" "appends" "written" -- \

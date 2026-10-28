@@ -229,6 +229,7 @@ commit_beside=(
   "the commit that built" "commit that built it"
 )
 reply="$here/../references/reply.md"
+blocked="$here/../references/blocked-reply.md"
 
 echo "# impeccable.md / ## The Reply, Plan line: a Front-end: impeccable ticket's Reply carries no Planner line"
 flat="$(bullets_opening_on <(passage_of "$reference" "## The Reply" "## ") "**Plan line.**" | tr -s ' ')"
@@ -375,12 +376,12 @@ carries_each "the worktree and its branch are left in place" \
   "worktree" -- "branch" "commits" -- "${left_in_place[@]}"
 carries "the Ticket still reads claimed" "\`claimed\`"
 
-# A Logic ticket's run that stops reads reply.md's blocked shapes, so the do-impeccable one lives
+# A Logic ticket's run that stops reads blocked-reply.md's blocked shapes, so the do-impeccable one lives
 # in impeccable.md alone.
-echo "# reply.md / ## A refusal or a blocked run: no blocked shape for the do-impeccable fork"
+echo "# blocked-reply.md / ## A refusal or a blocked run: no blocked shape for the do-impeccable fork"
 # shellcheck disable=SC2034  # lib.sh's absent reads $out
-out="$(passage_of "$reply" "## A refusal or a blocked run" "## Whole replies")"
-expect "reply.md has a blocked run section" test -n "$out"
+out="$(passage_of "$blocked" "## A refusal or a blocked run" "## Whole replies")"
+expect "blocked-reply.md has a blocked run section" test -n "$out"
 absent "the section names no do-impeccable fork" "do-impeccable"
 
 # A project with no end-to-end command gets a screen no flow ran over, and the fork says so on a

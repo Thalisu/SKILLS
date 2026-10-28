@@ -361,7 +361,7 @@ still_asked_with_the_answer_shown "refactoring.md's index of questions" "$revert
 
 echo "# a claim or a close on a remote tracker: the yes is still asked under --auto, every write listed in order, with the choice-taker's answer shown, and a no writes nothing"
 
-reply="$here/../references/reply.md"
+blocked="$here/../references/blocked-reply.md"
 tracker_question="the tracker question"
 tracker_moment="before a write to the remote tracker"
 
@@ -400,8 +400,8 @@ still_asked_with_the_answer_shown "ticket.md's close step, on a Ticket that is a
   "$tracker_question" "$tracker_moment"
 
 # The reply contract, in the bullet that gives a write to a remote tracker its `outward` line.
-flat="$(bullets_opening_on "$reply" "- " | grep -F "remote tracker" | grep -F "outward" | head -n 1)"
-still_asked_with_the_answer_shown "reply.md's bullet on a write to a remote tracker" \
+flat="$(bullets_opening_on "$blocked" "- " | grep -F "remote tracker" | grep -F "outward" | head -n 1)"
+still_asked_with_the_answer_shown "blocked-reply.md's bullet on a write to a remote tracker" \
   "$tracker_question" "$tracker_moment"
 
 # The home those steps send the reader to counts a tracker write among the questions still asked,

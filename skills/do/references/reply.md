@@ -26,7 +26,7 @@ these parts, in this order:
 2. **For whom.** The [For whom](#sections) section, under a `## For whom` heading.
 3. **Pending debt.** The [Pending debt](#sections) section, under a `## Pending debt` heading.
 4. **Yours.** The `Yours: <class>: <the choice>` line, only when the run hands the developer
-   something, per [A refusal or a blocked run](#a-refusal-or-a-blocked-run), with the blocker it
+   something, per [blocked-reply.md](blocked-reply.md), with the blocker it
    stopped on and its reason on the lines right above it. A run that hands over nothing writes no
    such line and no heading for it.
 5. **Next step.** The [Next step](#sections) section, under a `## Next step` heading, last: the
@@ -72,9 +72,8 @@ report does not stand in for the Debt file, and the Run report stays written und
 The Reply itself carries no line naming the Debt file: no `Debt:` line beside the `Report:` line in
 the Plan block, and the Next step says nothing about it, so the message stays the five parts.
 
-A run that ends early writes a shorter message, per
-[A refusal or a blocked run](#a-refusal-or-a-blocked-run). [Whole replies](#whole-replies) shows
-both shapes.
+A run that ends early writes a shorter message, per [blocked-reply.md](blocked-reply.md).
+[Whole replies](#whole-replies) shows the shape of a run that landed.
 
 ## Voice
 
@@ -406,15 +405,16 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
     | an `integrate` run blocked mid-operation | `integrate-blocked` | `integrate-door.sh`'s output |
     | a run that landed nothing, the review not callable or not landing | `unlanded` | `worktree=<the run's worktree>`, `run_branch=<its branch>` |
 
-    A refused or blocked run takes its route from [A refusal or a blocked run](#a-refusal-or-a-blocked-run),
+    A refused or blocked run takes its route from [blocked-reply.md](blocked-reply.md),
     and a run stopped on an Extreme fork from its Playbook's Extreme stop.
 
     A stopped Final integration says on its `Yours: direction:` line that a `do` on any Ticket of
     the Spec resumes it too, and what to fix first there or above it, never after the command. A
     landed run whose close finished is not a stop: the push stays on this line, the run
     never pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the
-    close's `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the
-    push still stays on this Next step line and is never named under `outward`. A `pr` run whose
+    close's `destroy` stop carries exactly one `Yours: destroy:` line, per
+    [blocked-reply.md](blocked-reply.md); the push still stays on this Next step line and is never
+    named under `outward`. A `pr` run whose
     watch read green, every check passed and the pull request mergeable, ends its line with
     `gh pr merge <n>`, its pull request's number, under that same rule as a landed run's push: the
     run never runs it, its Reply carries no `Yours:` line, and the merge is never named under
@@ -584,10 +584,8 @@ Two writes outside the repository have a fixed place:
 ## Whole replies
 
 Replies as a run writes them. They show the shape, never which lines a Playbook carries: that is
-the matched Playbook's steps'. The first is a `trivial` run that landed one commit. The second is a
-`ticket` run under `--auto` stopped after work exists, and the third the Run report it wrote. The
-others are `ticket` runs refused at the
-door before any edit.
+the matched Playbook's steps'. The first is a `trivial` run that landed one commit. The second is
+the Run report a `ticket` run under `--auto` wrote when it stopped after work exists.
 
 <example>
 
@@ -610,37 +608,12 @@ git push origin notes-export
 
 </example>
 
-<example>
-
-```md
-Playbook: ticket
-Plan: 03-share-notes.plan.md
-Report: /home/dev/notes/.scratch/20260101-notes/issues/03-share-notes.report.md
-
-## For whom
-
-The reader of a shared note. A share link now opens the note read-only.
-
-## Pending debt
-
-consumer flows not run: the share link on the mobile app, carried by Ticket 05 (built in notes-mobile)
-
-not landed: spec/notes is checked out in /home/dev/notes-spec
-Yours: direction: switch /home/dev/notes-spec off spec/notes and run /do 03-share-notes.md again, or leave do/share-notes unlanded in its worktree
-
-## Next step
-
-First do what the Yours: line names, then:
-
-/do /home/dev/notes/.scratch/20260101-notes/issues/03-share-notes.md
-```
-
-</example>
 
 <example>
 
 The Run report that `--auto` run wrote at the `Report:` location, shortened to one line where a
-section holds several.
+section holds several. Read [blocked-reply.md](blocked-reply.md) when the run ends blocked or
+refused, for the Reply that run wrote.
 
 ```md
 ## Run
@@ -702,62 +675,6 @@ consumer flows not run: the share link on the mobile app, carried by Ticket 05 (
 ## Next step
 
 /do /home/dev/notes/.scratch/20260101-notes/issues/03-share-notes.md
-```
-
-</example>
-
-<example>
-
-```md
-Playbook: ticket
-
-Refused before the claim. 03-share-notes.md is blocked by 02-export-notes.md, whose status is
-ready-for-agent. Nothing was written.
-
-Yours: direction: build 02-export-notes.md first, or set its status to resolved by hand if it was done outside the chain
-
-/do /home/dev/notes/.scratch/20260101-notes/issues/02-export-notes.md
-```
-
-</example>
-
-<example>
-
-The same refusal when the blocker is built in another repository than the one the session was
-opened in: one line names it before the command, which carries the blocker's absolute location in
-the Home repository.
-
-```md
-Playbook: ticket
-
-Refused before the claim. 03-share-notes.md is blocked by 02-export-notes.md, whose status is
-ready-for-agent. Nothing was written.
-
-Yours: direction: build 02-export-notes.md first, or set its status to resolved by hand if it was done outside the chain
-
-Open a session in notes-api, at /home/dev/notes-api, and run it there:
-
-/do /home/dev/notes/.scratch/20260101-notes/issues/02-export-notes.md
-```
-
-</example>
-
-<example>
-
-The same refusal on a Ticket an earlier run stopped on mid-build, which `tickets` has blocked by a
-new one since: the door printed `status=claimed`, a `worktree=` and a `run_branch=`.
-
-```md
-Playbook: ticket
-
-Refused. 03-share-notes.md is blocked by 04-sign-share-links.md, whose status is ready-for-agent.
-Nothing was written: the claim on 03-share-notes.md stands, and so do its worktree at
-/home/dev/notes/.claude/worktrees/do-share-notes, the branch do/share-notes and the commits already
-on it, for the next /do on it to resume from once the blocker is resolved.
-
-Yours: direction: build 04-sign-share-links.md first, or set its status to resolved by hand if it was done outside the chain
-
-/do /home/dev/notes/.scratch/20260101-notes/issues/04-sign-share-links.md
 ```
 
 </example>
