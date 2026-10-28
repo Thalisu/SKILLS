@@ -7,6 +7,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 trivial="$here/../references/trivial.md"
 auto="$here/../references/trivial-auto.md"
+skill="$here/../SKILL.md"
 fails=0
 
 echo "# trivial.md: the one question of step 1 sends a run under --auto to trivial-auto.md"
@@ -43,5 +44,15 @@ expect "trivial-auto.md opens on its readers paragraph" grep -q '^It is read by'
 flat="$(tr '\n' ' ' <<<"$opening" | tr -s ' ')"
 carries "the opening names the reader, the condition that sends it, and no other reader" \
   "step 1 of [trivial.md](trivial.md)" "the door" "under \`--auto\`" "two files the request fits equally" "by no other"
+
+echo "# SKILL.md: the references list names trivial-auto.md with its reader and condition"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(bullets_opening_on "$skill" "[trivial-auto.md](references/trivial-auto.md)" | tr -s ' ')"
+expect "SKILL.md's references list has an entry for trivial-auto.md" test -n "$flat"
+carries "the entry names the reader and the condition that sends it" \
+  "step 1 of that Playbook" "the door" "under \`--auto\`" "two files" "by no other"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(bullets_opening_on "$skill" "[trivial.md](references/trivial.md)" | tr -s ' ')"
+carries "the trivial.md entry says the text cut from it is read from trivial-auto.md" "trivial-auto.md"
 
 exit $((fails > 0))

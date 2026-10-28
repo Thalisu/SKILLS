@@ -8,6 +8,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 integrate="$here/../references/integrate.md"
 refusal="$here/../references/integrate-refusal.md"
 door_script="$here/../scripts/integrate-door.sh"
+skill="$here/../SKILL.md"
 fails=0
 
 echo "# integrate.md: the door keeps the exit-0 route and sends an exit 1 to integrate-refusal.md"
@@ -40,5 +41,15 @@ expect "integrate-refusal.md opens on its readers paragraph" grep -q '^It is rea
 flat="$(tr '\n' ' ' <<<"$opening" | tr -s ' ')"
 carries "the opening names the reader, the condition that sends it, and no other reader" \
   "step 1 of [integrate.md](integrate.md)" "the door" "\`integrate-door.sh\` exits 1" "by no other"
+
+echo "# SKILL.md: the references list names integrate-refusal.md with its reader and condition"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(bullets_opening_on "$skill" "[integrate-refusal.md](references/integrate-refusal.md)" | tr -s ' ')"
+expect "SKILL.md's references list has an entry for integrate-refusal.md" test -n "$flat"
+carries "the entry names the reader and the condition that sends it" \
+  "step 1 of that Playbook" "the door" "\`integrate-door.sh\` exits 1" "by no other"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(bullets_opening_on "$skill" "[integrate.md](references/integrate.md)" | tr -s ' ')"
+carries "the integrate.md entry says the text cut from it is read from integrate-refusal.md" "integrate-refusal.md"
 
 exit $((fails > 0))

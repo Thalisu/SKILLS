@@ -7,6 +7,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 trivial="$here/../references/trivial.md"
 escape="$here/../references/trivial-escape.md"
+skill="$here/../SKILL.md"
 fails=0
 
 echo "# trivial.md: the door on the diff keeps the exit-0 route and sends every other exit to trivial-escape.md"
@@ -46,5 +47,15 @@ expect "trivial-escape.md opens on its readers paragraph" grep -q '^It is read b
 flat="$(tr '\n' ' ' <<<"$opening" | tr -s ' ')"
 carries "the opening names the reader, the condition that sends it, and no other reader" \
   "step 5 of [trivial.md](trivial.md)" "the door on the diff" "\`trivial-door.sh diff\` exits other than 0" "by no other"
+
+echo "# SKILL.md: the references list names trivial-escape.md with its reader and condition"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(bullets_opening_on "$skill" "[trivial-escape.md](references/trivial-escape.md)" | tr -s ' ')"
+expect "SKILL.md's references list has an entry for trivial-escape.md" test -n "$flat"
+carries "the entry names the reader and the condition that sends it" \
+  "step 5 of that Playbook" "the door on the diff" "\`trivial-door.sh diff\` exits other than 0" "by no other"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(bullets_opening_on "$skill" "[trivial.md](references/trivial.md)" | tr -s ' ')"
+carries "the trivial.md entry says the text cut from it is read from trivial-escape.md" "trivial-escape.md"
 
 exit $((fails > 0))
