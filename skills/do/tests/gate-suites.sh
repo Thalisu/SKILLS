@@ -48,4 +48,9 @@ run "$issues/02-b.md"
 check_lines "gate-suites.sh prints full_unit=yes and full_e2e=yes for the feature's last Ticket when the Post-feature gate reads both" 0 "$rc" \
   "last=yes" "full_unit=yes" "full_e2e=yes"
 
+facts 'none: the per-change tier is the whole gate, the change'"'"'s own test scripts'
+run "$issues/02-b.md"
+check_lines "gate-suites.sh prints full_unit=no and full_e2e=no when the Post-feature gate reads none, an explanation after a colon included" 0 "$rc" \
+  "last=yes" "facts=none" "full_unit=no" "full_e2e=no"
+
 [ "$fails" = 0 ]
