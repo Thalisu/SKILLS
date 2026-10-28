@@ -170,7 +170,8 @@ that Playbook. The reply reference is read last by every Playbook but `setup`, w
 
 - [ticket.md](references/ticket.md): the `ticket` Playbook, which links the shared mechanics and the reply reference.
 - [setup.md](references/setup.md): the `setup` Playbook, which runs a Setup ticket in the main checkout one step at a time. It links no other reference and writes its own messages.
-- [pr.md](references/pr.md): the `pr` Playbook, which follows one pull request: its steps, and the read-back of the pull request it follows.
+- [pr.md](references/pr.md): the `pr` Playbook, which follows one pull request: its steps but the fix round, and the read-back of the pull request it follows.
+- [pr-fix.md](references/pr-fix.md): the fix round of the `pr` Playbook, read only on the run whose watch prints its first `verdict=red`, by the watch step that sends it there and then by every later watch of that run, the fix step and the Reply: the watch routes a pushed round or a rerun reaches, the `do-pr-fixer` forks and their brief, the push, the rerun, and the round lines of the Reply.
 - [integrate.md](references/integrate.md): the `integrate` Playbook: its door script, its steps, and the link to the conflict loop it runs at every stop, the one shared reference it reads besides the reply. A door refusal is handled in `integrate-refusal.md`.
 - [integrate-refusal.md](references/integrate-refusal.md): the `integrate` door's refusal, read by step 1 of that Playbook, the door, when `integrate-door.sh` exits 1, and by no other: the refusals the door prints and the reply that ends the run with nothing integrated.
 - [bug-fix.md](references/bug-fix.md): the `bug-fix` Playbook, which links the shared mechanics and the reply reference.
