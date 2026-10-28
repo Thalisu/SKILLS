@@ -33,15 +33,18 @@ carries "uncommitted changes are asked about before the discard, and a no hands 
   "git restore --staged --worktree ." "git clean -fd" "Yours: destroy:"
 carries "a run that stopped as blocked resumes once its reason is gone" "stopped as blocked"
 
-echo "# bug-fix.md: steps 1 and 10 reach the resume through Read [bug-fix-resume.md](bug-fix-resume.md) when <condition>"
+echo "# bug-fix.md step 1 and not-landed.md's route=resume reach the resume through Read [bug-fix-resume.md](bug-fix-resume.md) when <condition>"
 pointer='Read \[bug-fix-resume\.md\]\(bug-fix-resume\.md\) when [^ ]'
 step1="$(item_holding "$bugfix" '\*\*[0-9]+\.' "**1. Worktree.**" | flat_of)"
 expect "bug-fix.md carries step 1, Worktree" test -n "$step1"
 expect "step 1 hands an earlier run on the bug to the resume reference" grep -qE "$pointer" <<<"$step1"
-step10="$(item_holding "$bugfix" '\*\*[0-9]+\.' "**10. Review and landing.**" | flat_of |
-  sed -n 's/.*- `route=resume`\(.*\)- `route=blocked`.*/\1/p')"
-expect "step 10 carries its route=resume bullet" test -n "$step10"
-expect "step 10's route=resume sends the run to the resume reference" grep -qE "$pointer" <<<"$step10"
+step10="$(item_holding "$bugfix" '\*\*[0-9]+\.' "**10. Review and landing.**" | flat_of)"
+expect "bug-fix.md carries step 10, Review and landing" test -n "$step10"
+expect "step 10 hands a route other than route=verify to not-landed.md" \
+  grep -qE 'Read \[not-landed\.md\]\(not-landed\.md\) when [^ ]' <<<"$step10"
+route_resume="$(flat_of <"$refs/not-landed.md" | sed -n 's/.*- `route=resume`\(.*\)- `route=blocked`.*/\1/p')"
+expect "not-landed.md carries its route=resume bullet" test -n "$route_resume"
+expect "not-landed.md's route=resume sends a bug-fix run to the resume reference" grep -qE "$pointer" <<<"$route_resume"
 
 echo "# bug-fix.md: a run that is not resumed loads no resume text"
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
@@ -139,7 +142,7 @@ done
 # Each reference cut from bug-fix.md, with the readers that reach it and the condition that sends
 # each one, groups separated by `--` and the reference's own entry closed by `==`.
 cut_references=(
-  "$resume" "step 1" "Worktree" -- "git worktree list" -- "git branch --list" -- "step 10" -- "route=resume" "=="
+  "$resume" "step 1" "Worktree" -- "git worktree list" -- "git branch --list" -- "not-landed.md" -- "route=resume" "=="
   "$design" "step 4" "Plan the fix" -- "step 6" "Fix" -- "Design fork" "=="
   "$extreme" "Design fork" -- "Extreme" -- "\`extreme\`" -- "no Ruling" "=="
   "$auto" "step 11" "Verification" -- "resume" -- "uncommitted" -- "--auto" "=="

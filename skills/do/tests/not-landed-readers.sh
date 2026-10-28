@@ -67,9 +67,9 @@ points_at_not_landed "resume.md's mid-rebase resume, a review= line naming a Rev
 points_at_not_landed "ticket.md's stopped Final integration, step 3's verdict=land" \
   "$(passage_of "$refs/ticket.md" "## A stopped Final integration" "## " |
     bullets_opening_on /dev/stdin "\`verdict=land\`, exit 4: the Review beside the Spec counts")" "$via_fix"
-points_at_not_landed "bug-fix.md's resume on a Review that counts" \
-  "$(bullets_opening_on "$refs/bug-fix.md" "A Review of the branch" |
-    grep -F "A Review that counts means the review already read the branch")" "$via_fix"
+points_at_not_landed "bug-fix-resume.md's resume on a Review that counts" \
+  "$(bullets_opening_on "$refs/bug-fix-resume.md" "A Review of the branch" |
+    grep -F "On a Review that counts the run integrates")" "$via_fix"
 points_at_not_landed "refactoring.md's resume on a Review that counts" \
   "$(paragraph_with "$refs/refactoring.md" "a Review that counts decides" | tr -s ' ')" "$via_fix"
 points_at_not_landed "mechanics.md's integration on a run the review already read" \

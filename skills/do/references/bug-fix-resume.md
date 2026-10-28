@@ -1,8 +1,8 @@
 # bug-fix: the resume
 
 Read by the `bug-fix` Playbook only on a resumed run: by step 1, Worktree, when `git worktree list`
-or `git branch --list do/<slug>` prints an entry for the bug's branch, and by step 10, Review and
-landing, when `review-route.sh` prints `route=resume`.
+or `git branch --list do/<slug>` prints an entry for the bug's branch, and by not-landed.md, read
+from step 10, Review and landing, when `review-route.sh` prints `route=resume`.
 
 A second run on a bug whose `do/<slug>` worktree or branch already exists continues that run and
 never starts a second. The state a resume reads is the branch and its worktree alone, never a
@@ -37,6 +37,8 @@ and `git status --short` in the worktree.
   Review there is an earlier branch's of the same name, or a review that never finished, and the
   review runs as on a first run. On a Review that counts the run integrates and lands through the
   fix call on that Review with no **Gate** of the run's own before it, never a second review.
+  Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it
+  already has.
 - Uncommitted changes in the worktree are asked about before they are discarded. The question is
   the turn's final message: it says the run resumes, names the worktree and its branch, and names
   the changes one line per file from `git status --short`. A yes discards them,

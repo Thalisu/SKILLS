@@ -5,7 +5,7 @@ Read by the session only when the review route script prints a `route=` line oth
 on that condition: the review step of each Playbook ([ticket.md](ticket.md),
 [bug-fix.md](bug-fix.md), [refactoring.md](refactoring.md)) and `### Reading the return` of
 [mechanics.md](mechanics.md); the Final integration's review step, its stop and its resume; the
-Resume paths of [ticket.md](ticket.md) and [bug-fix.md](bug-fix.md) that land through the fix call
+Resume paths of [ticket.md](ticket.md) and of the `bug-fix` Playbook that land through the fix call
 on a Review the run already has; and the verification's red flow, whose fix goes to the fix call.
 A run whose review lands never opens it.
 
@@ -15,7 +15,8 @@ A run whose review lands never opens it.
   the fix call from the `fix=`, `gate=` and `caller=` lines as printed, and routes its return with
   `last=fix`.
 - `route=resume`, exit 3: the run takes its in-run Resume path once, as that section says, makes
-  its fix call from the same lines, and routes its return with `last=resume`.
+  its fix call from the same lines, and routes its return with `last=resume`. In `bug-fix` and
+  `refactoring`, Read [bug-fix-resume.md](bug-fix-resume.md) when the route reads `route=resume`.
 - `route=blocked`, exit 4: the run stops as blocked, as `## Not landed for any other reason`
   says, with the `reason=` line quoted, the `yours=` and `by_hand=` lines as printed, and the
   `undo=` line when one is printed.
@@ -70,7 +71,7 @@ all-ticked bullet is the path, the integration run again, which resolves each co
 landing left to the **Target** side and writes its **Incoming** side to the ledger, the Loss ledger
 judged and the reapplies brought back, with no **Gate** of the run's own, then the landing through
 the fix call on the Review the run already has, never a second review. In `bug-fix` and
-`refactoring` the path is the Resume of [bug-fix.md](bug-fix.md), the one step 2 of
+`refactoring` the path is the resume of the `bug-fix` Playbook, the one step 2 of
 [refactoring.md](refactoring.md) hands its resume to: the Review the run already has counts, so the run integrates again, its Loss ledger
 keyed by the branch, and lands through the fix call on that Review. The run lands or stops on
 that path's own outcome, and the integration line of the Run report's Run section carries the lines of
@@ -111,7 +112,7 @@ finished after the review. Such a branch is handed to `do-code-review` with
 A run whose own gate ran before the review hands the fix call the `command=` line that gate
 printed: the fix call gates the same tree itself, from that very line, and refuses to land it red.
 A run that reaches this point having run no gate of its own, the resume on `verdict=land` of
-[ticket.md](ticket.md) and the resume of [bug-fix.md](bug-fix.md), has no such line to hand, since
+[ticket.md](ticket.md) and the resume of the `bug-fix` Playbook, has no such line to hand, since
 the session that printed it was another run's: it hands the fix call no `command=` line, and the
 fix call runs the Gate itself from the Testing Policy's Project facts, which is what a fix call
 handed no `command=` line does. What that Gate ran
