@@ -32,4 +32,10 @@ run grounded=51004 resumed=yes peak=98411 band=small forks=0 fork_kinds=
 check_lines "evidence-lines.sh ends a resumed run's zero Forks line with , this session only (resumed run)" 0 "$rc" \
   "Forks: 0, this session only (resumed run)"
 
+run grounded=51004 'close_reason=no assistant message with usage in t.jsonl' resumed=yes
+same "evidence-lines.sh prints Context: not measured and Forks: not measured with the close reading's reason on both lines, and no resumed label, when the close reading failed" \
+  "Context: not measured, no assistant message with usage in t.jsonl
+Forks: not measured, no assistant message with usage in t.jsonl"
+[ "$rc" = 0 ] || fail "a not-measured pair exits 0 (exit $rc)"
+
 [ "$fails" = 0 ]

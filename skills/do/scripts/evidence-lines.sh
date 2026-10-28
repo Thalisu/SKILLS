@@ -9,13 +9,19 @@
 #   grounded=<tokens>                 the ground reading's current
 #   resumed=yes|no                    yes when the run recorded the Resume line of ticket.md
 #   peak=<tokens> band=<band> forks=<n> fork_kinds=<kinds>   the close reading, as context-usage.sh prints it
-# Prints the Context line, then the Forks line.
+#   close_reason=<text>              the close reading's stderr, in its place when it exited non-zero
+# Prints the Context line, then the Forks line. A close_reason puts both lines at not measured with
+# that reason, and no resumed label.
 # Exit codes: 0 both lines printed.
 set -euo pipefail
 declare -A in=()
 while IFS= read -r line || [ -n "$line" ]; do
   case "$line" in *=*) in["${line%%=*}"]="${line#*=}" ;; esac
 done
+if [ -n "${in[close_reason]+set}" ]; then
+  printf 'Context: not measured, %s\nForks: not measured, %s\n' "${in[close_reason]}" "${in[close_reason]}"
+  exit 0
+fi
 printf 'Context: grounded %s, peak %s, %s\n' "${in[grounded]}" "${in[peak]}" "${in[band]}"
 suffix=""
 [ "${in[resumed]:-}" = yes ] && suffix=", this session only (resumed run)"
