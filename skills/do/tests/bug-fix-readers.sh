@@ -167,4 +167,21 @@ done
 expect "SKILL.md's references list keeps its entry for bug-fix.md" \
   test -n "$(bullets_opening_on "$skill" "[bug-fix.md](references/bug-fix.md)")"
 
+echo "# skills/do: every pointer to a reference cut from bug-fix.md reads Read [<file>](<file>) when <condition>"
+# A link to the file, under any relative path, is a pointer, except SKILL.md's references-list entry
+# and the links the file makes to itself.
+do_dir="$(cd "$here/.." && pwd -P)"
+for name in bug-fix-resume.md bug-fix-design-fork.md bug-fix-extreme-stop.md bug-fix-auto.md; do
+  pattern="${name//./\\.}"
+  pointers="$(grep -rnE "\]\(([^)]*/)?$pattern\)" "$do_dir" --include='*.md' --exclude-dir=tests |
+    grep -vF -e "$do_dir/references/$name:" -e "$do_dir/SKILL.md:")"
+  expect "the do skill carries at least one pointer to $name" test -n "$pointers"
+  # A pointer may wrap after `Read` or after `when`, so each line is read with the lines around it.
+  misshaped="$(while IFS=: read -r path line _; do
+    sed -n "$((line > 1 ? line - 1 : 1)),$((line + 1))p" "$path" | flat_of |
+      grep -qE "Read \[$pattern\]\($pattern\) when [^ ]" || echo "$path:$line"
+  done <<<"$pointers")"
+  expect "no pointer to $name has another shape" test -z "$misshaped"
+done
+
 exit $((fails > 0))
