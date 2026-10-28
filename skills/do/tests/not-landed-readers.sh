@@ -10,6 +10,19 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 refs="$here/../references"
 fails=0
 
+readers=(
+  "review step" "review steps" -- "Final integration" -- "its stop" "a stop" "stops" --
+  "Resume" "resume" -- "verification" -- "red flow"
+)
+condition=("route=verify" -- "anything but" "other than" "not \`route=verify\`")
+
+echo "# not-landed.md: its opening names every reader that reaches it and the condition that sends them"
+flat="$(awk '/^## /{exit} {print}' "$refs/not-landed.md" | tr '\n' ' ' | tr -s ' ')"
+expect "not-landed.md has an opening before its first section" grep -qE '[a-z]' <<<"${flat#\# Not landed}"
+carries_each "the opening names each review step, the Final integration's review, stop and resume, the Resume paths and the verification's red flow" \
+  "${readers[@]}"
+carries_each "the opening names the condition, a route= line other than route=verify" "${condition[@]}"
+
 echo "# each review step sends a return other than route=verify to not-landed.md at that point"
 # $1 the review step, $2 its text; the step carries the pointer followed by a condition.
 points_at_not_landed() {
