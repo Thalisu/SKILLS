@@ -1,15 +1,10 @@
 # The reply
 
-Every Playbook reads this file last and writes its reply by it. The Reply is the one place a run
-reaches the developer: a run lasts long enough that its reader comes back to it afterwards, with
-none of the run in mind, and reads only this message. So it is kept short: five parts, and every
-other line a step names goes to the Run report, written under `--auto` alone.
+Every Playbook reads this file last and writes its reply by it: five parts, and every other line a
+step names goes to the Run report, written under `--auto` alone.
 
-Text the session wrote mid-run is never where a line has to be, since a note written between two
-tool calls may reach nobody, per
-[ADR 0039](../../../docs/adr/0039-a-do-runs-lines-reach-the-developer-through-the-reply-never-through-text-written-mid-run.md)
-as [ADR 0091](../../../docs/adr/0091-the-do-reply-is-five-parts-and-the-run-report-is-written-only-under-auto.md)
-amends it.
+Every line a step names reaches the developer in the Reply or the Run report, never in text the
+session wrote mid-run.
 
 ## The message
 
@@ -18,11 +13,10 @@ what was done for whom, what is left and what to type next, and nothing more. It
 these parts, in this order:
 
 1. **Plan.** `Playbook: <name>` as plain text on the first line, with no code formatting around
-   it, so that a reader or a grader finds it at column one, then a `Plan:` line on the next line
-   naming the plan the run built from: in `ticket` the Plan's file name, or
-   `Plan: none, <reason>` when the run opened no Plan (a resume whose only work left was the
-   landing); in every other Playbook the request read back in a few words. Under `--auto` a `Report:` line follows,
-   naming the Run report's absolute location.
+   it, then a `Plan:` line on the next line naming the plan the run built from: in `ticket` the
+   Plan's file name, or `Plan: none, <reason>` when the run opened no Plan (a resume whose only
+   work left was the landing); in every other Playbook the request read back in a few words. Under
+   `--auto` a `Report:` line follows, naming the Run report's absolute location.
 2. **For whom.** The [For whom](#sections) section, under a `## For whom` heading.
 3. **Pending debt.** The [Pending debt](#sections) section, under a `## Pending debt` heading.
 4. **Yours.** The `Yours: <class>: <the choice>` line, only when the run hands the developer
@@ -35,8 +29,7 @@ these parts, in this order:
 
 Three rules hold across all of it:
 
-- **`none`.** For whom and Pending debt with nothing to say read `none` on one line, so that the
-  shape holds from one run to the next.
+- **`none`.** For whom and Pending debt with nothing to say read `none` on one line.
 - **Quotes.** Everything quoted was produced in this run, after the last edit. Nothing is a link, a
   sha or a transcript reference the run did not see.
 - **Nothing added.** The five parts are the whole message: no `## Summary` and no `## Test plan`
@@ -50,11 +43,10 @@ Every run on a Ticket, with or without `--auto`, writes the Reply's Pending debt
 else of the Reply, to the Debt file beside the Ticket: the Ticket's file name with `.debt` before
 the extension (`<ticket stem>.debt.md`), in the Home repository's main checkout, in the shape of
 [debt-format.md](../../../.agents/formats/debt-format.md). For a tracker Ticket it sits beside the
-Plan, with `.debt.md` in place of `.plan.md`, the way the Run report sits beside it, where `/debt`
-never gathers it, per that format. Each run adds one section to that file, headed by the run's date
-and time as one `## <date and time>` heading. Under it goes the Pending debt part's text verbatim,
-one `- ` bullet per Pending debt line, and no `## Pending debt` heading of its own, for the reason
-the format gives. A run that owes nothing still writes its section, which reads
+Plan, with `.debt.md` in place of `.plan.md`, the way the Run report sits beside it. Each run adds
+one section to that file, headed by the run's date and time as one `## <date and time>` heading.
+Under it goes the Pending debt part's text verbatim, one `- ` bullet per Pending debt line, and no
+`## Pending debt` heading of its own. A run that owes nothing still writes its section, which reads
 plain `none` and not a `- none` bullet, so the file tells a run that owed nothing apart from a Ticket with no
 Debt file, one whose runs never wrote their debt down. A later run on the same Ticket appends its
 section below the earlier ones, and never replaces or edits one, be it a resume after a stop or a
@@ -86,14 +78,13 @@ Three sections, in this order, each a part of the message.
    imports the module, the reader of the doc. A `pr` run that pushed a round carries its round
    lines here, listed per round, each round under its own number (`round <r>:`), then one line per
    red check naming the check, its fixer (`do-pr-fixer` and its branch), the commit pushed for it
-   or what its fixer returned, then the verdict the watch read after the push, so the developer can
-   audit what the run pushed to a branch others build on.
+   or what its fixer returned, then the verdict the watch read after the push.
 2. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
    on the way and not done. It lists every `Risk:` line of the review's return, on every run, with
-   or without `--auto`, since a risk class is never dismissed silently. It lists every
+   or without `--auto`. It lists every
    `Axis not run:` line of the review's return too, with its reason, with or without `--auto`. So is
    every `drop` of an integration that ran after the review, each marked as coming after the review,
-   with or without `--auto`, since no reviewer reads what that integration set aside. The Run report
+   with or without `--auto`. The Run report
    still carries all three under `--auto`, and the message stays five parts. A `bug-fix` or
    `refactoring` Design fork's Ruling is listed here on every run, in the line its Forks section
    fixes. A held Ruling the close did not post, with its
