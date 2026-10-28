@@ -369,7 +369,7 @@ Only a question whose own step names it as ruled under `--auto` takes this route
 
 | The question | Its step |
 |---|---|
-| continue or stop, on a resumed integration whose rebase is open with no conflicted file | the Resume of [ticket.md](ticket.md) |
+| continue or stop, on a resumed integration whose rebase is open with no conflicted file | the mid-rebase bullet of resume.md, on a resumed `ticket` run |
 | whether a full suite or a remote run runs | the verification step of [ticket.md](ticket.md) |
 
 A question before something that cannot be undone or that leaves the machine is never one, and its
