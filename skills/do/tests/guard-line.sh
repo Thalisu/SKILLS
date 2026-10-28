@@ -8,6 +8,7 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 playbook="$here/../references/ticket.md"
+stand_in="$here/../references/stand-in.md"
 fails=0
 
 echo "# skills/do/references/ticket.md: the guard probe runs once, before the first fork"
@@ -104,9 +105,9 @@ carries_each "the \`Planner/Builder: none\` line names which branch holds, and t
 carries_each "a run that can fork neither agent goes on to the build and the close" \
   "neither stops" "does not stop" "never stops" "not stop" "continues" "carries on" "goes on"
 
-flat="$(paragraph_with <(item_holding "$playbook" '\*\*[0-9]+\.' "subagent_type: do-builder") \
+flat="$(paragraph_with <(passage_of "$stand_in" "## The Builder" "## ") \
   "Planner/Builder: none" all | tr '\n' ' ' | tr -s ' ')"
-carries_each "the Build step adds no second line when \`Planner/Builder: none\` was recorded" \
+carries_each "the Builder's fallback adds no second line when \`Planner/Builder: none\` was recorded" \
   "Planner/Builder: none" \
   -- \
   "no second" "not a second" "adds no" "writes no" "records no" "no line of its own" \

@@ -26,6 +26,7 @@ planner="$here/../agents/do-planner.md"
 reply="$here/../references/reply.md"
 forks="$here/../references/forks.md"
 mechanics="$here/../references/mechanics.md"
+stand_in="$here/../references/stand-in.md"
 fails=0
 
 echo "# skills/do/references/ticket.md: the build step forks the Builder and the session stops building"
@@ -218,16 +219,16 @@ check_lines "an issue reference resolves to its do-<slug> worktree, printing the
   "behaviour=$bshort the issue's fix lands" "verdict=build"
 cd "$here" || exit 1
 
-echo "# skills/do/references/ticket.md: the two runs with no Builder to fork, and what each is told"
+echo "# skills/do/references/stand-in.md: the two runs with no Builder to fork, and what each is told"
 
 # The run that cannot fork the Builder at all, the way the Plan step already writes the Planner's
-# half (planner.sh owns that one). Scoped to the build step again, by what the step says rather than
-# by its number, so the Plan step's own fallback paragraph cannot answer here for a build step that
-# says nothing. Each guarantee below can be phrased several ways and the cases pin more than one at
-# a time, so the group of phrasings that found nothing is what a failure names: lib.sh's
+# half (planner.sh owns that one). Scoped to stand-in.md's Builder section, the reference the build
+# step points at on either branch, so the reader's own section cannot answer here for a Builder
+# section that says nothing. Each guarantee below can be phrased several ways and the cases pin more
+# than one at a time, so the group of phrasings that found nothing is what a failure names: lib.sh's
 # carries_each.
-flat="$(item_holding "$playbook" '\*\*[0-9]+\.' "do-builder" | tr '\n' ' ' | tr -s ' ')"
-expect "a step of the Playbook hands the build to the fork, to read its fallback off" test -n "$flat"
+flat="$(flat_section "$stand_in" "## The Builder")"
+expect "stand-in.md carries the Builder's fallback, to read it off" test -n "$flat"
 
 # The two branches, named apart. A harness that withheld the Agent tool and a machine that never ran
 # `scripts/link-skills.sh` both reach the same dead end, and the developer's way out differs: one is

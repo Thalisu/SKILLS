@@ -25,3 +25,17 @@ reader's place.
 This stand-in belongs to the two branches above alone, and never on a return the reader actually
 made: a return missing a section stops the door, per the reader section of
 [mechanics.md](mechanics.md), and the session never reads the Spec or the journey itself on it.
+
+## The Builder
+
+On either branch, the Agent tool withheld or `do-builder` not listed, the session runs the loop
+itself, in the worktree step 2 of [ticket.md](ticket.md) made, per [build-loop.md](build-loop.md),
+and says in one line which of the two holds. It never forks another agent in the Builder's place.
+
+The session also authors the flows itself, in the same window, per [builder.md](builder.md)'s
+`## The flows`: one for each criterion the Digest's `## Observable criteria` section names, a
+criterion the section leaves out states why no flow is needed, and a criterion it names with no
+flow authored stops the step with that reason, the way it would stop the Builder's own fork.
+
+On a run whose Plan step recorded `Planner/Builder: none`, this fallback adds no second line: that
+one line already said the session did the Builder's work too.
