@@ -70,4 +70,32 @@ check_absent "bug-fix.md and the Design fork's text carry none of the Extreme st
 expect "the Design fork reaches the Extreme stop through Read [bug-fix-extreme-stop.md](bug-fix-extreme-stop.md) when <condition>" \
   grep -qE 'Read \[bug-fix-extreme-stop\.md\]\(bug-fix-extreme-stop\.md\) when [^ ]' <<<"$(flat_of <<<"$out")"
 
+echo "# bug-fix-auto.md: under --auto a run question is ruled by the choice-taker, and the discard is still asked"
+auto="$refs/bug-fix-auto.md"
+flat="$(flat_of 2>/dev/null <"$auto")"
+expect "bug-fix-auto.md exists and has text" test -n "$flat"
+full_suite="$(grep -E '^\|.*(full suite|remote run)' "$auto" 2>/dev/null)"
+expect "the full-suite or remote-run question is ruled by the choice-taker under --auto" \
+  grep -qF "ruled by the \`choice-taker\`" <<<"$full_suite"
+discard="$(grep -E '^\|.*uncommitted' "$auto" 2>/dev/null)"
+expect "the discard question is still asked under --auto, with the choice-taker's return shown" \
+  grep -qF "still asked" <<<"$discard"
+carries "the file carries its own choice-taker brief for a question" \
+  "subagent_type: choice-taker" "Caller:" "Question:" "Options:" "Recommendation:" "Context:"
+carries "a settled Ruling is acted on as if typed, and nothing is discarded on the discard question's return" \
+  "settled" "Nothing is discarded"
+carries "an extreme return or no Ruling asks the question as without the flag" "extreme" "as without the flag"
+pointer='Read \[bug-fix-auto\.md\]\(bug-fix-auto\.md\) when [^.]*--auto'
+step11="$(item_holding "$bugfix" '\*\*[0-9]+\.' ". Verification.**" | flat_of)"
+expect "step 11 reaches the run questions under --auto through Read [bug-fix-auto.md](bug-fix-auto.md) when <condition>" \
+  grep -qE "$pointer" <<<"$step11"
+discard_bullet="$(bullets_opening_on "$resume" "Uncommitted changes" | tr -s ' ')"
+expect "the resume's discard question reaches them through Read [bug-fix-auto.md](bug-fix-auto.md) when <condition>" \
+  grep -qE "$pointer" <<<"$discard_bullet"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(cat "$bugfix" "$resume")"
+check_absent "bug-fix.md and bug-fix-resume.md carry no run-question rule of their own" 0 0 \
+  "### Run questions under" "#run-questions-under---auto" "A ruled question takes" \
+  "A run question is one a step would put"
+
 exit $((fails > 0))

@@ -48,9 +48,9 @@ branch and `refs/heads/do/<slug>`, qualified so a same-named tag can never shado
   naming it and its branch, and hands the changes over as work the run did not make:
   `Yours: destroy: discard the uncommitted changes in <worktree>, or commit or move them yourself, then type the request again`.
   Under `--auto` the question is still asked of the developer, in the same place and the same
-  words, with the `choice-taker`'s return shown above it as it came back, per the questions still
-  asked under the flag in [Run questions under `--auto`](bug-fix.md#run-questions-under---auto),
-  and nothing is discarded on that return.
+  words, with the `choice-taker`'s return shown above it as it came back, and nothing is discarded
+  on that return: Read [bug-fix-auto.md](bug-fix-auto.md) when the run runs under `--auto` and
+  finds uncommitted changes.
 - A run that stopped as blocked resumes the same way once its reason is gone, since every stop on
   this path but one leaves the worktree and its branch in place and named: the developer's no at
   step 2 or step 7, a `discuss` stop at step 4 once the design is settled. The one is a bug that
