@@ -112,4 +112,12 @@ run outcome=blocked yours=yes verdict=blocked "next_blocker=$blocker" next_block
 same "a ticket run refused on a blocker built in another repository names that repository and its location before the command" \
   "$(printf '%s\n' 'First do what the Yours: line names, then:' 'notes-web: open a session in /home/dev/notes-web' "/do $blocker" 'exit 0')"
 
+run outcome=refused-protected yours=no ticket=.scratch/notes-export/issues/01-export.md verdict=refused
+same "a ticket run refused on a protected branch says to switch to a working branch and run /do of the Ticket again" \
+  "$(printf '%s\n' 'Switch to a working branch, then run /do .scratch/notes-export/issues/01-export.md again.' 'exit 0')"
+
+run outcome=checked-out yours=no ticket=.scratch/notes-export/issues/01-export.md worktree=/home/dev/notes-spec spec_branch=spec/notes-export
+same "a landing that met the Spec branch checked out in a worktree says to switch that checkout off the Spec branch and run /do of the Ticket again" \
+  "$(printf '%s\n' 'Switch /home/dev/notes-spec off spec/notes-export, then run /do .scratch/notes-export/issues/01-export.md again.' 'exit 0')"
+
 exit "$((fails > 0))"

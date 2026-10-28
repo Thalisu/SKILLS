@@ -122,6 +122,14 @@ route() {
       fi
       echo "/do ${key[next_blocker]}"
       ;;
+    refused-protected)
+      need ticket
+      echo "Switch to a working branch, then run /do ${key[ticket]} again."
+      ;;
+    checked-out)
+      need ticket worktree spec_branch
+      echo "Switch ${key[worktree]} off ${key[spec_branch]}, then run /do ${key[ticket]} again."
+      ;;
     claim-taken) echo "Another run is integrating the Spec, and there is nothing to type." ;;
     final-stopped)
       need ticket
