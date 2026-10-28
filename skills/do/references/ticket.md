@@ -112,7 +112,8 @@ the tracker file describes. Before anything is written:
   per
   [ADR 0084](../../../docs/adr/0084-a-feature-across-repositories-lands-in-sequence-and-what-landed-stays.md).
   Before the stop the run reads the landing record, in a call of its own:
-  `bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>`, which writes nothing, then
+  `bash <skill-dir>/scripts/landing-order.sh <the Ticket's path> | tee <state>/order`, which writes
+  nothing else. A record
   hands the record's lines, as printed, to `bash <skill-dir>/scripts/landing-route.sh door` on
   stdin and routes on the one `route=` line it prints. The run chooses no route from the record
   itself.
@@ -123,12 +124,12 @@ the tracker file describes. Before anything is written:
     `build_repository=none` does without the call.
   - An exit 2 stops the run as blocked with the script's stderr line quoted.
 
-  On `route=already-landed`, after the first line the message says in one line that this
-  repository already landed, `Final integration: not started, <own=> already landed`, then names
-  what is still to land with its command: the `Landed:` and `Still to land:` lines and the two
-  lines of each repository still to land, as the Already landed shape of the Final integration
-  lines in [reply.md](reply.md) words them, each copied off the record and never derived. Its
-  last line is `/do <next_landing_ticket=>` and nothing else on the line. It carries no `Yours:`
+  The run does nothing: no claim, no worktree, no rebase, no review, no ref moved in any
+  repository, and nothing written but `<state>`. After the first line its message is the lines
+  `bash <skill-dir>/scripts/reply-lines.sh final --door <state>/door --order <state>/order`
+  printed, then the lines
+  `bash <skill-dir>/scripts/reply-lines.sh repositories --door <state>/door --order <state>/order`
+  printed, both copied as they stand, per item 30 of [reply.md](reply.md). It carries no `Yours:`
   line, since there is nothing to choose, and no shell line. Under `--auto` either stop is the
   same lines, with no `choice-taker` forked.
 - A Ticket whose Build repository cannot be built anywhere as it stands (`verdict=unbuildable`)
