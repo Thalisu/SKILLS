@@ -270,4 +270,42 @@ run final --door "$door" --claim "$claim" --yield "$yielded" --order "$order" --
 same "final on a yielded claim of a feature of one repository prints the stop alone" \
   "Final integration: stopped: $reason"
 
+three_order="$(
+  src three_order <<'EOF'
+ticket=/home/dev/api/.scratch/feature/issues/03-export.md
+repositories=3
+repository=api
+repository_location=/home/dev/api
+repository_here=no
+repository_state=landed
+repository_ticket=/home/dev/app/.scratch/feature/issues/03-export.md
+repository=web
+repository_location=/home/dev/web
+repository_here=no
+repository_state=unlanded
+repository_ticket=/home/dev/app/.scratch/feature/issues/04-show.md
+repository=jobs
+repository_location=/home/dev/jobs
+repository_here=no
+repository_state=unreadable
+repository_reason=missing
+repository_ticket=/home/dev/app/.scratch/feature/issues/05-jobs.md
+own=api
+waits_for=none
+next_landing=web
+next_landing_location=/home/dev/web
+next_landing_ticket=/home/dev/app/.scratch/feature/issues/04-show.md
+verdict=landed
+EOF
+)"
+run repositories --door "$door" --order "$three_order"
+check_lines "repositories on a feature across repositories: exit 0" 0 "$rc"
+same "repositories prints Landed and Still to land in the record's order, an unreadable group with its reason, then each repository still to land as a place and its /do command" \
+  "Landed: api
+Still to land: web, jobs (unreadable: missing)
+web: open a session in /home/dev/web
+/do /home/dev/app/.scratch/feature/issues/04-show.md
+jobs: open a session in /home/dev/jobs
+/do /home/dev/app/.scratch/feature/issues/05-jobs.md"
+
 exit "$((fails > 0))"

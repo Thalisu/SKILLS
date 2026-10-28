@@ -5,6 +5,7 @@
 #
 #   reply-lines.sh final        --door <f> [--state <f>] [--claim <f>] [--release <f>] [--yield <f>]
 #                               [--order <f>] [--review <f>] [--reason <text>]
+#   reply-lines.sh repositories --door <f> [--claim <f>] [--release <f>] [--yield <f>] [--order <f>]
 #
 # Each <f> is one state script's saved key=value output, read in a key space of its own, the last
 # occurrence of a key winning: --door ticket-door.sh, --state final-state.sh, --claim
@@ -19,7 +20,7 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: reply-lines.sh final --door <f> [--state <f>] [--claim <f>] [--release <f>] [--yield <f>] [--order <f>] [--review <f>] [--reason <text>]" >&2
+  echo "usage: reply-lines.sh final|repositories --door <f> [--state <f>] [--claim <f>] [--release <f>] [--yield <f>] [--order <f>] [--review <f>] [--reason <text>]" >&2
   exit 2
 }
 
@@ -80,7 +81,7 @@ select_shape() { # the sources present -> one FinalShape word, or failed no-shap
   fi
 }
 
-g_name=() g_state=() g_reason=()
+g_name=() g_location=() g_state=() g_reason=() g_ticket=()
 
 load_groups() { # the --order record's repository groups, in its order, into the g_ arrays
   local line key value n=-1
@@ -90,10 +91,12 @@ load_groups() { # the --order record's repository groups, in its order, into the
     case "$key" in
       repository)
         n=$((n + 1))
-        g_name[n]="$value" g_state[n]="" g_reason[n]=""
+        g_name[n]="$value" g_location[n]="" g_state[n]="" g_reason[n]="" g_ticket[n]=""
         ;;
+      repository_location) [ "$n" -lt 0 ] || g_location[n]="$value" ;;
       repository_state) [ "$n" -lt 0 ] || g_state[n]="$value" ;;
       repository_reason) [ "$n" -lt 0 ] || g_reason[n]="$value" ;;
+      repository_ticket) [ "$n" -lt 0 ] || g_ticket[n]="$value" ;;
     esac
   done <"${given[order]}"
 }
@@ -119,6 +122,32 @@ group_lines() { # the record's groups -> the Landed: and Still to land: lines
   done
   echo "Landed: $(joined "${landed[@]}")"
   echo "Still to land: $(joined "${still[@]}")"
+}
+
+command_lines() { # the record's groups -> a place line and a /do line per group still to land
+  local i
+  for i in "${!g_name[@]}"; do
+    [ "${g_state[i]}" != landed ] || continue
+    echo "${g_name[i]}: open a session in ${g_location[i]}"
+    echo "/do ${g_ticket[i]}"
+  done
+}
+
+cmd_repositories() {
+  local shape count
+  shape="$(select_shape)" || {
+    echo "$shape"
+    exit 3
+  }
+  case "$shape" in
+    landed | waiting | already-landed)
+      value_of count order repositories
+      [ "$count" -gt 1 ] || return 0
+      load_groups
+      group_lines
+      command_lines
+      ;;
+  esac
 }
 
 ticket_number() { # the door Ticket's leading number, from its file name
@@ -230,6 +259,11 @@ case "$sub" in
     parse_flags "door state claim release yield order review" "reason" "$@"
     [ -n "${given[door]-}" ] || usage
     cmd_final
+    ;;
+  repositories)
+    parse_flags "door claim release yield order" "" "$@"
+    [ -n "${given[door]-}" ] || usage
+    cmd_repositories
     ;;
   *) usage ;;
 esac
