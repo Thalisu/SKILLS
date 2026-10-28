@@ -34,10 +34,27 @@ echo "# the agents' bodies carry instructions only, no ADR and no argument besid
 # since the core hard-wraps. The <example> blocks and the sentence the Report has the author state
 # verbatim are output the author writes, not arguments, and are left out. The hooks' deny reasons sit
 # in the frontmatter and are not read here.
-verbatim='*commit these together with the test, or in a refactor commit immediately before it; splitting them leaves the other test file broken at that commit.*'
-# shellcheck disable=SC2043  # e2e joins the list once its author's body is cut to instructions too
-for kind in unit; do
+for kind in unit e2e; do
   agent="$skill/agents/global-$kind-test-author.md"
+  case "$kind" in
+    unit)
+      verbatim='*commit these together with the test, or in a refactor commit immediately before it; splitting them leaves the other test file broken at that commit.*'
+      carried=("is worthless when the code is wrong"
+        "pins the implementation and stays green when the real path breaks"
+        "The ceiling is not a licence to give up on the first run" "worth more to the caller"
+        "so no one project's commands and layout can live here"
+        "the run needs that command to see red")
+      ;;
+    e2e)
+      verbatim='*commit these together with the flow, or in a refactor commit immediately before it; splitting them leaves the other flow broken at that commit.*'
+      carried=("is worthless when the screen is wrong"
+        "so it must stay a clean, separable changeset"
+        "The ceiling is not a licence to give up on the first red" "worth more to the caller"
+        "since correcting the flow could only hide the bug"
+        "so no one project's commands and layout can live here"
+        "instead of searching for every asset a second time")
+      ;;
+  esac
   author_body="$(body_of "$agent" | sed '/^<example>$/,/^<\/example>$/d' | tr '\n' ' ' | tr -s ' ')"
   author_body="${author_body//"$verbatim"/}"
   out="$(grep -oE '.{0,40}(docs/adr/|\bADRs?\b).{0,40}' <<<"$author_body")"
@@ -46,12 +63,7 @@ for kind in unit; do
   same "global-$kind-test-author's body gives no because, so-that, since or \", so a/the/it/you/nothing\" reason beside a rule" ""
   # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
   out="$author_body"
-  check_absent "global-$kind-test-author's body keeps none of the arguments it carried beside its rules" 0 0 \
-    "is worthless when the code is wrong" \
-    "pins the implementation and stays green when the real path breaks" \
-    "The ceiling is not a licence to give up on the first run" "worth more to the caller" \
-    "so no one project's commands and layout can live here" \
-    "the run needs that command to see red"
+  check_absent "global-$kind-test-author's body keeps none of the arguments it carried beside its rules" 0 0 "${carried[@]}"
 done
 
 echo "# scripts/project-map.sh: only what a command read"
