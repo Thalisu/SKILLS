@@ -106,4 +106,13 @@ for last in fix resume; do
     "reason=gate red, the unit suite" "undo=git reset --hard $before" "route=blocked"
 done
 
+# Any other reason stops the run with the review's own words quoted, which the session words the
+# blocked Reply from, never from a reading of the Review: no direction line is composed for it.
+for reason in "the fast-forward of spec/feature to do/ticket failed" "Axis Security not run"; do
+  route "landing=not landed: $reason"
+  check_lines "any other reason ($reason) stops the run with that reason quoted" 4 "$rc" \
+    "reason=$reason" "direction=reason" "route=blocked"
+  absent_prefix "any other reason ($reason) carries no composed direction line" "yours="
+done
+
 exit $((fails > 0))
