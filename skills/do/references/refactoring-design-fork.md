@@ -10,8 +10,9 @@ The session takes these steps in order:
 
 1. Say in one line that the run met a Design fork at its step, step 4 or step 6, and name both
    sides.
-2. Read the two sides for an Extreme fork. A side read as Extreme stops the run there, by the
-   Extreme stop of [refactoring.md](refactoring.md), and no `choice-taker` is forked.
+2. Read the two sides for an Extreme fork. A side read as Extreme stops the run there, and no
+   `choice-taker` is forked. Read [refactoring-extreme-stop.md](refactoring-extreme-stop.md) when a
+   side reads as Extreme.
 3. Call the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
    [choice-taker.md](../agents/choice-taker.md), never another agent in its place, with the brief
    its definition names:
@@ -26,9 +27,9 @@ The session takes these steps in order:
    `settled` or `extreme`, and a `settled` one only when its `Side:` line names one of the two
    sides, its `Fork:` line names those two and no other, and its `Losing criterion:` reads `none`,
    since no Ticket criterion exists to lose.
-5. On a `settled` Ruling, take its side and carry on in the same turn. On an `extreme` one, stop by
-   the Extreme stop of [refactoring.md](refactoring.md), its `Fork:`, `Weaker side:`,
-   `Guarantee:` and `Risk class:` lines filling the stop's slots.
+5. On a `settled` Ruling, take its side and carry on in the same turn. On an `extreme` one, stop,
+   its `Fork:`, `Weaker side:`, `Guarantee:` and `Risk class:` lines filling the stop's slots.
+   Read [refactoring-extreme-stop.md](refactoring-extreme-stop.md) when the return reads `extreme`.
 
 A `settled` Ruling is written to no file of the project: no Spec stands behind the run to carry
 it. It reaches the developer in two places. The Reply's Pending debt carries it on every run, as
@@ -43,4 +44,5 @@ as blocked, the unruled stop: the Extreme stop's message with `on a Design fork 
 ruled` in place of `on an Extreme fork`, and the reason in place of the clause after the semicolon
 (`the Agent tool is withheld`, `choice-taker is not listed`, with `scripts/link-skills.sh` as what
 links it, or `the choice-taker returned no usable Ruling`, the return quoted whole on a blocker's
-line).
+line). Read [refactoring-extreme-stop.md](refactoring-extreme-stop.md) when the fork goes unruled,
+for that message.

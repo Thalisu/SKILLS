@@ -43,4 +43,30 @@ flat="$(item_holding "$refactoring" '### [0-9]+\.' "### 15. Reply" | tr '\n' ' '
 expect "refactoring.md's Reply step points at refactoring-design-fork.md for the Ruling's line" \
   grep -qE 'Read \[refactoring-design-fork\.md\]\(refactoring-design-fork\.md\) when [^ ]' <<<"$flat"
 
+echo "# refactoring-extreme-stop.md: the Extreme stop, read only by a Design fork that meets it"
+extreme="$refs/refactoring-extreme-stop.md"
+extreme_pointer='Read \[refactoring-extreme-stop\.md\]\(refactoring-extreme-stop\.md\) when [^ ]'
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(cat "$refactoring" "$design")"
+absent "refactoring.md carries no Extreme stop section" "### The Extreme stop"
+absent "neither refactoring.md nor refactoring-design-fork.md carries the /discuss command" \
+  "/discuss the do refactoring run"
+flat="$(paragraph_with "$extreme" "It is read by" | tr -s ' ')"
+expect "refactoring-extreme-stop.md opens on a paragraph naming its readers" test -n "$flat"
+carries_each "the opening names a side read as Extreme, an extreme return and the unruled stop" \
+  "read as Extreme" "reads as Extreme" -- "\`extreme\`" -- "unruled" "no \`choice-taker\` ruled" "no choice-taker ruled"
+flat="$(tr '\n' ' ' <"$extreme" | tr -s ' ')"
+carries "refactoring-extreme-stop.md carries the blocked stop and its /discuss command" \
+  "Yours: direction: choose <side A> or <side B>" "/discuss the do refactoring run on" \
+  "outcome=extreme-fork" "cannot be undone once landed"
+carries_any "refactoring-extreme-stop.md writes no sidecar" "No sidecar" "no sidecar"
+for anchor in "Read the two sides for an Extreme fork" "On a \`settled\` Ruling"; do
+  flat="$(item_holding "$design" '[0-9]+\.' "$anchor" | tr '\n' ' ' | tr -s ' ')"
+  expect "refactoring-design-fork.md's item \"$anchor\" points at refactoring-extreme-stop.md" \
+    grep -qE "$extreme_pointer" <<<"$flat"
+done
+flat="$(paragraph_with "$design" "On no Ruling" | tr -s ' ')"
+expect "refactoring-design-fork.md's unruled stop points at refactoring-extreme-stop.md" \
+  grep -qE "$extreme_pointer" <<<"$flat"
+
 exit $((fails > 0))
