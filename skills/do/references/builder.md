@@ -14,7 +14,7 @@ over, and a session that carries the build as well compacts before the Ticket is
 
 Two readers use this file, each for its own part. The session fills the brief and routes the
 return. The Builder reads the rest as its contract: what it builds from, where it picks up, the
-time budget, its edges, and the lines it returns. Read [stand-in.md](stand-in.md) when
+time budget command, its edges, and the lines it returns. Read [stand-in.md](stand-in.md) when
 no Builder can be forked: the Agent tool is withheld from the session, or it lists no `do-builder`.
 
 ## The brief
@@ -149,8 +149,7 @@ stopped: <the reason, in one line>
 The `stopped:` line is what both of the session's routes read: a reason it can clear (a seam that
 is production code to change, a project map slot to fill, a spent window, a spent time budget) is
 cleared and the Builder forked again, and one it cannot ends the run as blocked with something to
-act on. A spent time budget is cleared by the next fork alone, with the same brief. So the
-line names what stopped the build and what would clear it, in words the session can act on without
+act on. So the line names what stopped the build and what would clear it, in words the session can act on without
 opening the tree.
 
 One reason has a shape of its own: work for another repository. A behaviour the Builder meets
@@ -227,22 +226,6 @@ stopped: second HANDBACK on "exports every note of a notebook as one markdown fi
 
 </example>
 
-<example>
-
-A stop on a spent time budget, read after the second behaviour's commit with more of the Plan still
-ahead:
-
-```
-stopped
-behaviour: exports every note of a notebook as one markdown file each | 3f2a91c
-build: src/export/markdown.ts, src/export/job.ts | RED_AS_EXPECTED, implemented to green | 3f2a91c
-behaviour: keeps a title longer than 80 characters whole in the exported heading | 8b07d4e
-build: src/export/markdown.ts | RED_AS_EXPECTED, implemented to green | 8b07d4e
-stopped: time budget spent after the second behaviour's commit, nothing uncommitted: fork the next Stretch with the same brief
-```
-
-</example>
-
 </examples>
 
 ## What it builds from
@@ -270,41 +253,30 @@ durable state and the only state: every commit the loop makes carries `Behaviour
 of its own, so a Builder forked again reads what is done off the commits rather than off a
 run-state file somebody has to keep in step with them.
 
-## The time budget
+## Asking the time budget
 
-A Stretch is one fork of the Builder, from its dispatch to its return, and it runs on a time budget:
-a long build comes back as several Stretches instead of one long wait, so the session takes a turn
-before its prompt cache expires.
+A Stretch is one fork of the Builder, from its dispatch to its return. It takes its start once,
+when its Stretch begins: `date +%s` in its first shell call, the number kept in its window and
+written to no file. After each behaviour's commit, and at no other moment, it asks the time budget
+command, [stretch-budget.sh](../scripts/stretch-budget.sh) in the `scripts/` folder beside this
+file's `references/` folder, with that start as its one argument:
 
-- The Builder takes its start once, when its Stretch begins: `date +%s` in its first shell call,
-  the number kept in its window and written to no file.
-- After each behaviour's commit, and at no other moment, it asks the time budget command,
-  [stretch-budget.sh](../scripts/stretch-budget.sh) in the `scripts/` folder beside this file's
-  `references/` folder, with that start as its one argument:
+```
+bash "$(readlink -f ~/.claude/skills/do)/scripts/stretch-budget.sh" <your start>
+```
 
-  ```
-  bash "$(readlink -f ~/.claude/skills/do)/scripts/stretch-budget.sh" <your start>
-  ```
+The command holds the budget and reads the clock, so the Builder never reckons the elapsed time
+itself. It names the installed skill and not a path in the repository being built, since that
+repository holds the skill only when it is this one, and its `Bash` hook lets the command through
+because the path is built by the shell and never typed. It is asked at no point inside a cycle and
+at no point of the flows. An Implementer's return is no such moment either, since it comes back
+inside a cycle, before the behaviour is formatted and committed.
 
-  The command holds the budget and reads the clock, so the Builder never reckons the elapsed time
-  itself. It names the installed skill and not a path in the repository being built, since that
-  repository holds the skill only when it is this one, and its `Bash` hook lets the command through
-  because the path is built by the shell and never typed.
-- `stretch=continue`: the loop goes on to the next behaviour.
-- `stretch=stop`: the Stretch returns `stopped`, in the shape `## The return` fixes, its `stopped:`
-  line naming the spent time budget and saying that nothing is uncommitted. A `stop` read after the
-  Plan's last behaviour, with no flow left to author, returns `built` instead, since that verdict
-  is already true.
-- No `stretch=` line (the command failed, or the start was lost): the loop goes on to the next
-  behaviour, as on `continue`, and the Stretch never returns `stopped` over it. A budget that
-  cannot be read costs one long wait, while a `stopped` naming it is a reason the session cannot
-  clear, which would end the run as blocked over a clock.
+- `stretch=continue`, or no `stretch=` line (the command failed, or the start was lost): the loop
+  goes on to the next behaviour, and the Stretch never returns `stopped` over a missing line.
+- Read [time-budget.md](time-budget.md) when the command answers `stretch=stop`.
 
-Because the command is asked only on a commit, a behaviour in progress when the budget runs out is
-finished and committed first: the Stretch never returns with uncommitted work, and never commits
-half a behaviour to meet a clock. It is asked at no point inside a cycle and at no point of the
-flows. An Implementer's return is no such moment either, since it comes back inside a cycle,
-before the behaviour is formatted and committed. The next Stretch needs nothing from this one but the branch, per `## Where it picks up`.
+## Waiting on a call
 
 Every call the Builder waits on comes back on its own, inside the Bash tool's timeout. An agent
 whose verdict the next step needs is dispatched in the foreground, per `## The Implementer` and the

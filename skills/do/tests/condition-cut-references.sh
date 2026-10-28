@@ -8,6 +8,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 refs="$here/../references"
 builder="$refs/builder.md"
+agent="$here/../agents/do-builder.md"
 fails=0
 
 subsection() { # $1 file, $2 the heading line; the flattened subsection on stdout
@@ -36,5 +37,31 @@ carries "flows.md decides who authors a flow from the brief's Loop: key" "\`Loop
 flat="$(subsection "$refs/flows.md" "## Reading the author's report")"
 carries "flows.md counts the report's runs before its verdict, then routes each verdict" \
   "third run" "\`GREEN\`" "\`BLOCKED\`" "\`HANDBACK\`" "\`REFUSED_INCOMPLETE_INPUT\`"
+
+echo "# time-budget.md: a Builder whose Stretch stays within its budget loads no text about a spent one"
+
+# The Builder opens builder.md and its own definition whole on every Stretch: what a stretch=stop
+# answer asks of it, and what the session does with that return, are read only once it comes.
+for always in "$builder" "$agent"; do
+  name="$(basename "$always")"
+  flat="$(tr '\n' ' ' <"$always" | tr -s ' ')"
+  carries "$name still asks the time budget command after each behaviour's commit" "stretch-budget.sh"
+  carries_each "$name points at time-budget.md when the command answers stretch=stop" \
+    "Read [time-budget.md](time-budget.md) when " "Read \`~/.claude/skills/do/references/time-budget.md\` when " -- \
+    "stretch=stop"
+  # shellcheck disable=SC2034  # lib.sh's absent reads $out
+  out="$flat"
+  absent "$name no longer returns stopped on a spent budget itself" "spent time budget as the reason"
+  absent "$name no longer names the spent budget on a stopped: line itself" "naming the spent time budget"
+  absent "$name no longer carries the spent-budget return" "time budget spent after the second behaviour's commit"
+  absent "$name no longer says who clears a spent budget" "cleared by the next fork alone"
+done
+
+expect "time-budget.md exists" test -f "$refs/time-budget.md"
+flat="$({ tr '\n' ' ' <"$refs/time-budget.md"; } 2>/dev/null | tr -s ' ')"
+carries_each "on stretch=stop the Stretch returns stopped naming the spent budget, nothing uncommitted" \
+  "stretch=stop" -- "\`stopped\`" -- "nothing is uncommitted" "nothing uncommitted"
+carries "a stop read after the Plan's last behaviour, with no flow left, returns built" "\`built\`"
+carries "the session forks the next Stretch with the same brief" "same brief"
 
 [ "$fails" -eq 0 ]

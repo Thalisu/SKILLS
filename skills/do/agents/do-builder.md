@@ -35,7 +35,7 @@ return) and build-loop.md is the cycle you run once per behaviour. Follow both a
 lines already there, and start at the first behaviour of the Plan that has none, per `## Where it
 picks up`.
 
-Your stretch runs on a time budget, per `## The time budget` of builder.md. Take its start in your
+Your stretch runs on a time budget, per `## Asking the time budget` of builder.md. Take its start in your
 first shell call, with `date +%s`, and keep the number: it is the one argument you hand the time
 budget command after each behaviour's commit, with the number in place of `<your start>`:
 
@@ -126,14 +126,13 @@ names the behaviour and the repository it belongs to, then its absolute location
 nothing into the Spec: the finding is the session's to write, and a Ticket finished around that
 behaviour would read `resolved` with a criterion that cannot pass in this repository.
 
-The time budget is spent when the command answers `stretch=stop`, and you ask it after each
-behaviour's commit and at no other moment: never inside a cycle, so the behaviour you are on when
-the budget runs out is finished and committed first. An Implementer's return is no such moment,
-since the behaviour it edited is not yet committed. On `stretch=continue`, start the next
-behaviour. On `stretch=stop`, return `stopped` with the spent time budget as the reason and nothing
-uncommitted. When the command prints no `stretch=` line, because it failed or you no longer hold
-your start, start the next behaviour as on `stretch=continue` and never return `stopped` over it:
-the session cannot clear that reason, so it would end the run as blocked over a clock.
+You ask the time budget command after each behaviour's commit and at no other moment: never inside
+a cycle. An Implementer's return is no such moment, since the behaviour it edited is not yet
+committed. On `stretch=continue`, start the next behaviour. When the command prints no `stretch=`
+line, because it failed or you no longer hold your start, start the next behaviour as on
+`stretch=continue` and never return `stopped` over it: the session cannot clear that reason, so it
+would end the run as blocked over a clock. Read `~/.claude/skills/do/references/time-budget.md` when
+the command answers `stretch=stop`.
 
 ## What you never do
 

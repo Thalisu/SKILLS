@@ -190,6 +190,7 @@ that Playbook. The reply reference is read last by every Playbook but `setup`, w
   session fills the brief for, read by that step and by the fork itself: the brief's keys, the
   return's line set, what the Builder builds from and where it picks up.
 - [flows.md](references/flows.md): the flows, read by the Builder once the Plan's last behaviour is committed, by the `do-impeccable` fork once the screen's last criterion is committed and by the session building in the Builder's place, only when the Digest's `## Observable criteria` section names a criterion, reads a `none` the reader marked as read from neither a Path nor a story, or, for `do-impeccable`, no Digest sits beside the Ticket: which criteria get a flow, who authors it, and how the author's report is read.
+- [time-budget.md](references/time-budget.md): the spent time budget, read by the Builder only when `stretch-budget.sh` answers `stretch=stop`, and by the `ticket` Playbook's build step only when a Builder's or a `do-impeccable` fork's `stopped:` line names a spent time budget: the `stopped` return the Builder makes, and the next Stretch the session forks with the same brief.
 - [impeccable.md](references/impeccable.md): the `do-impeccable` fork the same build step makes in
   the Builder's place for a Front-end ticket of a Spec reading `Front-end: impeccable`, read only
   when the door prints `kind=front-end` with `front_end=impeccable`, by the Door, the Plan step, the

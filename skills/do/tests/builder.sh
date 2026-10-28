@@ -1860,8 +1860,8 @@ echo "# skills/do/agents/do-builder.md: the time budget command resolves in a pr
 budget_cmd="$(grep -E '^bash .*stretch-budget\.sh' "$agent" | head -n 1)"
 expect "the building agent names the time budget command as a runnable \`bash\` line" test -n "$budget_cmd"
 
-budget_section="$(passage_of "$contract" "## The time budget" "## ")"
-expect "builder.md's \`## The time budget\` carries the same command verbatim" \
+budget_section="$(passage_of "$contract" "## Asking the time budget" "## ")"
+expect "builder.md's \`## Asking the time budget\` carries the same command verbatim" \
   bash -c '[ -n "$1" ] && grep -qF -- "$1" <<<"$2"' _ "$budget_cmd" "$budget_section"
 
 budget_proj="$stmp/budget/proj/.claude/worktrees/w1"
@@ -1890,7 +1890,7 @@ echo "# builder.md / do-builder.md: the time budget is read after each behaviour
 # scope never answers for the negation.
 for budget_scope in contract agent; do
   case "$budget_scope" in
-    contract) budget_label="builder.md's \`## The time budget\`" budget_flat="$(flat_section "$contract" "## The time budget")" ;;
+    contract) budget_label="builder.md's \`## Asking the time budget\`" budget_flat="$(flat_section "$contract" "## Asking the time budget")" ;;
     agent) budget_label="do-builder.md's time budget paragraphs" budget_flat="$(paragraph_with "$agent" "time budget" all | tr '\n' ' ' | tr -s ' ')" ;;
   esac
   flat="$budget_flat"

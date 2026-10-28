@@ -232,7 +232,7 @@ does a Builder's, per the build step of [ticket.md](ticket.md). Three things rea
 - A criterion the fork could not build comes back as `stopped`, or as `fork` when two shapes
   disagree, and never under `built`.
 
-The fork's Stretch runs on the Builder's time budget, per `## The time budget` of
+The fork's Stretch runs on the Builder's time budget, per `## Asking the time budget` of
 [builder.md](builder.md). It takes its start when its Stretch begins and asks
 [stretch-budget.sh](../scripts/stretch-budget.sh) after each criterion's commit and at no other
 moment: never inside a criterion, after a flow's commit or after the scan. On `stretch=stop` it
