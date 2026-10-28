@@ -559,4 +559,24 @@ run elsewhere --door "$plan_door" "$finding_present" "show the hold"
 check_lines "elsewhere on a finding line an earlier run wrote says the line was already there" 0 "$rc" \
   "Written into the Spec (.scratch/feature/spec.md): the line naming the behaviour as moved, already there, written by an earlier run on Ticket 03; orders-service was already in its repositories list."
 
+finding_unknown="$(
+  src finding_unknown <<'EOF'
+spec=/home/dev/app/.scratch/feature/spec.md
+repository=orders-service
+listed=no
+list=no-location
+line=written
+home=/home/dev/app
+home_name=app
+here=yes
+EOF
+)"
+run elsewhere --door "$plan_door" "$finding_unknown" "show the hold"
+same "elsewhere on a finding with no location marks it not known, hands the location to the developer and appends it to the command" \
+  "Stopped at the Plan, before anything was built: \"show the hold\" has no place in this repository. It belongs to orders-service.
+Written into the Spec (.scratch/feature/spec.md): one line naming the behaviour as moved by the run on Ticket 03, with the location of orders-service marked as not known. No entry was added to its repositories list.
+Ticket 03 still reads ready-for-agent.
+Yours: outward: the location of orders-service on this machine is the one thing you supply: type it in the command below in place of <its absolute location on this machine>, with no file to edit by hand, then run /do on this Ticket again
+/tickets .scratch/feature/spec.md orders-service: <its absolute location on this machine>"
+
 exit "$((fails > 0))"

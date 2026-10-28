@@ -313,7 +313,8 @@ cmd_final() {
 }
 
 cmd_elsewhere() { # $@ finding file and behaviour pairs: the whole stop message after its first line
-  local i=0 spec home number status relative repository repositories=() written list line moved pairs=("$@")
+  local i=0 spec home number status relative repository written list line moved
+  local out=() listed=() unknown=() pairs=("$@") command
   while [ "$#" -ge 2 ]; do
     i=$((i + 1))
     [ -f "$1" ] && [ -r "$1" ] || usage
@@ -330,12 +331,12 @@ cmd_elsewhere() { # $@ finding file and behaviour pairs: the whole stop message 
   }
   value_of status door status
   relative="${spec#"$home"/}"
+  command="/tickets $relative"
   set -- "${pairs[@]}"
   i=0
   while [ "$#" -ge 2 ]; do
     i=$((i + 1))
     value_of repository "finding$i" repository
-    repositories+=("$repository")
     value_of list "finding$i" list
     value_of line "finding$i" line
     moved="one line naming the behaviour as moved by the run on Ticket $number"
@@ -343,15 +344,27 @@ cmd_elsewhere() { # $@ finding file and behaviour pairs: the whole stop message 
     case "$list" in
       added) written="$repository added to its repositories list, and $moved." ;;
       unchanged) written="$moved; $repository was already in its repositories list." ;;
+      no-location) written="$moved, with the location of $repository marked as not known. No entry was added to its repositories list." ;;
       *) failed no-shape ;;
     esac
-    echo "Stopped at the Plan, before anything was built: \"$2\" has no place in this repository. It belongs to $repository."
-    echo "Written into the Spec ($relative): $written"
+    if [ "$list" = no-location ]; then
+      unknown+=("$repository")
+      command="$command $repository: <its absolute location on this machine>"
+    else
+      listed+=("$repository")
+    fi
+    out+=("Stopped at the Plan, before anything was built: \"$2\" has no place in this repository. It belongs to $repository.")
+    out+=("Written into the Spec ($relative): $written")
     shift 2
   done
-  echo "Ticket $number still reads $status."
-  echo "Yours: outward: cut the moved behaviour for $(joined "${repositories[@]}") with the command below, then run /do on this Ticket again"
-  echo "/tickets $relative"
+  out+=("Ticket $number still reads $status.")
+  if [ "${#unknown[@]}" = 0 ]; then
+    out+=("Yours: outward: cut the moved behaviour for $(joined "${listed[@]}") with the command below, then run /do on this Ticket again")
+  else
+    out+=("Yours: outward: the location of $(joined "${unknown[@]}") on this machine is the one thing you supply: type it in the command below in place of <its absolute location on this machine>, with no file to edit by hand, then run /do on this Ticket again")
+  fi
+  out+=("$command")
+  printf '%s\n' "${out[@]}"
 }
 
 parse_flags() { # $1 the flags a file names, $2 the flags a text names, $3.. the arguments
