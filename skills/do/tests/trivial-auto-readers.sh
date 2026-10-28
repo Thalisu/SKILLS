@@ -6,6 +6,7 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 trivial="$here/../references/trivial.md"
+auto="$here/../references/trivial-auto.md"
 fails=0
 
 echo "# trivial.md: the one question of step 1 sends a run under --auto to trivial-auto.md"
@@ -21,5 +22,18 @@ absent "trivial.md carries no section for the run question under --auto" "## The
 absent "trivial.md carries no brief to the choice-taker" "Caller:"
 absent "trivial.md carries no check of the choice-taker's return" "Losing criterion:"
 absent "trivial.md lists no Ruling under On the run:" "On the run:"
+
+echo "# trivial-auto.md: the run question's procedure, whole"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(tr '\n' ' ' <"$auto" | tr -s ' ')"
+carries "the session forks the choice-taker with every key of its brief" \
+  "subagent_type: choice-taker" "Caller:" "Question:" "Options:" "Recommendation:" \
+  "Repository root:" "Principles:" "Context:"
+carries "the return is checked before a side is read from it" \
+  "\`settled\` or \`extreme\`" "\`Side:\` line names one of the two files" "\`Losing criterion:\` reads \`none\`"
+carries "a settled Ruling is listed under On the run: with On the Spec: none above it" \
+  "\`On the run:\` group" "\`On the Spec: none\` above"
+carries "anything else asks the question as without the flag, forking nothing in its place" \
+  "the question is asked as without the flag" "never forks it a second time"
 
 exit $((fails > 0))
