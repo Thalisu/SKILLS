@@ -71,6 +71,16 @@ next_line() { # the Completion check's next= routes, shared by spec-landed and s
   echo "/do ${key[next]}"
 }
 
+landing_line() { # the landing record's next_landing= routes; a feature with no record takes the push
+  case "${key[next_landing]:-done}" in
+    done) push_line ;;
+    *)
+      need next_landing_ticket
+      echo "/do ${key[next_landing_ticket]}"
+      ;;
+  esac
+}
+
 main() {
   [ "$#" = 0 ] || usage "takes no argument"
   read_keys
@@ -78,6 +88,7 @@ main() {
   case "${key[outcome]}" in
     landed) push_line ;;
     spec-landed | setup-resolved) next_line ;;
+    final-landed | landing-wait) landing_line ;;
   esac
 }
 

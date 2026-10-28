@@ -48,4 +48,19 @@ run outcome=spec-landed yours=no 'ambiguous=03 no **Status:** line' next=ambiguo
 same "a Completion check reading ambiguous ends on one sentence naming the Ticket whose Status line to repair" \
   "$(printf '%s\n' 'Repair the **Status:** line of Ticket 03 (no **Status:** line).' 'exit 0')"
 
+landing_ticket=/home/dev/orders-service/.scratch/hold/issues/04-order-hold.md
+for outcome in final-landed landing-wait; do
+  run "outcome=$outcome" yours=no branch=main next_landing=orders-service "next_landing_ticket=$landing_ticket" verdict=wait
+  same "a $outcome run of a feature with a repository still to land ends on /do of that repository's landing Ticket" \
+    "$(printf '%s\n' "/do $landing_ticket" 'exit 0')"
+
+  run "outcome=$outcome" yours=no branch=main next_landing=done next_landing_ticket=none
+  same "a $outcome run whose landing record reads done ends on the push of the developer's branch" \
+    "$(printf '%s\n' 'git push origin main' 'exit 0')"
+done
+
+run outcome=final-landed yours=no branch=main
+same "a Final integration of a single-repository feature, with no landing record, ends on the push" \
+  "$(printf '%s\n' 'git push origin main' 'exit 0')"
+
 exit "$((fails > 0))"
