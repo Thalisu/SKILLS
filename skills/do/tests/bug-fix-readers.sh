@@ -98,4 +98,31 @@ check_absent "bug-fix.md and bug-fix-resume.md carry no run-question rule of the
   "### Run questions under" "#run-questions-under---auto" "A ruled question takes" \
   "A run question is one a step would put"
 
+echo "# bug-fix-design-fork.md: a run that meets a Design fork has it ruled by the choice-taker, or stops unruled"
+flat="$(flat_of 2>/dev/null <"$design")"
+expect "bug-fix-design-fork.md exists and has text" test -n "$flat"
+carries "the run names the fork at its step and reads both sides for an Extreme fork first" \
+  "step 4 or step 6" "Extreme fork"
+carries "the choice-taker is forked with the bug-fix brief, from Plan the fix or Fix" \
+  "subagent_type: choice-taker" "Caller:" "\`Plan the fix\` or \`Fix\`" "Recommendation:" "Context:"
+carries "the return is checked before a side is read, no Ticket criterion to lose" \
+  "\`settled\` or \`extreme\`" "Losing criterion:" "none"
+carries "a settled Ruling reaches the Reply's Pending debt and, under --auto, the Run report's On the run: group" \
+  "Ruled by the choice-taker at the <step> step" "Pending debt" "On the run:"
+carries "no Ruling stops the run unruled, never forking the choice-taker a second time" \
+  "never forks the \`choice-taker\` a second time"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(cat "$bugfix")"
+check_absent "bug-fix.md carries none of the Design fork's brief" 0 0 \
+  "Caller:" "Losing criterion:" "subagent_type: choice-taker"
+expect "bug-fix.md keeps the empirical fork, settled by a probe script, in its own text" \
+  grep -qF "probe script" "$bugfix"
+pointer='Read \[bug-fix-design-fork\.md\]\(bug-fix-design-fork\.md\) when [^ ]'
+step4="$(item_holding "$bugfix" '\*\*[0-9]+\.' ". Plan the fix.**" | flat_of)"
+expect "step 4 reaches the Design fork through Read [bug-fix-design-fork.md](bug-fix-design-fork.md) when <condition>" \
+  grep -qE "$pointer" <<<"$step4"
+step6="$(item_holding "$bugfix" '\*\*[0-9]+\.' ". Fix.**" | flat_of)"
+expect "step 6 reaches the Design fork through Read [bug-fix-design-fork.md](bug-fix-design-fork.md) when <condition>" \
+  grep -qE "$pointer" <<<"$step6"
+
 exit $((fails > 0))

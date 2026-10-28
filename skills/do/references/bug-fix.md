@@ -291,8 +291,9 @@ exported symbol runs the Discovery rule's check before it is created, one `disco
 or more names and one `rg -n -w` for a single one, with the audit line logged, `Discovery: n FOUND
 · n DUPLICATE · n NOT_FOUND`; a fix that creates none reads `skip: no symbol created`.
 
-A Design fork the plan meets, two shapes step 3's evidence and the code cannot settle, goes to the
-[Forks](#forks) below before the fix is recorded.
+A Design fork the plan meets, two shapes step 3's evidence and the code cannot settle, is ruled
+before the fix is recorded: Read [bug-fix-design-fork.md](bug-fix-design-fork.md) when the plan
+meets one.
 
 A cause that needs a new shape or a new feature to remove is not a bug fix. The run stops there
 with one message naming `discuss`, the evidence listed and nothing landed, the worktree and its
@@ -329,8 +330,9 @@ command green, a refactor on green, then typecheck and format the touched files,
 project's facts, with `skip: <reason>` for a command the project does not have. One commit, staged
 by path, its body carrying the behaviour line and the single-file command. A change to the test's
 assertion goes back to its author with the intended behaviour stated, never to make the red go
-away. A Design fork the fix meets, two shapes step 3's evidence cannot settle, goes to the
-[Forks](#forks) below. Done when the fix commit sits on top of the reproduction commit with the suite
+away. A Design fork the fix meets, two shapes step 3's evidence cannot settle, is ruled before
+the fix goes on: Read [bug-fix-design-fork.md](bug-fix-design-fork.md) when the fix meets one. Done
+when the fix commit sits on top of the reproduction commit with the suite
 green.
 
 **7. Verify on the surface.** The original reproduction is run again, the same command line on the
@@ -399,8 +401,8 @@ Done when `git worktree list` no longer shows the run's worktree, or the step re
 
 **13. Reply.** Written by [reply.md](reply.md), its five parts. The `Plan:` line reads the bug
 back in a few words. For whom says who saw the defect and what they see now that it is fixed. A
-waived flow, a check that stood in for a test and a Design fork's Ruling, per [Forks](#forks)
-below, go under Pending debt. The Next step is the stdout of `scripts/next-step.sh`, per item 10
+waived flow, a check that stood in for a test and a Design fork's Ruling go under Pending
+debt. The Next step is the stdout of `scripts/next-step.sh`, per item 10
 of the Sections of [reply.md](reply.md): `outcome=landed` with `branch=` when the review landed,
 `outcome=unlanded` with `worktree=` and `run_branch=` when nothing landed. Under
 `--auto` the Run report lists the Review under the files left uncommitted, and under `Rulings`,
@@ -418,7 +420,7 @@ A question the run meets is classified before it is asked, and its class decides
 | The question | Settled by | The run |
 |---|---|---|
 | Empirical fork: a fact a script can observe (which timing, which output, whether an API does the thing) | a throwaway probe script in the worktree, deleted before the commit | carries on |
-| Design fork: two shapes step 3's evidence and the code cannot settle, each keeping every guarantee whole | the `choice-taker` | carries on |
+| Design fork: two shapes step 3's evidence and the code cannot settle, each keeping every guarantee whole | the `choice-taker`: Read [bug-fix-design-fork.md](bug-fix-design-fork.md) when the run meets one | carries on |
 | Extreme fork: a Design fork with a side that weakens a guarantee in a risk class (security, privacy, data loss, auth, billing, migration, idempotency, race), or that cannot be undone once landed | the developer, through `/discuss` | stops, blocked |
 
 An empirical fork never reaches the developer, per

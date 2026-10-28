@@ -76,13 +76,14 @@ expect "reply.md's Rulings section links forks.md" \
   grep -qF "the forks in [forks.md](forks.md)" "$reply"
 
 # bug-fix.md's step 6, Fix, is the step that builds the fix and can meet a Design fork between two
-# shapes: it links its own Forks section, since forks.md is the ticket Playbook's alone (ADR 0105).
+# shapes: it links its own Playbook's Design fork reference, since forks.md is the ticket Playbook's
+# alone (ADR 0105).
 bugfix_fix_step="$(passage_of "$bugfix" "**6. Fix.**" "**7.")"
 expect "bug-fix.md carries step 6, Fix" test -n "$bugfix_fix_step"
-if grep -qF "[Forks](#forks)" <<<"$bugfix_fix_step"; then
-  ok "bug-fix.md's Fix step links its own Playbook's forks section"
+if grep -qF "[bug-fix-design-fork.md](bug-fix-design-fork.md)" <<<"$bugfix_fix_step"; then
+  ok "bug-fix.md's Fix step links its own Playbook's Design fork reference"
 else
-  fail "bug-fix.md's Fix step links its own Playbook's forks section"
+  fail "bug-fix.md's Fix step links its own Playbook's Design fork reference"
 fi
 
 # forks.md's own preamble: the paragraph naming who reads it.
