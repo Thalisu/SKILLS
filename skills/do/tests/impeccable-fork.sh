@@ -347,19 +347,13 @@ out="$(passage_of "$ticket" "**3. Build.**" "**4. Diff.**")"
 expect "ticket.md has a build step" test -n "$out"
 absent "step 3 names no main-untouched.sh call" "main-untouched.sh"
 
-# The blocked shape runs from the paragraph that names the fork to the fenced example that closes
-# it, so the facts may sit in any paragraph between the two and the shapes written for other stops,
-# which also say "left in place" and `claimed`, never answer for this one.
-blocked_section="## A refusal or a blocked run"
+# The blocked shape is a section of its own in impeccable.md, so the shapes reply.md writes for
+# other stops, which also say "left in place" and `claimed`, never answer for this one.
+blocked_section="### A main checkout that changed"
 yours_line="Yours: direction: move the files above into <worktree> by hand and run /do <ticket> again, or discard them and run /do <ticket> again"
 
-echo "# reply.md / $blocked_section: a Main checkout that changed during the do-impeccable fork"
-flat="$(passage_of "$reply" "$blocked_section" "## Whole replies" | awk '
-  BEGIN { RS = "" }
-  !on && index($0, "impeccable") { on = 1 }
-  on { gsub(/\n/, " "); print }
-  on && index($0, "move the files above") { exit }
-' | tr '\n' ' ' | tr -s ' ')"
+echo "# impeccable.md / $blocked_section: a Main checkout that changed during the do-impeccable fork"
+flat="$(passage_of "$reference" "$blocked_section" "#" | tr '\n' ' ' | tr -s ' ')"
 expect "the section has a blocked shape that names the do-impeccable fork" test -n "$flat"
 carries_each "the shape is for a Main checkout that changed during the do-impeccable fork" \
   "Main checkout" "main checkout" "**Main checkout**" -- \
@@ -374,12 +368,20 @@ carries_each "it never carries the work that was already uncommitted before the 
   "dirty before" "there before the fork" "before the fork began" "before the snapshot" \
   "predates the fork" "predated the fork" "developer already had" "developer had already" -- \
   "never" "not " "leaves out" "left out" "omits" "excludes" "excluding" "without"
-out="$(blocks_of "$reply" "$blocked_section")"
+out="$(blocks_of "$reference" "$blocked_section")"
 expect "a fenced example's Yours: direction: line carries both choices" grep -qxF -- "$yours_line" <<<"$out"
 carries_any "the shape says the run removed nothing" "${removes_nothing[@]}"
 carries_each "the worktree and its branch are left in place" \
   "worktree" -- "branch" "commits" -- "${left_in_place[@]}"
 carries "the Ticket still reads claimed" "\`claimed\`"
+
+# A Logic ticket's run that stops reads reply.md's blocked shapes, so the do-impeccable one lives
+# in impeccable.md alone.
+echo "# reply.md / ## A refusal or a blocked run: no blocked shape for the do-impeccable fork"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(passage_of "$reply" "## A refusal or a blocked run" "## Whole replies")"
+expect "reply.md has a blocked run section" test -n "$out"
+absent "the section names no do-impeccable fork" "do-impeccable"
 
 # A project with no end-to-end command gets a screen no flow ran over, and the fork says so on a
 # `fallback:` line of its return. Evidence is where the developer reads what proved the screen: with

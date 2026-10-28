@@ -165,6 +165,22 @@ The Reply [reply.md](reply.md) fixes reads differently in these parts on a run t
   per finding, so a finding counted under Evidence is always named. Findings that remain are debt
   and never a stop: the Ticket still lands and reads `resolved` all the same.
 
+### A main checkout that changed
+
+A `ticket` run that forked `do-impeccable` and found the main checkout changed during the fork is a
+blocked run of [reply.md](reply.md), stopped before the Gate by the build step above. Its blocker is
+followed by the files that changed since the fork began, one per line, each the value of a `file=`
+line `main-untouched.sh check` printed, and never the work that was already uncommitted before the
+fork, which the check leaves out. It says the run removed nothing, names the run's worktree and its
+branch, both left in place with their commits, and says the Ticket still reads `claimed`:
+
+```
+The main checkout changed during the do-impeccable fork:
+<file>
+<file>
+Yours: direction: move the files above into <worktree> by hand and run /do <ticket> again, or discard them and run /do <ticket> again
+```
+
 ## The brief
 
 The fork is dispatched with these four keys and nothing else:
