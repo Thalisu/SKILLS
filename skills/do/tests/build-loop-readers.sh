@@ -14,7 +14,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 build_loop="$here/../references/build-loop.md"
 skill="$here/../SKILL.md"
 ticket="$here/../references/ticket.md"
-bug_fix="$here/../references/bug-fix.md"
+bug_fix_resume="$here/../references/bug-fix-resume.md"
 builder="$here/../references/builder.md"
 fails=0
 

@@ -42,4 +42,11 @@ step10="$(item_holding "$bugfix" '\*\*[0-9]+\.' "**10. Review and landing.**" | 
 expect "step 10 carries its route=resume bullet" test -n "$step10"
 expect "step 10's route=resume sends the run to the resume reference" grep -qE "$pointer" <<<"$step10"
 
+echo "# bug-fix.md: a run that is not resumed loads no resume text"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(cat "$bugfix")"
+check_absent "bug-fix.md carries no Resume section and none of its rules" 0 0 \
+  "## Resume" "done: resumed" "git worktree add .claude/worktrees/do-<slug> do/<slug>" \
+  "git log -g --format=%H" "git clean -fd"
+
 exit $((fails > 0))
