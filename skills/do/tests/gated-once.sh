@@ -31,7 +31,7 @@ gating=(
 # $4 what the passage is, $5 a clause only this one carries (empty for none),
 # $6 `names-who` when the passage is where the rule is stated, not where it is restated.
 passages=(
-  "mechanics.md|**What the run commits after the review.**|When the session does not list|the review's paragraph on what the run commits after the review||names-who"
+  "not-landed.md|**What the run commits after the review.**|## |the review's paragraph on what the run commits after the review||names-who"
   "mechanics.md|4. A red flow is a defect|Done when every affected flow is green|the verification's red flow||names-who"
   "ticket.md|- On \`verdict=land\`, the review already read this branch|- When every line of the list is ticked|the resume of a run whose review already landed nothing||"
   "ticket.md|- When every line of the list is ticked|- On \`verdict=ask\`,|the resume of a run whose list is every line ticked||"
@@ -106,8 +106,8 @@ check_absent "step 2's resume on a Review that counts never sends the branch to 
 # A resumed run reaching this point with no Gate of its own (ticket.md's verdict=land resume, and
 # bug-fix.md's resume) produced no such line, so the passage must distinguish the two cases rather
 # than handing an unconditional command= line that path never produced.
-echo "# mechanics.md: what the run commits after the review distinguishes a gate that ran from no gate of its own"
-flat="$(passage_of "$refs/mechanics.md" "**What the run commits after the review.**" "When the session does not list" | tr '\n' ' ' | tr -s ' ')"
+echo "# not-landed.md: what the run commits after the review distinguishes a gate that ran from no gate of its own"
+flat="$(passage_of "$refs/not-landed.md" "**What the run commits after the review.**" "## " | tr '\n' ' ' | tr -s ' ')"
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
 out="$flat"
 check_absent "the passage no longer hands the fix call an unconditional command= line from a gate that may not have run" \
@@ -129,9 +129,9 @@ carries "the Gate line item tells the writer to record that no gate ran" "no gat
 # onto a moved target must stop as blocked with the same recovery the first integration's own Gate
 # red gets, never fall to the fix call's Gate fixer: that fixer corrects the reviewer's Findings, not
 # unreviewed replayed integration conflicts.
-echo "# mechanics.md: a Gate red on the re-integration's tree stops as blocked with the ledger and the reset, never the Gate fixer"
-flat="$(passage_of "$refs/mechanics.md" "On \`not landed: target moved\`, the developer's branch moved while the review ran," "Not landed, for any other reason the review gives" | tr '\n' ' ' | tr -s ' ')"
-expect "mechanics.md carries the not landed: target moved retry paragraph" test -n "$flat"
+echo "# not-landed.md: a Gate red on the re-integration's tree stops as blocked with the ledger and the reset, never the Gate fixer"
+flat="$(passage_of "$refs/not-landed.md" "On \`not landed: target moved\`, the developer's branch moved while the review ran," "## Not landed for any other reason" | tr '\n' ' ' | tr -s ' ')"
+expect "not-landed.md carries the not landed: target moved retry paragraph" test -n "$flat"
 carries "the paragraph names the ledger's location for a Gate red found on the reapplied tree" \
   "the ledger's location"
 carries "the paragraph names the reset --hard undo command for a Gate red found on the reapplied tree" \

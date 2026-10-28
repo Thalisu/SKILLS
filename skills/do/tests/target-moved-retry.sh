@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# target-moved-retry.sh: what mechanics.md's `## The review` has the run do on a review return of
+# target-moved-retry.sh: what not-landed.md has the run do on a review return of
 # `not landed: target moved`: the same run integrates again and lands through the fix call on the
 # Review it already has, instead of stopping for the developer to type `/do` again, and it keeps doing
 # so with no fixed count, per ADR 0044, which supersedes ADR 0034's stop on a second move. The loop
@@ -9,17 +9,17 @@
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
-mech="$here/../references/mechanics.md"
+not_landed="$here/../references/not-landed.md"
 fails=0
 
-# The section opens with ADR 0033's "never a second review" and the fix call for a run committed
-# after the review, so the checks read only the passage on what a not-landed return does, where a
-# phrase about the moved target cannot be borrowed from elsewhere in the section.
-flat="$(passage_of "$mech" "The run makes no commit for a Finding" "**What the run commits after the review.**" |
+# The file closes on the fix call for a run committed after the review, so the checks read only the
+# passage on what a not-landed return does, where a phrase about the moved target cannot be borrowed
+# from elsewhere in the file.
+flat="$(passage_of "$not_landed" "## The routes" "**What the run commits after the review.**" |
   tr '\n' ' ' | tr -s ' ')"
 
-echo "# mechanics.md / ## The review: a moved target is integrated again in the same run"
-expect "mechanics.md carries the passage on what the run does with a return that did not land" \
+echo "# not-landed.md: a moved target is integrated again in the same run"
+expect "not-landed.md carries the passage on what the run does with a return that did not land" \
   test -n "$flat"
 carries "the passage answers the not landed: target moved return" "not landed: target moved"
 
