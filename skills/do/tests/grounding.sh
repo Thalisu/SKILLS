@@ -77,4 +77,33 @@ printf 'amended\n' >>"$feature/journey.md"
 run digest "$root" "$ticket_file" "$digest"
 check_lines "digest forks naming both when the Spec and the journey moved" 1 "$rc" "moved=spec" "moved=journey" "verdict=fork"
 
+# A Digest cut from another document, or planted beside the Ticket, is never served.
+home no-digest 'Journey: not needed'
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest forks when no Digest is at the path" 1 "$rc" "digest=none" "verdict=fork"
+
+home no-line 'Journey: not needed'
+digest_with "spec: $spec $(hash_of "$spec")"
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest forks when the journey record line is missing" 1 "$rc" "moved=journey" "verdict=fork"
+
+home appeared 'Journey: journey.md'
+digest_with "spec: $spec $(hash_of "$spec")" "journey: absent"
+printf 'steps\n' >"$feature/journey.md"
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest forks when a journey recorded absent appeared" 1 "$rc" "moved=journey" "verdict=fork"
+
+home vanished 'Journey: journey.md'
+printf 'steps\n' >"$feature/journey.md"
+digest_with "spec: $spec $(hash_of "$spec")" "journey: $feature/journey.md $(hash_of "$feature/journey.md")"
+rm "$feature/journey.md"
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest forks when a recorded journey vanished" 1 "$rc" "moved=journey" "verdict=fork"
+
+home other-path 'Journey: not needed'
+cp "$spec" "$root/planted.md"
+digest_with "spec: $root/planted.md $(hash_of "$root/planted.md")" "journey: absent"
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest forks when a record names a path other than the Spec beside the Ticket" 1 "$rc" "moved=spec" "verdict=fork"
+
 [ "$fails" = 0 ]
