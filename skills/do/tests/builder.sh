@@ -269,15 +269,12 @@ carries_each "the run forks no other agent in the Builder's place" \
 
 # The build still owes the Ticket its flows, degraded or not: a fallback that ran the loop and said
 # nothing about them is the old step-4 gap this text exists to close (a criterion nobody flowed and
-# nothing said about it). It binds to the same rule the forked Builder reads, builder.md's
-# `## The flows`, and to the Digest's own list of what needs one, so a rewrite of either is read the
-# same way here.
-carries_each "on either branch the session authors the flows itself, per builder.md's flows rule, for the criteria the Digest's Observable criteria section names" \
+# nothing said about it). It binds to the same rule the forked Builder reads, flows.md, and to the
+# Digest's own list of what needs one, so a rewrite of either is read the same way here.
+carries_each "on either branch the session authors the flows itself, per flows.md's rule, for the criteria the Digest's Observable criteria section names" \
   "authors the flows itself" "also authors the flows" \
   -- \
-  "builder.md" \
-  -- \
-  "\`## The flows\`" "The flows" \
+  "[flows.md](flows.md)" \
   -- \
   "Observable criteria"
 

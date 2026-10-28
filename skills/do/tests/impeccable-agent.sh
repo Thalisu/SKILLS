@@ -389,10 +389,10 @@ carries_each "the Digest beside the Ticket, read with the Read tool, decides by 
   -- \
   "\`## Observable criteria\`"
 
-# Which criteria get a flow is the Builder's rule, which the fork follows from builder.md (the case
+# Which criteria get a flow is the Builder's rule, which the fork follows from flows.md (the case
 # below that pins the pointer), so the rule is read where it is written.
 # shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
-flat="$(passage_of "$here/../references/builder.md" "### Which criteria get a flow" "### " | tr '\n' ' ' | tr -s ' ')"
+flat="$(passage_of "$here/../references/flows.md" "## Which criteria get a flow" "## " | tr '\n' ' ' | tr -s ' ')"
 carries_each "a criterion the section leaves out gets no flow and says why on its flow: line" \
   "leaves out" "left out" "leaves off" "does not name" "doesn't name" "never names" \
   "not named" "omits" "is absent from" "missing from the section" "outside the section" \
@@ -447,15 +447,15 @@ carries_each "a flow has to run green and is committed, staged by path" \
 # A subsection counts only when it is named as one: the section's own prose says "Which criteria
 # get a flow" as a sentence, and that sentence is the copy, not a pointer to the rule.
 # shellcheck disable=SC2088 # the literal tilde the fork reads, never expanded
-installed_builder="~/.claude/skills/do/references/builder.md"
+installed_flows="~/.claude/skills/do/references/flows.md"
 # shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
 flat="$(flat_section "$agent" "## How you prove the screen")"
-carries_each "the fork follows the Builder's flows rule in the installed builder.md instead of a copy of its own" \
-  "$installed_builder" \
+carries_each "the fork follows the Builder's flows rule in the installed flows.md instead of a copy of its own" \
+  "$installed_flows" \
   -- \
-  "### Which criteria get a flow" "\`Which criteria get a flow\`" "\"Which criteria get a flow\"" \
+  "## Which criteria get a flow" "\`Which criteria get a flow\`" "\"Which criteria get a flow\"" \
   -- \
-  "### Who authors it" "\`Who authors it\`" "\"Who authors it\"" \
+  "## Who authors it" "\`Who authors it\`" "\"Who authors it\"" \
   -- \
   "ollow" "pply" "as written" "as it reads" "by its rule" "under its rule"
 
@@ -530,7 +530,7 @@ carries_each "the flows are written after the screen exists, by the end-to-end a
   "end-to-end test author" "end-to-end author" "E2E test author" "E2E author" \
   "e2e test author" "e2e author" \
   -- \
-  "\`## The flows\`"
+  "[flows.md](flows.md)"
 
 carries_each "the session copies the flow: lines into the Reply's Evidence unchanged" \
   "Reply" "Run report" \

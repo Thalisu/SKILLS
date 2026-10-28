@@ -16,8 +16,9 @@ are its work list.
 
 This file is the session's: it fills the brief from it and routes the return by it. The fork never
 opens it, and reads its standing rules in its own definition, but for which criteria get a flow and
-who authors each, which it reads in `## The flows` of [builder.md](builder.md) at the installed do
-skill, the way the Builder does.
+who authors each, which it reads at the installed do skill, the way the Builder does. Read
+[flows.md](flows.md) when the fork reaches the flows, after the screen's last criterion is
+committed.
 
 ## The Door
 
@@ -244,8 +245,8 @@ to them.
 On `built`, one `flow:` line per criterion follows the pairs, in the shape [builder.md](builder.md)
 fixes: the commit that carries the flow, or the reason no flow was written. The flows are the
 fork's and never the session's. They are written after the screen exists, by the end-to-end author
-under the Builder's own rule, `## The flows` of [builder.md](builder.md), over the criteria the
-Digest's `## Observable criteria` section names. The fork holds the Agent tool and dispatches that
+under the Builder's own rule, over the criteria the Digest's `## Observable criteria` section names.
+Read [flows.md](flows.md) when that section names a criterion, or no Digest sits beside the Ticket. The fork holds the Agent tool and dispatches that
 author itself, the one its brief's `Loop:` key names, and a hook of its own keeps the tool to the
 two end-to-end authors and the helper agents impeccable ships. The session copies the `flow:` lines
 into the Run report's Evidence unchanged, per [reply.md](reply.md).

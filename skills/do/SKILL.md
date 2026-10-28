@@ -189,6 +189,7 @@ that Playbook. The reply reference is read last by every Playbook but `setup`, w
 - [builder.md](references/builder.md): the Builder the `ticket` Playbook's build step forks and the
   session fills the brief for, read by that step and by the fork itself: the brief's keys, the
   return's line set, what the Builder builds from and where it picks up.
+- [flows.md](references/flows.md): the flows, read by the Builder once the Plan's last behaviour is committed, by the `do-impeccable` fork once the screen's last criterion is committed and by the session building in the Builder's place, only when the Digest's `## Observable criteria` section names a criterion, reads a `none` the reader marked as read from neither a Path nor a story, or, for `do-impeccable`, no Digest sits beside the Ticket: which criteria get a flow, who authors it, and how the author's report is read.
 - [impeccable.md](references/impeccable.md): the `do-impeccable` fork the same build step makes in
   the Builder's place for a Front-end ticket of a Spec reading `Front-end: impeccable`, read only
   when the door prints `kind=front-end` with `front_end=impeccable`, by the Door, the Plan step, the

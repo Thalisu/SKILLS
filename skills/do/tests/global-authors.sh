@@ -113,11 +113,9 @@ echo "# every verdict a core declares has a route in the references that consume
 # should have routed then passes against the other. Emptiness is read off the passage before the
 # flattening: `tr` on an empty here-string still writes a space.
 loop_passage="$(passage_of "$skill/references/build-loop.md" "2. Read the verdict" "3. Write the smallest")"
-# The flows rule lives in the Builder's contract, not in the Playbook: the `ticket` run forks the
-# Builder and the flows are authored inside its window. Its section is taken from the `##` heading
-# that dispatches the global end-to-end author to the next heading, so the rule is found by the
-# author it forks and never by the heading or the order it happens to carry.
-flows_passage="$(item_holding "$skill/references/builder.md" '## ' "global-e2e-test-author")"
+# The flows rule lives in flows.md, which the Builder reads when the Digest names an observable
+# criterion: the flows are authored inside its window.
+flows_passage="$(cat "$skill/references/flows.md" 2>/dev/null)"
 expect "the build loop passage the unit verdicts are read against is there" test -n "$loop_passage"
 expect "the Builder's flows passage the e2e verdicts are read against is there" test -n "$flows_passage"
 for kind in unit e2e; do

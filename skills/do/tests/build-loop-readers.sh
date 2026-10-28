@@ -28,11 +28,11 @@ expect "ticket.md's build step forks the Builder" \
 expect "builder.md reads build-loop.md as the loop it runs" \
   grep -qF "[build-loop.md](build-loop.md)" "$builder"
 
-# The E2E flows rule at its home in builder.md, found by the author it dispatches and never by the
-# heading it happens to carry: the contract renames and reorders its sections, and the rule is
-# wherever the global end-to-end author is forked from.
-flows="$(item_holding "$builder" '## ' "global-e2e-test-author" | tr '\n' ' ' | tr -s ' ')"
-expect "builder.md carries the flows rule that dispatches the E2E author" test -n "$flows"
+# The E2E flows rule at its home in flows.md, read by the Builder when the Digest names an
+# observable criterion.
+flows_rule="$here/../references/flows.md"
+flows="$(tr '\n' ' ' <"$flows_rule" 2>/dev/null | tr -s ' ')"
+expect "flows.md carries the flows rule that dispatches the E2E author" test -n "$flows"
 expect "the Builder's flows rule dispatches the E2E test author of build-loop.md" \
   grep -qE 'E2E (test )?authors? (of|in) \[build-loop\.md\]\(build-loop\.md\)|test authors in \[build-loop\.md\]\(build-loop\.md\)' <<<"$flows"
 
@@ -41,12 +41,12 @@ expect "the Builder's flows rule dispatches the E2E test author of build-loop.md
 # meets each route in has to link there or a run reaching either route lands in a file with no route
 # to take. The REFUSED route reads as the loop's own route rather than naming the file again, so the
 # link in its own paragraph is the whole of what makes it resolvable.
-handback_para="$(paragraph_with "$builder" "\`HANDBACK\` takes the route")"
+handback_para="$(paragraph_with "$flows_rule" "\`HANDBACK\` takes the route")"
 expect "the Builder's flows rule carries its HANDBACK-route sentence" test -n "$handback_para"
 expect "the Builder's flows rule's HANDBACK route links build-loop.md" \
   grep -qF "loop's \`HANDBACK\` takes in [build-loop.md](build-loop.md)" <<<"$handback_para"
 
-refused_para="$(paragraph_with "$builder" "\`REFUSED_INCOMPLETE_INPUT\` takes the")"
+refused_para="$(paragraph_with "$flows_rule" "\`REFUSED_INCOMPLETE_INPUT\` takes the")"
 expect "the Builder's flows rule carries its REFUSED_INCOMPLETE_INPUT-route sentence" test -n "$refused_para"
 expect "the Builder's flows rule's REFUSED_INCOMPLETE_INPUT route resolves in build-loop.md" \
   grep -qF "[build-loop.md](build-loop.md)" <<<"$refused_para"

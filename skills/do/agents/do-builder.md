@@ -30,8 +30,8 @@ Open five files in one batch, since none depends on another: `references/builder
 `references/build-loop.md` of the installed do skill, `~/.claude/skills/do/references/builder.md`
 and `~/.claude/skills/do/references/build-loop.md`, and the Plan, the Ticket and the Digest the
 brief names. The repository root the brief names is the project you build, which need not hold the
-do skill. builder.md is your contract (what you build from, where you pick up, the flows, your
-edges, the return) and build-loop.md is the cycle you run once per behaviour. Follow both as written. Then read the branch's commits for the `Behaviour:`
+do skill. builder.md is your contract (what you build from, where you pick up, your edges, the
+return) and build-loop.md is the cycle you run once per behaviour. Follow both as written. Then read the branch's commits for the `Behaviour:`
 lines already there, and start at the first behaviour of the Plan that has none, per `## Where it
 picks up`.
 

@@ -14,7 +14,7 @@ over, and a session that carries the build as well compacts before the Ticket is
 
 Two readers use this file, each for its own part. The session fills the brief and routes the
 return. The Builder reads the rest as its contract: what it builds from, where it picks up, the
-time budget, the flows, its edges, and the lines it returns. Read [stand-in.md](stand-in.md) when
+time budget, its edges, and the lines it returns. Read [stand-in.md](stand-in.md) when
 no Builder can be forked: the Agent tool is withheld from the session, or it lists no `do-builder`.
 
 ## The brief
@@ -422,84 +422,17 @@ When the Implementer cannot be dispatched, because `do-implementer` is not linke
 is refused, the Builder writes the production code itself, as the loop did before the Implementer,
 and the run goes on. Its return names which of the two held on a `fallback:` line.
 
-## The flows
-
-After the feature exists, every criterion a user can observe gets its flow authored or extended,
-inside this fork's window like the rest of the loop. Three things are settled per criterion, in
-this order: whether it gets a flow, who authors it, and what the author's report allows.
-
-### Which criteria get a flow
-
-The Digest's `## Observable criteria` section decides, and never the fork's own reading of the
-diff. The section is the reading the reader returned from the Path's own steps, or from the stories
-it quoted when the Digest carries no Path.
-
-- A criterion the section names gets a flow. One it names with no flow authored stops the fork with
-  that reason on its `stopped:` line. The routes below that dispatch no author are not that case:
-  each accounts for its criterion on a `fallback:` line.
-- A criterion the section leaves out gets no flow, and its `flow:` line states why none is needed.
-- A section reading `none` closes the flows with `no criterion a user can observe` on a `fallback:`
-  line, naming the section it read that from.
-- A `none` the reader marked as read from neither a Path nor a story has nothing behind it. The
-  fork goes through the Ticket's criteria one by one instead, each with its flow or the reason it
-  needs none.
-
-### Who authors it
-
-The brief's `Loop:` key decides.
-
-- `Loop: policy`: the surface is the one the project's Testing Policy names on its section marker.
-  - On a native or mixed surface the flow is authored by the E2E test author of
-    [build-loop.md](build-loop.md) with the complete input: the behaviour to prove, who relies on
-    it and what a wrong or missing result costs them, the journey or screen, the origin, the
-    fixture state, placement when it matters.
-  - On a consumer surface the flow lives in the consumer repository: no author is dispatched and
-    the `fallback:` line names it as pending debt with the consumers named.
-- `Loop: global`: the project has no Testing Policy and so no section marker naming a surface, and
-  the Project map the brief names stands in for it.
-  - When the map's single-flow command is filled, each criterion the Digest marks observable gets
-    its flow from `global-e2e-test-author` with the same complete input and the map's path, and the
-    same verdicts.
-  - When that command reads `none yet → /testing-policy` and the map's full-suite end-to-end
-    command is filled too, no author is dispatched: the `fallback:` line names the single-flow slot
-    the map left unfilled and quotes the full-suite command the map does carry, and the criterion
-    it would have proven is left for the session to leave unticked at the close.
-  - When both commands read `none yet → /testing-policy`, no author is dispatched either: the
-    `fallback:` line reads `no end-to-end command in the project` and names `/testing-policy` as
-    the command that would fill the slot.
-- `Loop: fallback`: the same map decides, and where its command is filled the fork authors the flow
-  itself and says so on a `fallback:` line.
-
-### Reading the author's report
-
-The report's `Run` section is read before its verdict. An author runs its flow at most twice in one
-dispatch, so a report naming a third run broke the fix ceiling, whatever verdict it carried,
-`GREEN` included. It is refused whole and the criterion is dispatched again naming the runs the
-fork counted, since a forked author's report reaches no hook and the count is the caller's or
-nobody's.
-
-Then the verdict routes:
-
-- `GREEN`: the flow must return it. The flow is committed, staged by path, on its own or with the
-  last behaviour, and reported on a `flow:` line. A flow committed on its own carries no
-  `Behaviour:` line.
-- `BLOCKED` on a preflight stops the fork with that reason.
-- `HANDBACK` takes the route the loop's `HANDBACK` takes in [build-loop.md](build-loop.md),
-  read off the Handback's `Diagnosis` line, and a second `HANDBACK` on the same criterion stops the
-  fork.
-- `REFUSED_INCOMPLETE_INPUT` takes the loop's own route in [build-loop.md](build-loop.md): a
-  criterion or a **Relied on by** too vague to become an outcome assertion is sharpened and
-  dispatched again, and a refusal because no one relies on the criterion means it is structural, so
-  it ships with no flow and its `flow:` line says so.
-
 ## Its edges
 
 - The Gate is the session's, run in the worktree after the last edit and before the integration,
   per [mechanics.md](mechanics.md). The fork runs the project's single-file command per cycle
   and never the gate.
 - The flows are the fork's, authored or extended after the feature exists, by the E2E author of
-  [build-loop.md](build-loop.md), over the criteria the Digest's `## Observable criteria` names.
-  The fork commits each one and reports it on a `flow:` line.
+  [build-loop.md](build-loop.md), each committed and reported on a `flow:` line.
+  Read [flows.md](flows.md) when the Digest's `## Observable criteria` section names a criterion,
+  or reads a `none` the reader marked as read from neither a Path nor a story. On any other `none`
+  no flow is authored: the return closes the flows with `no criterion a user can observe` on a
+  `fallback:` line, naming the section it read that from.
 - The integration, the review, the verification, the close and the Reply are the session's, and the
   fork touches none of them: no rebase, no landing, no push, no Ticket write, no branch but the one
   the brief names.
