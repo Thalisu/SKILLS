@@ -19,7 +19,7 @@ it, on the `outcome=` each stop below names. Never compose it yourself.
 A first run of a Spec the `ticket` door refused on a protected branch (`verdict=refused`) is one of
 those: its message says the Spec would land on the protected branch it names, or on no branch at
 all when the checkout is detached, and it states the `status=` the door printed for the Ticket,
-`ready-for-agent` or, on a start-over, `claimed`, since nothing was claimed or cut by this run. Its
+`ready-for-agent` or, on a start-over, `claimed`. Its
 Next step is `outcome=refused-protected`, piped with `ticket=<ticket>`.
 
 A `ticket` run of a Spec whose landing found the Spec branch checked out in a worktree is another:
@@ -65,8 +65,7 @@ argument it was started with.
 
 A run whose claim of the Final integration read `taken` is not a stop and carries no `Yours:`
 line: its Ticket landed, another run is integrating the Spec, and there is nothing to type. A
-resume that read `taken` is a stop, the one exception: it came to finish the Final integration and
-could not, and whether the holder is alive is the developer's call, so its blocker is the line
+resume that read `taken` is a stop, the one exception: its blocker is the line
 `final` printed, naming the holder and the time it claimed, and its `Yours:` line quotes the
 `yield_command=` line `final-claim.sh` printed:
 
@@ -81,23 +80,18 @@ that builds the blocker: its Next step is `outcome=blocked`, piped with `ticket-
 When the door printed `status=claimed` for the refused Ticket, an earlier run stopped on it and
 `tickets` gave it the blocker since. The refusal then says what of that run stands, in the sentence
 where a first refusal says "before the claim": the claim, and, when the door's `worktree=` line
-names one, that worktree, the branch on its `run_branch=` line and the commits already on it. The
-developer reads there that the Ticket is kept for the `/do` that follows the blocker, so the
-sentence never reads as nothing existing.
-
+names one, that worktree, the branch on its `run_branch=` line and the commits already on it.
 How much more it carries depends on where the run stopped:
 
 - **Refused before any edit.** It adds nothing, not even a `Plan:` line: its one message is the
-  refusal. It writes no section to the Debt file either, since the run built nothing and owes
-  nothing.
+  refusal. It writes no section to the Debt file either.
 - **Stopped after work exists.** It writes the five parts of [The message](reply.md#the-message), the
   blocker and the `Yours:` line in their place: the worktree and its branch are named on the
   blocker's lines, and the commits made and the files restored go to the Run report.
   Read [run-report.md](run-report.md) when the run is under `--auto`, before it writes the Run report.
-  It writes its section to the Debt file as well, since it writes the Pending debt part among the
-  five parts, so its items survive into the file the next run appends to.
+  It writes its section to the Debt file as well.
 - **Stopped as blocked.** It names the step it stopped at on the blocker's line, and the Run
-  report's Skipped section lists no step after it as skipped: the run never reached those steps.
+  report's Skipped section lists no step after it as skipped.
 
 Every blocked Reply, and every refusal at a door that hands a choice over, carries one line that
 says what the run hands the developer and why only the developer can give it, except the
@@ -109,15 +103,13 @@ the pair that does not exist names the branch to correct, a pair with nothing to
 carrying no commits its base lacks, names the commits the head still needs, or another pair, and a
 pull request whose head lives in a fork names that fork. A refusal that
 sends the request on, naming the Playbook, the door or the skill it goes to with the command to
-type, hands over no choice either: it is the router's own `Playbook: none` one step later, the
-command is the one way on, and it carries no such line. The line reads:
+type, hands over no choice either and carries no such line. The line reads:
 
 ```
 Yours: <class>: <the choice>
 ```
 
-- **The class** is one **Handover class** and nothing outside that closed set, per
-  [ADR 0057](../../../docs/adr/0057-a-do-run-stops-only-on-a-handover-class-its-reply-names.md):
+- **The class** is one **Handover class** and nothing outside that closed set:
 
   | Class | What the run hands over |
   |---|---|
@@ -150,12 +142,12 @@ inside the run's own artifacts, and the run takes it.
 Three writes outside the repository have a fixed place:
 
 - **Work for another repository.** The stop at the Plan on a behaviour with no place in the
-  repository the run builds in is named under `outward`, since building it is a write to a
-  repository this run was not opened in, which the run never makes itself. Its choice is the
+  repository the run builds in is named under `outward`: the run never builds in a
+  repository it was not opened in. Its choice is the
   `tickets` command the Reply ends on, which cuts the moved behaviour for that repository, then
   `/do` on the same Ticket again.
 - **A push.** A blocked Reply whose handed-over commands include a push names that push under
-  `outward`, since a push is a write outside the repository the run never makes itself, except the
+  `outward`, except the
   close's `destroy` stop on a landed run: its push already sits on the Reply's Next step line, per
   the Next step section of [reply.md](reply.md), so the `Yours: destroy:` line names only the worktree and branch
   choice, never the push. The `pr` round's push is the exception ADR 0086 authorises: the run makes

@@ -9,6 +9,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 refs="$here/../references"
 reply="$refs/reply.md"
 run_report="$refs/run-report.md"
+blocked_reply="$refs/blocked-reply.md"
 fails=0
 
 echo "# reply.md: instructions only, no ADR argument and no why beside a rule"
@@ -49,5 +50,20 @@ absent "run-report.md keeps no why for the two Rulings groups" "and the develope
 absent "run-report.md keeps no why for the On the run group" "so this group is the one place the developer reads what was decided for them"
 absent "run-report.md keeps no why for a Design fork outside the chain" "since that run has no Spec"
 absent "run-report.md keeps no why for leaving unreached steps out of Skipped" "a step it never came to was never considered"
+
+echo "# blocked-reply.md: instructions only, no ADR argument and no why beside a rule"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$blocked_reply" | tr -s ' ')"
+absent "blocked-reply.md names no ADR as the reason a run stops" "ADR 0057"
+absent "blocked-reply.md links no ADR as the reason a run stops" "docs/adr/0057"
+absent "blocked-reply.md keeps no why for a stop that cut nothing" "since nothing was claimed or cut by this run"
+absent "blocked-reply.md keeps no why for leaving the holder to the developer" "whether the holder is alive is the developer's call"
+absent "blocked-reply.md keeps no why for the wording of an empty result" "so the sentence never reads as nothing existing"
+absent "blocked-reply.md keeps no why for a stop that built nothing" "since the run built nothing and owes nothing"
+absent "blocked-reply.md keeps no why for carrying the items into the file" "so its items survive into the file the next run appends to"
+absent "blocked-reply.md keeps no why for steps the run never reached" "the run never reached those steps"
+absent "blocked-reply.md keeps no why for the router's none" 'it is the router'"'"'s own `Playbook: none` one step later'
+absent "blocked-reply.md keeps no why for not building in another repository" "since building it is a write to a repository this run was not opened in"
+absent "blocked-reply.md keeps no why for not pushing" "since a push is a write outside the repository"
 
 exit $((fails > 0))
