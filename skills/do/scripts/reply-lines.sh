@@ -184,10 +184,35 @@ open_entries() { # the --check record's open= lines -> one `<stem> (<status>)` e
   [ "${#entries[@]}" = 0 ] || joined "${entries[@]}"
 }
 
+physical() { # $1 a path: its physical form when it can be entered, else as given
+  (cd "$1" 2>/dev/null && pwd -P) || printf '%s\n' "$1"
+}
+
+main_checkout() { # the session's main checkout, physical, from the directory the script runs in
+  local line
+  line="$(git worktree list --porcelain 2>/dev/null | head -n 1)"
+  [ -n "$line" ] || {
+    echo "reply-lines.sh: not inside a git repository" >&2
+    exit 2
+  }
+  physical "${line#worktree }"
+}
+
 cmd_landing() {
-  local land branch entries
+  local land branch entries root main build
   IFS= read -r land <"${given[land]}" || [ -n "$land" ] || failed "land unknown"
   value_of branch door spec_branch
+  value_of root door root
+  value_of build door build_repository
+  main="$(main_checkout)" || exit 2
+  root="$(physical "$root")"
+  if [ "$root" != "$main" ]; then
+    if [ "$build" = none ]; then
+      echo "Repositories: built in $main, artifacts in $root"
+    else
+      echo "Repositories: built in $build ($main), artifacts in $root"
+    fi
+  fi
   case "$land" in
     "landed "*) echo "landed at ${land#landed } on $branch" ;;
     "checked-out "*) echo "not landed: $branch is checked out in ${land#checked-out }" ;;

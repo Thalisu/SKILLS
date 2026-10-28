@@ -439,4 +439,38 @@ run_in "$main_checkout" landing --door "$home_door" --land "$failed_land"
 check_lines "landing that failed quotes the land line whole" 0 "$rc" "not landed: failed spec/feature does not resolve"
 absent "landing that failed never reads landed at" "landed at"
 
+mkdir -p "$tmp/home"
+home_root="$(cd "$tmp/home" && pwd -P)"
+build_door="$(
+  src build_door <<EOF
+ticket=$home_root/.scratch/feature/issues/03-export.md
+root=$home_root
+status=resolved
+spec_branch=spec/feature
+build_repository=billing
+verdict=resolved
+EOF
+)"
+run_in "$main_checkout" landing --door "$build_door" --land "$land"
+check_lines "landing from a Build repository names where it built and where its artifacts are" 0 "$rc" \
+  "Repositories: built in billing ($main_checkout), artifacts in $home_root"
+
+unnamed_door="$(
+  src unnamed_door <<EOF
+ticket=$home_root/.scratch/feature/issues/03-export.md
+root=$home_root
+status=resolved
+spec_branch=spec/feature
+build_repository=none
+verdict=resolved
+EOF
+)"
+run_in "$main_checkout" landing --door "$unnamed_door" --land "$land"
+check_lines "landing from a Build repository whose name reads none leaves the name out" 0 "$rc" \
+  "Repositories: built in $main_checkout, artifacts in $home_root"
+
+wt="$(branch_worktree "$main_checkout" export)"
+run_in "$wt" landing --door "$home_door" --land "$land"
+check_absent "landing from a worktree of the checkout that holds the artifacts prints no Repositories line" 0 "$rc" "Repositories:"
+
 exit "$((fails > 0))"
