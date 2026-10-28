@@ -33,9 +33,9 @@ gating=(
 passages=(
   "not-landed.md|**What the run commits after the review.**|## |the review's paragraph on what the run commits after the review||names-who"
   "verification.md|4. A red flow is a defect|Done when every affected flow is green|the verification's red flow||names-who"
-  "ticket.md|- On \`verdict=land\`, the review already read this branch|- When every line of the list is ticked|the resume of a run whose review already landed nothing||"
-  "ticket.md|- When every line of the list is ticked|- On \`verdict=ask\`,|the resume of a run whose list is every line ticked||"
-  "ticket.md|  A \`review=\` line that names a Review|- A Spec amended while the Ticket is|the resume of a rebase that finished after the review|and the gate is green|"
+  "resume.md|- On \`verdict=land\`, the review already read this branch|- When every line of the list is ticked|the resume of a run whose review already landed nothing||"
+  "resume.md|- When every line of the list is ticked|- On \`verdict=ask\`,|the resume of a run whose list is every line ticked||"
+  "resume.md|  A \`review=\` line that names a Review|- A Spec amended while the Ticket is|the resume of a rebase that finished after the review|and the gate is green|"
   "bug-fix.md|- A Review of the branch,|- Uncommitted changes in the worktree|the resume on a Review that counts||"
   "bug-fix.md|**11. Verification.**|**12. Close.**|step 11, the red flow fixed in the worktree||"
   "refactoring.md|The run continues at the first step its branch does not evidence|Done when its status prints nothing|step 2's resume on a Review that counts||"
