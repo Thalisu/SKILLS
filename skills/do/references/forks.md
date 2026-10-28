@@ -89,8 +89,8 @@ a general-purpose fork would read the same Spec holding the write tools that ADR
 Under `--auto` a Design fork is ruled exactly this way, the flag adding no route and taking none
 away: the same steps, the same brief, the same check, and a `settled` Ruling written as the
 sections below say, so the Spec gains its one line, is read again and the run carries on with no
-commit for the Ruling. A Design fork is never taken as a run question, the last section of this
-file, whose Ruling amends no file: every later Ticket of the feature reads this one from the Spec.
+commit for the Ruling. A Design fork is never taken as a run question, whose Ruling amends no
+file: every later Ticket of the feature reads this one from the Spec.
 An Extreme fork is not handed over by the flag either: a side the session reads as Extreme, or an
 `extreme` return, stops the run under the flag as without it.
 

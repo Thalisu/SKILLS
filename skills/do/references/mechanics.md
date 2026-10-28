@@ -148,8 +148,9 @@ run.
   claim is the issue assigned to the developer, the way the tracker file describes, made after the
   developer's yes to a question carrying the `Yours: outward:` line of [reply.md](reply.md), its
   choice that assignment. Under `--auto`, on a remote tracker that question is still asked of the
-  developer, with the `choice-taker`'s return shown above it, per [forks.md](forks.md), and the
-  issue is assigned on their yes alone.
+  developer, with the `choice-taker`'s return shown above it, and the
+  issue is assigned on their yes alone. Read [run-questions.md](run-questions.md) when a `ticket` run under `--auto` asks
+  that question.
 - During the build the file is read and never written: the criteria and the `What to build` line
   are where the behaviours come from. The one exception is a criterion's text a Ruling rewrote as
   the losing side, the forks of [forks.md](forks.md). A Ticket that is an issue is never written
@@ -834,8 +835,8 @@ repository.
 
    Under `--auto` the question is still asked of the developer, the same list in the same order
    under the same `Yours: outward:` line, with the `choice-taker`'s return shown above it as it
-   came back, per the questions still asked under the flag in [forks.md](forks.md). No write is
-   made on that return, and a no still makes none.
+   came back. No write is made on that return, and a no still makes none. Read
+   [run-questions.md](run-questions.md) when a `ticket` run under `--auto` asks that question.
 5. Run the Completion check on a Ticket that is a file, after item 3 and never before it:
    `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`. The order is the guarantee:
    a run that wrote `resolved` first is counted by every check that runs after it, so the last of

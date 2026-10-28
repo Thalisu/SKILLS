@@ -812,7 +812,8 @@ main checkout, and nothing of this Ticket is there until the Spec branch itself 
 with no Spec, Read [verification.md](verification.md) when the run has an affected flow: the
 affected flows from the main checkout through `scripts/flows.sh`, its command line printed first, the one question
 before a full suite or
-a remote run, which the `choice-taker` rules under `--auto`, per [forks.md](forks.md), and a red flow as one more unit of the loop, handed with no **Gate** of the run's own
+a remote run, which the `choice-taker` rules under `--auto` (Read
+[run-questions.md](run-questions.md) when the run is under `--auto` and meets that question), and a red flow as one more unit of the loop, handed with no **Gate** of the run's own
 to the fix call on the same Review, which lands it again. Done when every affected
 flow is green or recorded as not run on the developer's no, or the step reads
 `skip: nothing landed`.
@@ -824,7 +825,8 @@ lines `evidence-lines.sh` prints first, as it prints them, the status line set t
 file left uncommitted, or, on a
 Ticket that is an issue, the one question listing every write the yes makes, the held Rulings'
 among them, under its `Yours: outward:` line, a question still asked of the developer under
-`--auto`, with the `choice-taker`'s return shown above it, per [forks.md](forks.md); then the Completion check,
+`--auto`, with the `choice-taker`'s return shown above it (Read
+[run-questions.md](run-questions.md) when the run is under `--auto` and asks that question); then the Completion check,
 `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path> | tee <state>/check`, run only after the `resolved`
 write, so the last of two concurrent runs always sees every Ticket resolved, with its `open=` and
 `next=` lines recorded for the message's Next step and the Run report, and with them the `next_build=`, `next_build_location=` and

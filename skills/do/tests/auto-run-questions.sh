@@ -3,7 +3,7 @@
 # finds that route wherever the question is stated. The session follows the prose it reads at the
 # step, with nobody there to answer: a step that still says its question waits for the developer,
 # or a Playbook restating it as asked whenever the run reaches it, stops an unattended run with the
-# work already landed. forks.md is the home of the route for the `ticket` Playbook, and each Playbook
+# work already landed. run-questions.md is the home of the route for the `ticket` Playbook, and each Playbook
 # outside the chain carries its own (ADR 0105), so each place stating a question names `--auto` and
 # sends the reader to that home, and the home lists the question.
 #
@@ -15,6 +15,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 mech="$here/../references/mechanics.md"
 forks="$here/../references/forks.md"
+questions="$here/../references/run-questions.md"
 ticket="$here/../references/ticket.md"
 final_stopped="$here/../references/final-stopped.md"
 resume="$here/../references/resume.md"
@@ -23,7 +24,7 @@ refactoring="$here/../references/refactoring.md"
 refactoring_auto="$here/../references/refactoring-auto.md"
 fails=0
 
-rules_it_under_auto() { # $1 the place, its text flattened in $flat: it names `--auto`, and the choice-taker or forks.md as what rules the question there
+rules_it_under_auto() { # $1 the place, its text flattened in $flat: it names `--auto`, and the choice-taker or run-questions.md as what rules the question there
   # Optional: $2 the question, as the labels name it (default: the one before a full suite or a remote run)
   local question="${2:-the question before a full suite or a remote run}"
   if [ -z "$flat" ]; then
@@ -31,7 +32,7 @@ rules_it_under_auto() { # $1 the place, its text flattened in $flat: it names `-
     return
   fi
   carries "$1 says what $question becomes under --auto" "--auto"
-  carries_any "$1 hands that question to the choice-taker under --auto" "choice-taker" "(forks.md)"
+  carries_any "$1 hands that question to the choice-taker under --auto" "choice-taker" "(run-questions.md)"
 }
 
 echo "# the question before a full suite or a remote run: ruled by the choice-taker under --auto"
@@ -48,8 +49,8 @@ carries "verification.md's item still records each flow as not run on a no" "not
 
 # The one home of the route: only a question the table lists takes it, and the row names the file
 # of the step that asks it.
-flat="$(passage_of "$forks" "### A run question under" "### " | grep '^|' | grep -E 'full suite|remote run')"
-expect "forks.md's table of run questions has a row for the question before a full suite or a remote run" \
+flat="$(passage_of "$questions" "# A run question under" "### " | grep '^|' | grep -E 'full suite|remote run')"
+expect "run-questions.md's table of run questions has a row for the question before a full suite or a remote run" \
   test -n "$flat"
 carries "forks.md's row for that question names ticket.md, the file of its step" "(ticket.md)"
 
@@ -161,29 +162,29 @@ echo "# a question still asked under --auto: the choice-taker's return rides on 
 # Every paragraph of the section that speaks of a question the flag leaves with the developer, read
 # together: the guarantee may be split over more than one of them. The numbered steps of the route
 # a ruled question takes carry none of these phrases, so their `choice-taker` never answers here.
-section="$(passage_of "$forks" "### A run question under" "### ")"
+section="$(passage_of "$questions" "# A run question under" "### ")"
 flat="$(for anchor in "cannot be undone" "leaves the machine" "irreversible" "remote tracker" \
   "still asked" "still asks" "still put"; do
   paragraph_with <(printf '%s\n' "$section") "$anchor" all
 done | awk '!seen[$0]++' | tr '\n' ' ' | tr -s ' ')"
-expect "forks.md's section on run questions covers the ones still asked under --auto" test -n "$flat"
+expect "run-questions.md's section on run questions covers the ones still asked under --auto" test -n "$flat"
 
-carries_each "forks.md forks the choice-taker on a question still asked under --auto" \
+carries_each "run-questions.md forks the choice-taker on a question still asked under --auto" \
   "choice-taker" -- "fork" "Agent tool" "handed" "brief"
-carries_each "forks.md hands that choice-taker the step's own question and options" \
+carries_each "run-questions.md hands that choice-taker the step's own question and options" \
   "choice-taker" -- \
   "as the step words it" "as its step words it" "the step's own question" "its step's own question" \
   "its own question" "the step's own words" "same question" "never reword" "not reword" \
   "without rewording" "not rewritten" "never rewritten" "same brief" "brief above" "brief of" \
   "that brief" "keys above" "step 1"
-carries_each "forks.md puts a settled return's side and norm on the question" \
+carries_each "run-questions.md puts a settled return's side and norm on the question" \
   "settled" -- "\`Side:\`" "Side" "side" -- "\`Norm:\`" "Norm" "norm"
-carries_each "forks.md puts an extreme return on the question quoted with its reason" \
+carries_each "run-questions.md puts an extreme return on the question quoted with its reason" \
   "extreme" -- "quote" "verbatim" "word for word" "as it came back" "as they came back" -- \
   "reason" "Reason"
-carries_any "forks.md keeps the return on the question as it came back" \
+carries_any "run-questions.md keeps the return on the question as it came back" \
   "as it came back" "as they came back" "verbatim" "word for word" "unchanged" "quoted" "quotes"
-carries_any "forks.md has the run do nothing on that return before the developer answers" \
+carries_any "run-questions.md has the run do nothing on that return before the developer answers" \
   "before the developer answers" "until the developer answers" "before the developer's answer" \
   "until the developer's answer" "before their answer" "until their answer" "before they answer" \
   "until they answer" "before the developer's yes" "without the developer's yes" "before their yes" \
@@ -208,8 +209,8 @@ still_asked_with_the_answer_shown() { # $1 the place, its statement of the disca
     "remains the developer's" "as without it" "as without the flag" "the flag as without" \
     "asked all the same" "asks all the same" "asks it all the same" "never ruled" "not ruled" \
     "never handed" "not handed" "rules nothing"
-  carries_any "$1 shows the choice-taker's answer on that question, itself or through forks.md" \
-    "choice-taker" "(forks.md)"
+  carries_any "$1 shows the choice-taker's answer on that question, itself or through run-questions.md" \
+    "choice-taker" "(run-questions.md)"
 }
 
 # resume.md and final-stopped.md route a resume on the script's verdict, one bullet per verdict: every
@@ -262,14 +263,14 @@ carries_any "refactoring.md's resume step puts its question before uncommitted c
 
 # The home those steps send the reader to counts the discard among the questions still asked, and
 # has nothing discarded on the choice-taker's return.
-section="$(passage_of "$forks" "### A run question under" "### ")"
+section="$(passage_of "$questions" "# A run question under" "### ")"
 flat="$(for anchor in "cannot be undone" "leaves the machine" "irreversible" "still asked" \
   "still asks" "still put"; do
   paragraph_with <(printf '%s\n' "$section") "$anchor" all
 done | awk '!seen[$0]++' | tr '\n' ' ' | tr -s ' ')"
-carries_each "forks.md counts uncommitted work discarded among the questions still asked under --auto" \
+carries_each "run-questions.md counts uncommitted work discarded among the questions still asked under --auto" \
   "uncommitted" "Uncommitted" -- "thrown away" "discard"
-carries_any "forks.md has nothing discarded on the choice-taker's return before the developer answers" \
+carries_any "run-questions.md has nothing discarded on the choice-taker's return before the developer answers" \
   "nothing is discarded" "nothing discarded" "discards nothing" "no discard" "never discards" \
   "not discarded"
 
@@ -406,15 +407,15 @@ still_asked_with_the_answer_shown "blocked-reply.md's bullet on a write to a rem
 
 # The home those steps send the reader to counts a tracker write among the questions still asked,
 # and its table of the questions the choice-taker rules has no row for one.
-section="$(passage_of "$forks" "### A run question under" "### ")"
+section="$(passage_of "$questions" "# A run question under" "### ")"
 flat="$(for anchor in "cannot be undone" "leaves the machine" "irreversible" "still asked" \
   "still asks" "still put"; do
   paragraph_with <(printf '%s\n' "$section") "$anchor" all
 done | awk '!seen[$0]++' | tr '\n' ' ' | tr -s ' ')"
-carries_any "forks.md counts a write to a remote tracker among the questions still asked under --auto" \
+carries_any "run-questions.md counts a write to a remote tracker among the questions still asked under --auto" \
   "remote tracker"
 flat="$(grep '^|' <<<"$section" | grep -iE 'tracker|issue')"
-expect "forks.md's table of run questions has no row for a write to a remote tracker" test -z "$flat"
+expect "run-questions.md's table of run questions has no row for a write to a remote tracker" test -z "$flat"
 
 echo "# nothing ruled under --auto: a Design fork takes the unruled stop as without the flag, a question still asked carries no answer and one line for the reason, and no other agent is forked"
 
@@ -459,7 +460,7 @@ unruled_stop_under_auto "forks.md's section on the unruled stop" "$unruled_secti
 # paragraphs that speak of both, and in a bullet list directly under one. The section's closing
 # bullets say this of a question the choice-taker would have ruled, which goes back to the developer
 # either way, and they never answer for a question whose message was to carry the return.
-section="$(passage_of "$forks" "### A run question under" "### ")"
+section="$(passage_of "$questions" "# A run question under" "### ")"
 flat="$(asked_keys="$(printf '%s\n' "cannot be undone" "leaves the machine" "irreversible" \
   "remote tracker" "still asked" "still asks" "still put" "asked all the same" "reserved")" \
 failed_keys="$(printf '%s\n' "withheld" "not listed" "lists no" "no \`choice-taker\` listed" \
@@ -480,28 +481,28 @@ failed_keys="$(printf '%s\n' "withheld" "not listed" "lists no" "no \`choice-tak
     }
   ' <<<"$section" | tr '\n' ' ' | tr -s ' ')"
 if [ -z "$flat" ]; then
-  fail "forks.md says what a question still asked under --auto carries when its choice-taker cannot be forked or its return is no Ruling (no paragraph of the section speaks of both)"
+  fail "run-questions.md says what a question still asked under --auto carries when its choice-taker cannot be forked or its return is no Ruling (no paragraph of the section speaks of both)"
 else
-  carries_each "forks.md covers, for a question still asked under --auto, a choice-taker that cannot be forked and a return that is no Ruling" \
+  carries_each "run-questions.md covers, for a question still asked under --auto, a choice-taker that cannot be forked and a return that is no Ruling" \
     "withheld" "not listed" "lists no" "listed" "cannot be forked" "can be forked" "not linked" -- \
     "no Ruling" "not a Ruling" "fails" "failed" "neither" "unusable" "no usable"
-  carries_any "forks.md has that question asked with no answer carried on it" \
+  carries_any "run-questions.md has that question asked with no answer carried on it" \
     "no answer" "without an answer" "without the answer" "carries none" "carries nothing" \
     "nothing rides" "rides nothing" "no return rides" "no Ruling rides" "nothing above the question" \
     "with nothing above" "no lines above" "shows no" "shows nothing" "nothing is shown" \
     "nothing shown" "no \`Side:\`" "no side" "no Ruling to confirm" "nothing to confirm" \
     "decides from scratch" "decide from scratch"
-  carries_each "forks.md has that question name the reason in one line" \
+  carries_each "run-questions.md has that question name the reason in one line" \
     "one line" "a line" "single line" -- "reason" "why" "which of" "which branch" "says which"
-  carries_any "forks.md has no side read out of a return that is no Ruling on that question" \
+  carries_any "run-questions.md has no side read out of a return that is no Ruling on that question" \
     "takes no answer" "takes no side" "reads no side" "reads no answer" "no side is read" \
     "no side read" "no answer is read" "no answer read" "no side out of" "no answer out of" \
     "no side is taken" "no answer is taken" "nothing out of the return" "nothing is read" \
     "reads nothing" "never reads a side" "no side into" "not read as an answer"
-  carries_any "forks.md forks no other agent in the choice-taker's place on that question" \
+  carries_any "run-questions.md forks no other agent in the choice-taker's place on that question" \
     "no other agent" "another agent" "other agent" "general-purpose" "general agent" \
     "in its place" "in the \`choice-taker\`'s place" "in the choice-taker's place"
-  carries_any "forks.md never forks the choice-taker a second time on that question" \
+  carries_any "run-questions.md never forks the choice-taker a second time on that question" \
     "second time" "second fork" "a second" "forked again" "forks again" "fork it again" \
     "re-fork" "retry" "retries" "only once" "once only" "twice"
 fi
