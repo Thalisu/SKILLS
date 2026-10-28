@@ -495,9 +495,9 @@ Yours: direction: run /do <ticket> again, or a do on any Ticket of the Spec, to 
 /do <ticket>
 ```
 
-A resume of a Final integration that stops again, a run whose claim printed `takeover=yes`, writes
-the same lines, its first reading `Final integration: stopped again:` with the reason, and its Next
-step is `outcome=final-stopped`, piped with `ticket=` the `/do` argument it was started with.
+A resume of a Final integration that stops again writes the same parts, its blocker the lines
+`final` printed, and its Next step is `outcome=final-stopped`, piped with `ticket=` the `/do`
+argument it was started with.
 
 A run whose claim of the Final integration read `taken` is not a stop and carries no `Yours:`
 line: its Ticket landed, another run is integrating the Spec, and there is nothing to type. A
