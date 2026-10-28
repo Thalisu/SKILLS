@@ -48,11 +48,10 @@ back in one line. Under `--auto` the Run report's Run section carries the operat
 checklist with each step the run reached ticked `done:` or reading `skip: <reason>`, then the
 integration line, in that order.
 
-Three early ends cut that message short, each with nothing integrated: a request missing its
-operation or its branch (step 1), a door refusal (the first line and the door's `message=` line,
-word for word), and an operation already in progress (step 1). Those and the Reply are the only
-places the turn ends: a stop of the conflict loop, however many there are, is resolved and
-continued in the same turn, since the loop asks the developer nothing.
+Three early ends at step 1 cut that message short, each with nothing integrated: a request missing
+its operation or its branch, a door refusal, and an operation already in progress. Those and the
+Reply are the only places the turn ends: a stop of the conflict loop, however many there are, is
+resolved and continued in the same turn, since the loop asks the developer nothing.
 
 `<skill-dir>` below is the folder that holds this file's `references/`: `${CLAUDE_SKILL_DIR}` in
 Claude Code, the `do` folder under the harness's skills directory elsewhere.
@@ -100,25 +99,11 @@ never picks one.
 </examples>
 
 The script prints the operation read back, `op=`, `moves=`, `onto=` and `writes=`, the branch the
-operation writes to, and checks, first match wins:
+operation writes to.
 
-- a `git am` stopped on the branch: `refused=am-in-progress`, the message naming its continue and
-  abort;
-- a branch that does not exist, local or remote-tracking: `refused=missing-branch`;
-- a branch name carrying a shell metacharacter (`$`, backtick, `;`, `|`, `&`, `(`, `)`, `<`, `>`, a
-  newline), which git allows in a ref but which the `start=` line would otherwise hand a shell as
-  text: `refused=unsafe-branch-name`;
-- a merge whose target is protected, by the rule `trivial-door.sh branch <name>` prints, the one
-  every other Playbook refuses a protected branch by: `refused=protected-target`. A rebase onto a
-  protected branch is not refused, since the branch that moves is the developer's own and nothing
-  is written to the target;
-- a branch written to that is not the one the developer stands on: `refused=wrong-branch`, the
-  message naming the `git switch` that fixes it;
-- uncommitted work with no integration in progress: `refused=dirty-tree`, the files named, so
-  nothing of the developer's is replayed into a conflict.
+Read [integrate-refusal.md](integrate-refusal.md) when `integrate-door.sh` exits 1.
 
-Exit 1 ends the run: the reply is the first line and the `message=` line, which ends
-`nothing integrated`. Exit 0 carries `in_progress=` and the operation's three commands, `start=`,
+Exit 0 carries `in_progress=` and the operation's three commands, `start=`,
 `continue=` and `abort=`, each with git's conflict-resolution reuse off: the setting is the
 developer's own and may be on, and then a resolution recorded at one stop would be replayed into
 the next stop of the same shape, the class read from what the cache put back instead of from what
