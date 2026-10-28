@@ -23,7 +23,7 @@ Claude Code, the `do` folder under the harness's skills directory elsewhere.
 3. On a `settled` Ruling, edit the file its `Side:` names and carry on in the same turn, with no
    message asking the developer to confirm it. The Ruling is written to no file of the project: the
    Run report lists it under `Rulings`, in its `On the run:` group, with `On the Spec: none` above
-   it, per [reply.md](reply.md).
+   it.
 4. On anything else (an `extreme` return, a return that fails the check, the Agent tool withheld or
    no `choice-taker` listed), the question is asked as without the flag, one line above it naming
    the reason or quoting the return whole. The run rules nothing itself, forks no other agent in

@@ -75,7 +75,7 @@ the fix call on the Review the run already has, never a second review. In `bug-f
 [refactoring.md](refactoring.md) hands its resume to: the Review the run already has counts, so the run integrates again, its Loss ledger
 keyed by the branch, and lands through the fix call on that Review. The run lands or stops on
 that path's own outcome, and the integration line of the Run report's Run section carries the lines of
-both integrations, per [reply.md](reply.md), never the resume as a next step.
+both integrations, never the resume as a next step.
 
 That resume's fix call is routed with `last=resume`: a `not landed: target moved` after its
 integration ticked as a no-op again routes `route=blocked`, and the run stops as blocked like every
@@ -116,8 +116,7 @@ A run that reaches this point having run no gate of its own, the resume on `verd
 the session that printed it was another run's: it hands the fix call no `command=` line, and the
 fix call runs the Gate itself from the Testing Policy's Project facts, which is what a fix call
 handed no `command=` line does. What that Gate ran
-is in the fix call's return, which the Run report's gate line carries instead, per
-[reply.md](reply.md).
+is in the fix call's return, which the Run report's gate line carries instead.
 On `route=fix` and `route=resume` the call is made from the lines the review route script printed,
 as printed: `fix=` the call and its two arguments, `gate=` the `command=` line only when one was
 given, and `caller=` the line that marks the call as the run's own.
