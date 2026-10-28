@@ -16,8 +16,10 @@
 #       is there removed first, since the Planner's hook refuses a write over one. The ticket=,
 #       ticket_hash=, digest= and digest_hash= lines are the values the session records
 #   grounding.sh verify <root> <ticket> <ticket hash> <digest path> <digest hash> [<destination>]
-#       the check of a returned Plan against the recorded hashes: refused when the destination
-#       holds no file or its ## Sources is not exactly the two records; match otherwise
+#       the re-hash and the check of a returned Plan against the recorded hashes: moved, one
+#       moved= line per document, when the Ticket or the Digest no longer hashes to its recorded
+#       value; refused when the destination holds no file or its ## Sources is not exactly the two
+#       records; match otherwise
 #
 # A record is one ## Sources line, `<name>: <absolute path> <hash>`, or `<name>: absent`, a
 # relative Ticket path joined to <root>. It matches a Digest's section when the section holds
@@ -25,7 +27,7 @@
 # holds exactly two non-blank lines, the Ticket's record and the Digest's.
 #
 # Prints key=value lines, verdict= last. Exit codes: digest 0 reuse, 1 fork, 5 extreme · plan
-# 0 carried, 1 fork · verify 0 match, 1 refused · 2 usage, <root> not a git work tree, a hash
+# 0 carried, 1 fork · verify 0 match, 1 refused, 3 moved · 2 usage, <root> not a git work tree, a hash
 # argument that is neither an object name nor absent, or a sidecar that is not the Ticket's own.
 set -uo pipefail
 
@@ -116,9 +118,21 @@ cmd_verify() {
   at_root "$root"
   a_hash "$3"
   a_hash "$5"
-  local ticket digest
+  local ticket digest moved=0
   ticket="$(ticket_of "$2")"
   digest="$(absolute "$4")"
+  [ "$(hash_at "$ticket")" = "$3" ] || {
+    echo "moved=ticket"
+    moved=1
+  }
+  [ "$(hash_at "$digest")" = "$5" ] || {
+    echo "moved=digest"
+    moved=1
+  }
+  if [ "$moved" = 1 ]; then
+    echo "verdict=moved"
+    return 3
+  fi
   if [ $# = 6 ] && ! { [ -f "$6" ] && plan_matches "$6" "$(record ticket "$ticket" "$3")" "$(record digest "$digest" "$5")"; }; then
     echo "verdict=refused"
     return 1

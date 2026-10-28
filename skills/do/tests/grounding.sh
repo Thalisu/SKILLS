@@ -186,4 +186,16 @@ plan_with "ticket: absent" "digest: $digest $d_hash"
 run verify "$root" "https://github.com/owner/repo/issues/42" absent "$digest" "$d_hash" "$plan"
 check_lines "verify matches an issue-backed Ticket recorded absent against a Plan reading ticket: absent" 0 "$rc" "verdict=match"
 
+# A fork that rewrote a criterion or the Digest leaves the Plan's lines as they were: only the
+# documents themselves show it.
+plan_with "ticket: $ticket_file $t_hash" "digest: $digest $d_hash"
+printf -- '- [ ] a criterion the fork wrote\n' >>"$ticket_file"
+run verify "${recorded[@]}"
+check_lines "verify names the Ticket that moved since it was recorded, Sources lines still matching" 3 "$rc" "moved=ticket" "verdict=moved"
+absent "verify names no Digest when only the Ticket moved" "moved=digest"
+
+printf 'rewritten\n' >>"$digest"
+run verify "${recorded[@]}"
+check_lines "verify names both documents when the Ticket and the Digest moved" 3 "$rc" "moved=ticket" "moved=digest" "verdict=moved"
+
 [ "$fails" = 0 ]
