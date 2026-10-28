@@ -1303,11 +1303,9 @@ flow is green or recorded as not run on the developer's no, or the step reads
 
 **9. Close.** The close in [mechanics.md](mechanics.md): the Ticket file, at the door's `ticket=`
 path under `root=`, which on a Ticket run from its Build repository is in the Home repository,
-ticked where the evidence proves it, the evidence appended under `## Evidence` with the two
-lines `evidence-lines.sh` prints first, as it prints them, and, on a run that forked `do-impeccable`, the
-fork's `scan:` line (the detector scan's command line and the count of findings that remain)
-appended under `## Evidence` beside the flows' command lines, unchanged as the fork returned it,
-the status line set to `resolved`, the file left uncommitted, or, on a
+ticked where the evidence proves it, the evidence appended under `## Evidence` with the
+`Context:` line first and the `Forks:` line after it, the status line set to `resolved`, the file
+left uncommitted, or, on a
 Ticket that is an issue, the one question listing every write the yes makes, the held Rulings'
 among them, under its `Yours: outward:` line, a question still asked of the developer under
 `--auto`, with the `choice-taker`'s return shown above it, per [forks.md](forks.md); then the Completion check,
