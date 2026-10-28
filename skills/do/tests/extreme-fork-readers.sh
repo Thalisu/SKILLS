@@ -45,4 +45,19 @@ echo "# every pointer to extreme-fork.md reads \`Read [extreme-fork.md](extreme-
 pointers_shaped "every pointer to extreme-fork.md has the \`Read <file> when <condition>\` shape" \
   "$do_dir" extreme-fork.md 5
 
+echo "# extreme-fork.md and SKILL.md's entry name its readers and the condition that sends them"
+readers=(
+  "the Plan step" -- "the build step" -- "Resume" -- "the close" -- "the unruled stop" -- "change-of-direction"
+)
+condition=("read as Extreme" "reads as Extreme" -- "\`extreme\`" -- "\`extreme=\`")
+flat="$(awk 'BEGIN { RS = "" } !/^#/ { gsub(/\n/, " "); print; exit }' "$extreme" 2>/dev/null | tr -s ' ')"
+carries_each "the opening names the Plan and build steps, the Resume, the close, and the two stops that copy its command" \
+  "${readers[@]}"
+carries_each "the opening names the condition: a side read as Extreme, an \`extreme\` return, or the Resume's \`extreme=\` line" \
+  "${condition[@]}"
+flat="$(bullets_opening_on "$do_dir/SKILL.md" "[extreme-fork.md](references/extreme-fork.md)")"
+expect "SKILL.md's references list has an entry for extreme-fork.md" test -n "$flat"
+carries_each "the entry names the same readers" "${readers[@]}"
+carries_each "the entry names the same condition" "${condition[@]}"
+
 [ "$fails" -eq 0 ]
