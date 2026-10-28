@@ -1484,24 +1484,18 @@ or `Plan: none` with its reason on a run that opened no Plan.
 What this Playbook puts in the message: under pending debt, the flows the developer waived and the
 consumer flows not run, naming the consuming Ticket off the check's `consumer=` lines as the
 Pending debt of [reply.md](reply.md) words it, beside a criterion the flows step skipped for no
-end-to-end command, with the command that would fill it; and the next step, `git push` with the
-developer's branch named when the review landed, or, when nothing landed, the worktree, its
-branch, and the review and the landing as what the developer runs next. On a Ticket of a Spec the
-next step names no push, since nothing reached the developer's branch: when the run landed it is
-what the Completion check's `next=` line names, as the Next step of [reply.md](reply.md) reads it,
-the check's `next_build=` lines included when the next Ticket is built in another repository, and
-what the blocked stop of step 7 names when it did not. A run whose Final integration landed is the
-exception: the Spec branch reached the developer's branch, so its next step is `git push` with the
-developer's branch named. On a feature of more than one repository that next step carries the
-repositories landed and still to land off the landing record's second read, with the landing
-command of each one still to land, and while one is left the push is a line of its own above them
-and the last line is the command of the next repository to land, as [reply.md](reply.md) words
-both. A run whose landing record read `wait` landed nothing: its next step says the feature is
-complete and which repository its own waits for, lists every repository's landing command in
-order, and ends on the first of them. A run whose claim read `taken`, or whose Final integration
-stopped, ends on the lines [reply.md](reply.md) fixes for it. A run that stopped on an Extreme
-fork, or on a Design fork no `choice-taker` ruled, ends instead on the `/discuss` command the forks
-in [forks.md](forks.md) fix, as its last line. A run that stopped on work for another repository,
+end-to-end command, with the command that would fill it; and the next step, the stdout of
+`scripts/next-step.sh` copied whole, on the `outcome=` item 10 of the Sections of
+[reply.md](reply.md) names for the run: `outcome=landed` when the review landed on the developer's
+branch, `outcome=unlanded` when nothing landed, `outcome=spec-landed` piped with the Completion
+check's output when the run landed on a Spec branch, the blocked stop of step 7's outcome when it
+did not, `outcome=final-landed` with `landing-order.sh`'s second read when its Final integration
+landed, `outcome=landing-wait` when its landing record read `wait`, and `outcome=claim-taken` or
+`outcome=final-stopped` when its claim read `taken` or its Final integration stopped. The Final
+integration lines above the Next step stay as [reply.md](reply.md) words them. A run that stopped
+on an Extreme fork ends on `outcome=extreme-fork` with `playbook=ticket`, per [forks.md](forks.md),
+and one on a Design fork no `choice-taker` ruled on the `/discuss` command [forks.md](forks.md)
+fixes, as its last line. A run that stopped on work for another repository,
 at the Plan or on a Builder's return, ends on `/tickets <spec>`, in the message
 [reply.md](reply.md) fixes for that stop. When the finding changes what the feature is, it ends on
 the `/discuss` command of the change-of-direction stop in [forks.md](forks.md) instead. A run that

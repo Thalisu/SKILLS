@@ -407,9 +407,9 @@ Done when `git worktree list` no longer shows the run's worktree, or the step re
 **13. Reply.** Written by [reply.md](reply.md), its five parts. The `Plan:` line reads the bug
 back in a few words. For whom says who saw the defect and what they see now that it is fixed. A
 waived flow, a check that stood in for a test and a Design fork's Ruling, per [Forks](#forks)
-below, go under Pending debt. The Next step is
-`git push` with the developer's branch named when the review landed, or, when nothing landed, the
-worktree, its branch, and the review and the landing as what the developer runs next. Under
+below, go under Pending debt. The Next step is the stdout of `scripts/next-step.sh`, per item 10
+of the Sections of [reply.md](reply.md): `outcome=landed` with `branch=` when the review landed,
+`outcome=unlanded` with `worktree=` and `run_branch=` when nothing landed. Under
 `--auto` the Run report lists the Review under the files left uncommitted, and under `Rulings`,
 `On the Spec: none`, and in the
 `On the run:` group each Ruling made on a Design fork or a run question, or `none`. Done when the reply is sent,
@@ -492,6 +492,11 @@ neither, whole, with nothing after it:
 ```
 /discuss the do bug-fix run on "<the bug read back>" stopped at the <step> step on an Extreme fork, <side A> or <side B>; <the weaker side> would give up <the guarantee> (<the risk class>). Which side does the fix take?
 ```
+
+That line is the stdout of `scripts/next-step.sh` on `outcome=extreme-fork`, piped with
+`playbook=bug-fix`, `subject=` (the bug read back), `step=`, `side_a=`, `side_b=`, `weaker=`, and
+`guarantee=` with `risk_class=`, or `undone=` for a side that cannot be undone once landed.
+Copy it whole; never fill the template yourself.
 
 A side that cannot be undone once landed reads `<the weaker side> cannot be undone once landed:
 <what could not be undone>` in place of the clause after the semicolon. No sidecar is written: the

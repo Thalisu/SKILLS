@@ -47,7 +47,7 @@ file describes, and take the verdict from the same table.
 |---|---|
 | `start` | goes on to the claim |
 | `resume` | goes on to the check, claiming nothing |
-| `resolved` | reads the frontier the way step 3 of the close does, `completion-check.sh` on the `ticket=` path, then stops in two lines: the Setup ticket is already resolved, and the last line the close's table reads off `next=` |
+| `resolved` | reads the frontier the way step 3 of the close does, `completion-check.sh` on the `ticket=` path, then stops in two lines: the Setup ticket is already resolved, and the last line `next-step.sh` prints on `outcome=setup-resolved` |
 | `not-setup` | stops in one line: the Ticket is not a Setup ticket, with `/do <the Ticket's path>` to run it as a Ticket |
 | `ambiguous` | stops in one line naming the `ambiguous=` detail the door printed, the Ticket's line to fix by hand |
 
@@ -278,14 +278,12 @@ and a worktree cut before the setup is committed would not carry it.
 
 The Reply is one message: `Playbook: setup` on the first line, one line saying the Ticket is
 resolved, the six steps in the table's order, each marked `done`, then the check's lines and
-`reload=done` as its evidence, and a last line read off `next=`:
+`reload=done` as its evidence, and last the stdout of `next-step.sh`, copied whole:
 
-| `next=` | Last line of the Reply |
-|---|---|
-| a path | `/do <the path next= names>`, plain with no flag |
-| `wait` | one line saying every open Ticket is held by another run |
-| `none` | one line saying nothing else in the Spec is open |
-| `ambiguous` | one line saying an open Ticket's status cannot be read |
+```
+{ echo outcome=setup-resolved; echo yours=no
+  bash <skill-dir>/scripts/completion-check.sh <path>; } | bash <skill-dir>/scripts/next-step.sh
+```
 
 ```
 Playbook: setup

@@ -541,12 +541,10 @@ carries_any "which the run never runs" \
   "never runs" "does not run" "doesn't run" "never run" "not run" "never merges" "does not merge" \
   "doesn't merge" "never merge" "merges nothing"
 item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "10. **Next step.**" | tr '\n' ' ' | tr -s ' ')"
-flat="$(sed 's/\. /.\n/g' <<<"$item" | awk 'index($0, "approval")' | tr '\n' ' ')"
+flat="$(sed 's/ | /\n/g' <<<"$item" | awk 'index($0, "`pr-awaiting-approval`")' | tr '\n' ' ')"
+expect "a row of reply.md's item 10 sends a watch that read \`awaiting-approval\` to \`next-step.sh\`'s \`pr-awaiting-approval\` route" test -n "$flat"
+flat="$(sed 's/\. /.\n/g' <<<"$item" | awk 'index($0, "awaiting-approval") && !index($0, "|")' | tr '\n' ' ')"
 expect "a sentence of reply.md's item 10 names a \`pr\` run missing an approval" test -n "$flat"
-carries_any "as a watch that read \`awaiting-approval\`" \
-  "awaiting-approval" "approval missing" "approval is missing" "missing approval" "approval pending" \
-  "approval is pending"
-carries "that sentence names \`gh pr merge <n>\`" "gh pr merge <n>"
 carries_any "under the same no-\`Yours:\` rule" \
   "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "never a \`Yours:\`" "not a \`Yours:\`" \
   "same rule" "same way"
@@ -2032,19 +2030,16 @@ carries_each "nor names either under \`outward\`" \
   "never under \`outward\`" "neither under" "never as \`outward\`" "never an \`outward\`"
 item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "10. **Next step.**" | tr '\n' ' ' | tr -s ' ')"
 expect "reply.md's Sections carry item 10, Next step" test -n "$item"
-flat="$(sed 's/\. /.\n/g' <<<"$item" | awk 'index($0, "git pull --ff-only") { print; getline; print; exit }' | tr '\n' ' ')"
-expect "a sentence of item 10 names \`git pull --ff-only\`" test -n "$flat"
-carries_each "for a \`pr\` run that pushed" "\`pr\`" "pr run" -- "push"
-carries "naming \`$pull_line\`" "$pull_line"
-carries_each "the pull of the developer's local head" "developer" -- "local" "checkout" "clone"
-carries "then \`gh pr merge <n>\`" "gh pr merge <n>"
-before "the pull first, the merge after it" "$pull_line" "gh pr merge <n>"
+flat="$(sed 's/ | /\n/g' <<<"$item" | awk 'index($0, "pushed=yes")' | tr '\n' ' ')"
+expect "a row of item 10 pipes whether a \`pr\` run pushed into \`next-step.sh\`" test -n "$flat"
+carries "with its \`<head>\`, the pull the script names ahead of the merge" "head=<head>"
+flat="$(sed 's/\. /.\n/g' <<<"$item" | awk 'index($0, "pushed a round")' | tr '\n' ' ')"
+expect "a sentence of item 10 names a \`pr\` run that pushed a round" test -n "$flat"
 carries_each "the push reported on For whom's round lines" "For whom" -- "round line" "round lines"
 carries_each "never an \`outward\` hand-over" \
   "outward" -- \
   "never an \`outward\`" "never \`outward\`" "never under \`outward\`" "not an \`outward\`" \
   "never named under" "never names it under" "no \`outward\`" "never an outward" "not under \`outward\`"
-carries "since ADR 0086 authorised it" "ADR 0086"
 
 # Others push to a shared head such as `dev` while a round is cut, fixed and picked: a push from a
 # tree built on a tip the remote has since moved past is refused late with nothing redone, and a run

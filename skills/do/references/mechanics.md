@@ -994,8 +994,8 @@ one's, and a return that reads not landed stops the run the way the first one do
 
 When the session does not list `do-code-review`, the step reads
 `skip: do-code-review not listed`: nothing lands, the worktree and its branch stay in place and
-are named on the Reply's blocker lines, and its Next step names the review and the landing as
-the developer's.
+are named on the Reply's blocker lines, and its Next step is `scripts/next-step.sh`'s stdout on
+`outcome=unlanded`, piped with `worktree=` and `run_branch=`.
 
 ## The verification
 

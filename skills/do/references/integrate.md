@@ -195,9 +195,10 @@ report carries written under `--auto` alone:
   finished, and, when any stop resolved a hunk, mechanical or contested, the line saying no check
   ran over the integrated tree: the text the union wrote and every reapply commit reach the branch
   unchecked, so the developer runs their own checks before the push;
-- the next step, the push the developer runs themselves: `git push --force-with-lease` after a
-  rebase of a branch that has an upstream, `git push` after a merge, or, on a blocked stop, the
-  operation's `abort=` command. On the no-op there is no undo and no push, since nothing moved.
+- the next step, the stdout of `scripts/next-step.sh` copied whole: `outcome=integrated` piped
+  with `op=` and `upstream=yes|no` (whether the branch has an upstream), or, on a blocked stop,
+  `outcome=integrate-blocked` piped with `integrate-door.sh`'s output. On the no-op there is no
+  undo and no push, since nothing moved.
 
 Nothing is landed, nothing is pushed, no review is called, and the Run report's Skipped section
 lists no Gate, land, push or review step, since this Playbook has none: the check that did not run

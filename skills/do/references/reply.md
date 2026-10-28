@@ -30,9 +30,9 @@ these parts, in this order:
    something, per [A refusal or a blocked run](#a-refusal-or-a-blocked-run), with the blocker it
    stopped on and its reason on the lines right above it. A run that hands over nothing writes no
    such line and no heading for it.
-5. **Next step.** The [Next step](#sections) section, under a `## Next step` heading, last. When a
-   `Yours:` line stands, it opens on one line saying to do what that line names first, and the
-   command comes after it.
+5. **Next step.** The [Next step](#sections) section, under a `## Next step` heading, last: the
+   stdout of `next-step.sh`, copied whole. Piped `yours=yes` when a `Yours:` line stands, it opens
+   on one line saying to do what that line names first, and the command comes after it.
 
 Three rules hold across all of it:
 
@@ -544,61 +544,43 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
    `consumer flows not run: the hold on the Order's page, carried by Ticket 04 (built in orders-service)`.
    The number is copied from those lines and never read off a Ticket or the Spec. With
    `consumer=none`, or on a run whose close ran no check, the line names the consumers alone.
-10. **Next step.** One line, the Reply's last. It ends with the push command when something landed
-    on the developer's branch, `git push` with the branch named; otherwise the command to type
-    next. A run that landed on a Spec branch names no push, since nothing reached the developer's
-    branch: its line is read off the Completion check's `next=` line. A path there reads
-    `/do <that path>`, the first open Ticket that reads `ready-for-agent`. When the check printed
-    `next_build=` under it, that Ticket is built in another repository than the one this session
-    was opened in, and the Reply ends on two lines in that one's place. The first names
-    `next_build=`, with `next_build_location=`, as the place to open a session in, worded as the
-    hand-over of the `ticket` door in [ticket.md](ticket.md) words it for a Ticket built in
-    another repository. The second, the Reply's last, is `/do <next_location=>` and nothing else
-    on the line: the Ticket's absolute location, whatever form `next=` took, since a relative one
-    resolves to nothing from the other repository. When `next_build_location=` reads `unlisted`,
-    the first line names the repository and says the Spec's `## Repositories` list holds no
-    location for it, and `/do <next_location=>` stays last. Neither is a shell line. With no
-    `next_build=` line the Ticket is built here and no repository is named. `next=wait` means every
-    open Ticket reads `claimed` by another run: the line says the Spec integrates when those runs
-    land and there is nothing to type. `next=ambiguous` names the Ticket on the check's
-    `ambiguous=` line as the one whose `**Status:**` line to repair. A run whose Final
-    integration landed the Spec branch did reach the developer's branch: its line is
-    `git push <the developer's branch>`. On a feature of more than one repository the line is
-    read off the landing record instead, its second read on a run that landed: while
-    `next_landing=` reads anything but `done`, the line is `/do <next_landing_ticket=>` and
-    nothing else, the command of the next repository to land, and the push stands on its own
-    line among the Final integration lines. Once it reads `done`, every repository of the
-    feature landed and no landing command is left to hand over: the push is the last line
-    again, `git push <the developer's branch>` and nothing else, as a landing ends today. A run whose landing record read `verdict=wait` landed nothing and ends on the same
-    `/do <next_landing_ticket=>`, which is the first of the landing commands it listed. A landing
-    command typed in a repository that already landed, the door's Already landed stop, ends on
-    that same line off its one read of the record, the command of the next repository to land.
-    So does a landing command typed before a repository it consumes from landed, the Out of
-    order stop: its last line is the command of the repository that has to land first.
-    A run whose claim read `taken` has nothing to type, and
-    its line says the Spec is being integrated by another run. A run whose Final integration
-    stopped ends on `/do <the run's Ticket>`, the command it was started with and nothing else
-    on the line: that a `do` on any Ticket of the Spec resumes it too is said on its
-    `Yours: direction:` line, and what to fix first is said there or above it, never after the
-    command. A resume of a Final integration ends the same two ways: one that stops again names the
-    same `/do` it was started with, and one that finishes is the run that shipped the Spec, its
-    line `git push <the developer's branch>`, or, on a feature of more than one repository with
-    one still to land, `/do <next_landing_ticket=>` off the record it read after the release. A
-    resume stopped on a claim nobody yielded names
-    the same `/do`, to type once the holder finished or its claim was yielded. A landed run whose close finished is not a stop: the push stays on this line, the run
+10. **Next step.** One line, the Reply's last, or the lines `next-step.sh` prints in its place.
+    Pipe `outcome=` with the route below, `yours=yes` when the Reply carries a `Yours:` line or
+    `yours=no` otherwise, and what the row names into `bash <skill-dir>/scripts/next-step.sh`, then
+    copy its stdout whole under `## Next step`. Never compose the line yourself. Pipe a script's
+    output whole: keys no route reads are ignored. On exit 2 nothing is printed and stderr names the
+    key the route lacks: add it and pipe again.
+
+    | The run | `outcome=` | Piped with it |
+    |---|---|---|
+    | landed on the developer's branch: `trivial`, `bug-fix`, `refactoring` | `landed` | `branch=<the developer's branch>` |
+    | a `ticket` run that landed on its Spec branch | `spec-landed` | `completion-check.sh`'s output |
+    | a `setup` run that resolved its Ticket | `setup-resolved` | `completion-check.sh`'s output |
+    | a Final integration that landed, or a resume of one that finished | `final-landed` | `branch=<the developer's branch>`, and on a feature of more than one repository `landing-order.sh`'s output, read after the release |
+    | a landing record that read `verdict=wait`, or the door's Already landed or Out of order stop | `landing-wait` | `branch=<the developer's branch>` and `landing-order.sh`'s output |
+    | a Final integration claim that read `taken`, on a run that is not a resume | `claim-taken` | `final-claim.sh`'s output |
+    | a Final integration that stopped, a resume that stopped again, or a resume on a claim nobody yielded | `final-stopped` | `ticket=<the /do argument the run was started with, as typed>` |
+    | a `pr` run whose watch read green | `pr-green` | `pr=<n>`, `pushed=yes\|no`, and `head=<head>` when it pushed |
+    | a `pr` run whose watch read `awaiting-approval` | `pr-awaiting-approval` | `pr=<n>`, `pushed=yes\|no`, and `head=<head>` when it pushed |
+    | an `integrate` run that finished its operation | `integrated` | `op=rebase\|merge`, `upstream=yes\|no` |
+    | an `integrate` run blocked mid-operation | `integrate-blocked` | `integrate-door.sh`'s output |
+    | a run that landed nothing, the review not callable or not landing | `unlanded` | `worktree=<the run's worktree>`, `run_branch=<its branch>` |
+
+    A refused or blocked run takes its route from [A refusal or a blocked run](#a-refusal-or-a-blocked-run),
+    and a run stopped on an Extreme fork from its Playbook's Extreme stop.
+
+    A stopped Final integration says on its `Yours: direction:` line that a `do` on any Ticket of
+    the Spec resumes it too, and what to fix first there or above it, never after the command. A
+    landed run whose close finished is not a stop: the push stays on this line, the run
     never pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the
     close's `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the
     push still stays on this Next step line and is never named under `outward`. A `pr` run whose
     watch read green, every check passed and the pull request mergeable, ends its line with
     `gh pr merge <n>`, its pull request's number, under that same rule as a landed run's push: the
     run never runs it, its Reply carries no `Yours:` line, and the merge is never named under
-    `outward`. A `pr` run whose watch read `awaiting-approval`, every check passed and only a
-    required approval missing, names that approval and then `gh pr merge <n>` on its line, under
-    the same rule: no `Yours:` line, the merge never run and never named under `outward`.
-    A `pr` run that pushed a round names the pull of the developer's local head first,
-    `git pull --ff-only origin <head>` on their checkout of `<head>`, then `gh pr merge <n>`. Its
-    push is reported on For whom's round lines and is never an `outward` hand-over, since ADR 0086
-    authorised it.
+    `outward`. A `pr` run whose watch read `awaiting-approval` follows the same rule. A `pr` run
+    that pushed a round reports its push on For whom's round lines, never an `outward`
+    hand-over.
 
 ## A refusal or a blocked run
 
@@ -608,17 +590,20 @@ A run that ends early writes, in this order:
 2. The refusal or the blocker with its reason, and the `Yours:` line beside it.
 3. The Playbook or the door the request goes to, with the command to type.
 
+Its Next step is `next-step.sh`'s stdout, copied whole, as item 10 of [Sections](#sections) pipes
+it, on the `outcome=` each stop below names. Never compose it yourself.
+
 A first run of a Spec the `ticket` door refused on a protected branch (`verdict=refused`) is one of
 those: its message says the Spec would land on the protected branch it names, or on no branch at
-all when the checkout is detached, and to switch to a working branch and run `/do <ticket>` again,
-and it states the `status=` the door printed for the Ticket, `ready-for-agent` or, on a start-over,
-`claimed`, since nothing was claimed or cut by this run.
+all when the checkout is detached, and it states the `status=` the door printed for the Ticket,
+`ready-for-agent` or, on a start-over, `claimed`, since nothing was claimed or cut by this run. Its
+Next step is `outcome=refused-protected`, piped with `ticket=<ticket>`.
 
 A `ticket` run of a Spec whose landing found the Spec branch checked out in a worktree is another:
 its blocker reads `not landed: spec/<feature-slug> is checked out in <worktree>`, it names the
 run's worktree and its branch, both left in place, and says the Ticket still reads `claimed`. Its
-Next step says to switch that checkout off the branch and run `/do <ticket>` again, which resumes
-at the landing:
+Next step is `outcome=checked-out`, piped with `ticket=<ticket>`, `worktree=<the worktree the Spec
+branch is checked out in>` and `spec_branch=spec/<feature-slug>`:
 
 ```
 not landed: spec/<feature-slug> is checked out in <worktree>
@@ -627,8 +612,9 @@ Yours: direction: switch <worktree> off spec/<feature-slug> and run /do <ticket>
 
 A run whose Final integration stopped is another. Its own Ticket landed and reads `resolved`, so
 the blocker is the Spec's: it says the Final integration stopped and why, names the Spec branch and
-its worktree, both left in place, and its Next step is `/do <the run's Ticket>`, with the note
-that a `do` on any Ticket of the Spec resumes it:
+its worktree, both left in place, and its Next step is `outcome=final-stopped`, piped with
+`ticket=<the run's Ticket>`, with the note on the `Yours:` line that a `do` on any Ticket of the
+Spec resumes it:
 
 ```
 Final integration: stopped: not landed: target moved
@@ -640,8 +626,8 @@ integration lines stand between those two, so the developer reads a partial land
 repositories hold the feature on their developer's branch already, and which do not, this one
 among them. The `Yours: direction:` line keeps its two ways out, to resume or to leave unlanded,
 whatever the reason: on a reason that names Findings it may name them and the Review as what to
-settle before the resume, and it still offers both. The Reply's last line is the `/do` the run was
-started with, as typed:
+settle before the resume, and it still offers both. The Reply's last line is what
+`outcome=final-stopped` printed:
 
 ```
 Final integration: stopped: not landed: Finding 1 not fixed or not verified
@@ -654,13 +640,14 @@ Yours: direction: run /do <ticket> again, or a do on any Ticket of the Spec, to 
 
 A resume of a Final integration that stops again, a run whose claim printed `takeover=yes`, writes
 the same lines, its first reading `Final integration: stopped again:` with the reason, and its Next
-step is the `/do` it was started with.
+step is `outcome=final-stopped`, piped with `ticket=` the `/do` argument it was started with.
 
 A run whose claim of the Final integration read `taken` is not a stop and carries no `Yours:`
 line: its Ticket landed, another run is integrating the Spec, and there is nothing to type. A
 resume that read `taken` is a stop, the one exception: it came to finish the Final integration and
 could not, and whether the holder is alive is the developer's call, so its message quotes the
-holder, the time it claimed and the yield command as `final-claim.sh` printed them:
+holder, the time it claimed and the yield command as `final-claim.sh` printed them, and its Next
+step is `outcome=final-stopped`:
 
 ```
 Final integration: not resumed, its claim is held by <holder_ticket> since <claimed_at>
@@ -682,11 +669,7 @@ Yours: direction: move the files above into <worktree> by hand and run /do <tick
 ```
 
 A `ticket` run refused on a blocker that is not `resolved` (`verdict=blocked`) ends on the command
-that builds the blocker: `/do` with the value of the door's `next_blocker=` line, the blocker's
-absolute location, as the last line. When the door also printed `next_blocker_build=`, the line
-before it names that repository, with its `next_blocker_build_location=`, as the place to open a
-session in, and it comes after the `Yours:` line. A blocker built in the repository the session is
-in gets no such line.
+that builds the blocker: its Next step is `outcome=blocked`, piped with `ticket-door.sh`'s output.
 
 When the door printed `status=claimed` for the refused Ticket, an earlier run stopped on it and
 `tickets` gave it the blocker since. The refusal then says what of that run stands, in the sentence

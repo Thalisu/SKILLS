@@ -983,3 +983,6 @@ the whole message, and a green watch adds no part of its own:
   since the approval is the developer's to get and there is no choice to hand over; and the
   **Next step** line names the approval, then `gh pr merge <n>` once it is given, which the run
   never runs and never names under `outward`.
+- The **Next step** is the stdout of `scripts/next-step.sh`, copied whole: `outcome=pr-green`, or
+  `outcome=pr-awaiting-approval` on that verdict, piped with `pr=<n>`, `pushed=yes|no`, and
+  `head=<head>` when the run pushed.

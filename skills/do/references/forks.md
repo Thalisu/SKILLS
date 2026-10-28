@@ -310,6 +310,11 @@ in this shape:
 /discuss Ticket <the Ticket's path or reference>, Spec <the Spec's path or reference>: the do run stopped at the <step> step on an Extreme fork, <side A> or <side B>; <the weaker side> would give up <the guarantee> (<the risk class>). Which side does the Spec take?
 ```
 
+That line is the stdout of `scripts/next-step.sh` on `outcome=extreme-fork`, piped with
+`playbook=ticket`, `subject=` (`Ticket <the Ticket's path or reference>, Spec <the Spec's path or reference>`), `step=`, `side_a=`, `side_b=`, `weaker=`, and
+`guarantee=` with `risk_class=`, or `undone=` for a side that cannot be undone once landed.
+Copy it whole; never fill the template yourself.
+
 A side that cannot be undone once landed reads `<the weaker side> cannot be undone once landed:
 <what could not be undone>` in place of the clause after the semicolon. The message is one line,
 every slot filled from the stop's own facts and none from the session's wording, so a rerun that

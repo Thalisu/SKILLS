@@ -667,7 +667,8 @@ and routed on the `route=` line of `review-route.sh`, with the request that star
   worktree and its branch left in place and named in the reply, nothing half fixed, and the reply's
   `Yours: direction:` line carrying the choice, as the review in [mechanics.md](mechanics.md) says.
 - **`do-code-review` not listed.** The step reads `skip: do-code-review not listed`, nothing lands,
-  and the reply names the worktree, its branch and the review as the developer's next step.
+  and the reply's Next step is `scripts/next-step.sh`'s stdout on `outcome=unlanded`, piped with
+  `worktree=` and `run_branch=`.
 - **A protected branch.** The review refuses the landing, whatever the run wrote, and the run
   stops as blocked with the landing handed over under `direction`, as the review in
   [mechanics.md](mechanics.md) says: `route=blocked` with `direction=protected`, the reply's
@@ -811,6 +812,11 @@ neither, whole, with nothing after it:
 ```
 /discuss the do refactoring run on "<the reshape read back>" stopped at the <step> step on an Extreme fork, <side A> or <side B>; <the weaker side> would give up <the guarantee> (<the risk class>). Which side does the reshape take?
 ```
+
+That line is the stdout of `scripts/next-step.sh` on `outcome=extreme-fork`, piped with
+`playbook=refactoring`, `subject=` (the reshape read back), `step=`, `side_a=`, `side_b=`, `weaker=`, and
+`guarantee=` with `risk_class=`, or `undone=` for a side that cannot be undone once landed.
+Copy it whole; never fill the template yourself.
 
 A side that cannot be undone once landed reads `<the weaker side> cannot be undone once landed:
 <what could not be undone>` in place of the clause after the semicolon. No sidecar is written: the
