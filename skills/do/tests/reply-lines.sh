@@ -79,4 +79,8 @@ same "final on a landed Spec prints the review's lines as given, then the Spec b
 Review: landed on main at 1a2b3c4, 0 Act on Findings
 spec/feature removed"
 
+first="$out"
+run final --door "$door" --claim "$claim" --release "$release" --review "$review" --order "$order"
+same "final prints the same lines on a second call with the same files" "$first"
+
 exit "$((fails > 0))"
