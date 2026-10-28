@@ -424,4 +424,19 @@ same "landing prints the landed line, the Review none line and one Open entry pe
 Review: none, the Spec is reviewed once its last Ticket lands
 Open: 02-import (claimed), 04-show (ready-for-agent)"
 
+checked_out="$(src checked_out <<<"checked-out /home/dev/app/.claude/worktrees/spec-feature")"
+run_in "$main_checkout" landing --door "$home_door" --land "$checked_out" --check "$check_open"
+same "landing on a Spec branch checked out in a worktree says it did not land and where it is checked out, with no Open line" \
+  "not landed: spec/feature is checked out in /home/dev/app/.claude/worktrees/spec-feature
+Review: none, the Spec is reviewed once its last Ticket lands"
+
+moved="$(src moved <<<"moved 9f8e7d6c5b4a")"
+run_in "$main_checkout" landing --door "$home_door" --land "$moved"
+check_lines "landing on a Spec branch that moved quotes the land line whole" 0 "$rc" "not landed: moved 9f8e7d6c5b4a"
+
+failed_land="$(src failed_land <<<"failed spec/feature does not resolve")"
+run_in "$main_checkout" landing --door "$home_door" --land "$failed_land"
+check_lines "landing that failed quotes the land line whole" 0 "$rc" "not landed: failed spec/feature does not resolve"
+absent "landing that failed never reads landed at" "landed at"
+
 exit "$((fails > 0))"

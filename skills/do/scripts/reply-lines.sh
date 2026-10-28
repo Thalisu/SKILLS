@@ -190,10 +190,12 @@ cmd_landing() {
   value_of branch door spec_branch
   case "$land" in
     "landed "*) echo "landed at ${land#landed } on $branch" ;;
+    "checked-out "*) echo "not landed: $branch is checked out in ${land#checked-out }" ;;
+    "moved "* | "failed "*) echo "not landed: $land" ;;
     *) failed "land unknown" ;;
   esac
   echo "Review: none, the Spec is reviewed once its last Ticket lands"
-  if [ -n "${given[check]-}" ]; then
+  if [ "${land%% *}" = landed ] && [ -n "${given[check]-}" ]; then
     entries="$(open_entries)"
     [ -z "$entries" ] || echo "Open: $entries"
   fi
