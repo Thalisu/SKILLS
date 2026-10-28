@@ -29,8 +29,12 @@
 #             yours= and two by_hand= lines that land the branch elsewhere by hand
 #   reason    anything else: no yours= line, the session words the direction from the quoted reason
 #
-# Exit codes: 0 verify · 1 fix · 3 resume · 4 blocked · 2 usage: a missing required key, an unknown or repeated key, an integration=
-# or last= word outside its union, or a landing= line of neither form.
+# then, on a reason opening with `gate red` after a fix or resume call, undo=<the command that resets
+# the worktree to before=, the commit recorded before the re-integration started>.
+#
+# Exit codes: 0 verify · 1 fix · 3 resume · 4 blocked · 2 usage: a missing required key, an unknown
+# or repeated key, an integration= or last= word outside its union, a landing= line of neither form,
+# or a gate red after a fix or resume call with no before=.
 set -uo pipefail
 
 usage() {
@@ -65,6 +69,13 @@ if [[ "$landing" =~ ^landed\ at\ ([0-9a-f]{7,40})(,|$) ]]; then
 fi
 [[ "$landing" =~ ^not\ landed:\ (.+)$ ]] || usage "a landing= line of neither form: $landing"
 reason="${BASH_REMATCH[1]}"
+undo=""
+case "$reason:${in[last]}" in
+  "gate red"*:fix | "gate red"*:resume)
+    undo="${in[before]:-}"
+    [ -n "$undo" ] || usage "a gate red after a ${in[last]} call needs before="
+    ;;
+esac
 echo "landing=not landed"
 echo "reason=$reason"
 
@@ -106,5 +117,6 @@ elif [[ "$reason" =~ (^|[^[:alnum:]_])protected([^[:alnum:]_]|$) ]]; then
 else
   echo "direction=reason"
 fi
+[ -z "$undo" ] || echo "undo=git reset --hard $undo"
 echo "route=blocked"
 exit 4

@@ -97,4 +97,13 @@ check_lines "a protected target stops the run with the way to land the branch el
   "by_hand=git switch <a branch that takes commits>" "by_hand=git merge --ff-only do/ticket" \
   "route=blocked"
 
+# A red gate on the tree a re-integration handed the fix call stops the run with the one line that
+# undoes that whole integration, back to the commit recorded before it started.
+before=fedcba9876543210fedcba9876543210fedcba98
+for last in fix resume; do
+  route "landing=not landed: gate red, the unit suite" "last=$last" "before=$before"
+  check_lines "a red gate on the $last call's tree stops the run with the undo of the re-integration" 4 "$rc" \
+    "reason=gate red, the unit suite" "undo=git reset --hard $before" "route=blocked"
+done
+
 exit $((fails > 0))
