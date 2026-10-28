@@ -142,12 +142,19 @@ command_lines() { # $1 the shape: the record's groups -> a place line and a /do 
 }
 
 cmd_repositories() {
-  local shape count
+  local shape count next location ticket
   shape="$(select_shape)" || {
     echo "$shape"
     exit 3
   }
   case "$shape" in
+    out-of-order)
+      value_of next order next_landing
+      value_of location order next_landing_location
+      value_of ticket order next_landing_ticket
+      echo "$next: open a session in $location"
+      echo "/do $ticket"
+      ;;
     landed | waiting | already-landed)
       value_of count order repositories
       [ "$count" -gt 1 ] || return 0

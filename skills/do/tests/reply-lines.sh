@@ -372,4 +372,17 @@ check_lines "repositories names an unlisted location as one the Spec's list does
   "web: the Spec's ## Repositories list holds no location for it"
 absent "repositories hands over no unlisted location to open a session in" "open a session in unlisted"
 
+run repositories --door "$resume_door" --order "$wait_order"
+same "repositories out of order prints only the repository that has to land first, its place and its /do" \
+  "api: open a session in /home/dev/api
+/do /home/dev/app/.scratch/feature/issues/03-export.md"
+
+run repositories --door "$door" --claim "$claim" --release "$release" --order "$order"
+check_lines "repositories on a feature of one repository: exit 0" 0 "$rc"
+same "repositories on a feature of one repository prints no line" ""
+
+run repositories --door "$door" --claim "$taken" --order "$stop_order"
+check_lines "repositories on a held claim: exit 0" 0 "$rc"
+same "repositories on a held claim prints no line" ""
+
 exit "$((fails > 0))"
