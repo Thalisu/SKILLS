@@ -74,9 +74,9 @@ the session may also write them as it goes, and nothing depends on that:
   covering the code it touched, the typecheck, the lint and the format green in the worktree after
   the last edit, and the full suites `scripts/gate-suites.sh` prints with no argument).
 - The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
-  `Loop: fallback` otherwise. Under `fallback` the build loop reads
-  [tdd-fallback.md](tdd-fallback.md) and the run writes the failing test itself, with no test author
-  dispatched; under `policy` that file is never read.
+  `Loop: fallback` otherwise. Read [tdd-fallback.md](tdd-fallback.md) when the loop line reads
+  `Loop: fallback`: the run writes the failing test itself, with no test author dispatched; under
+  `policy` that file is never read.
 - The defect line, `Defect: cause unknown, diagnosis first`: steps 2 and 3 always run, even when
   the report guesses at a cause.
 - The protected-branch warning when it applies (the protected branch in
