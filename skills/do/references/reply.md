@@ -253,7 +253,8 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       [Sections](#sections), with or without `--auto`: the message is the one place the developer
       sees it before it reaches their branch.
 28. **Review return.** The review's return, one line per part: the Review's location, the
-    `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line. The last
+    `Act on:` line, the landing line and the `route=` line `review-route.sh` printed for it, every
+    `Risk:` line and every `Axis not run:` line. The last
     two are also lines of the Pending debt, per item 9 of [Sections](#sections), with or without
     `--auto`.
 29. **Spec landing lines.** On a `ticket` run of a Spec, which calls no review, these lines in the

@@ -851,7 +851,38 @@ is the review's reason for not landing, and the run stops on it. Nor does it set
 Review: it never reads, edits, deletes or writes the Review, on the first call's return and on
 every fix call's alike, since the Review is the review's to write and its record that a Finding
 existed is the developer's to read. A Finding is settled by a fix call's re-check or overruled by
-the developer, never by the session. Landed, and the run goes on to the verification.
+the developer, never by the session.
+
+The run routes every return, the first review's and every fix call's, on the `route=` line the
+review route script prints, and never on its own reading of the landing line:
+
+```
+printf '%s\n' \
+  "landing=<the return's landing line, as it reads>" \
+  "integration=<the verdict= word of the integration.sh check run just before this return>" \
+  "last=<review | fix | resume>" \
+  "review=<the Review's location>" \
+  "target=<the landing target>" \
+  "worktree=<the worktree>" \
+  "branch=do/<slug>" \
+  "rerun=<the Ticket, or the request that started the run>" \
+  "command=<the run's own gate command= line, only when that gate ran before the review>" \
+  "before=<the commit recorded before the integration started, when one was recorded>" \
+  | bash <skill-dir>/scripts/review-route.sh
+```
+
+`last=` names the call that produced the return: `review` for the first review, `fix` for a fix
+call of the loop below, `resume` for the fix call of the in-run Resume path.
+
+- `route=verify`, exit 0: landed, and the run goes on to the verification.
+- `route=fix`, exit 1: the run integrates again, as `### Not landed: target moved` says, then makes
+  the fix call from the `fix=`, `gate=` and `caller=` lines as printed, and routes its return with
+  `last=fix`.
+- `route=resume`, exit 3: the run takes its in-run Resume path once, as that section says, makes
+  its fix call from the same lines, and routes its return with `last=resume`.
+- `route=blocked`, exit 4: the run stops as blocked, as `### Not landed for any other reason`
+  says, with the `reason=` line quoted, the `yours=` and `by_hand=` lines as printed, and the
+  `undo=` line when one is printed.
 
 ### Not landed: target moved
 
@@ -882,19 +913,15 @@ and one it cannot settle comes back in the call's landing line, which the run ro
 run commits after the review says, so a red **Gate** on that tree comes back as
 `not landed: gate red` with its failing check, never the Gate fixer, and it stops the run as
 blocked the way a red **Gate** after the first integration's reapplied commits stops it: the
-failing check named, the ledger's location, since the ledger holds what came back and what did
-not, and `git reset --hard <the commit recorded before it started>`, which undoes the whole
-integration. The worktree and its branch stay in place and are named, the Ticket stays `claimed`,
-nothing lands and nothing is pushed. A blocked
-state of that integration stops the run as it stops it before the review, with its own undo
-command. The retry has no fixed count, per
+failing check named, the ledger's location, and the `undo=` line the review route script prints,
+`git reset --hard <the commit recorded before it started>`, which undoes the whole integration. The
+worktree and its branch stay in place and are named, the Ticket stays `claimed`, nothing lands and
+nothing is pushed. A blocked state of that integration stops the run as it stops it before the
+review, with its own undo command. The retry has no fixed count, per
 [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md): it
-repeats for as long as each return reads `not landed: target moved` and the integration before it
-replayed commits, since every such return is another landing on the branch, and the runs landing
-at once are finite. A `not landed: target moved` right after an integration that ticked as a no-op
-is the one that ends the loop: the integration found the branch already holding the target, so no
-other landing happened, the landing and the integration disagree about the target, and integrating
-again inside the loop would meet the same tip.
+repeats for as long as each return routes `route=fix`, a `not landed: target moved` after an
+integration whose `check` read `rebase` or `reapply`. A `not landed: target moved` right after an
+integration that ticked as a no-op routes `route=resume` and ends the loop.
 
 The run does not stop on it. It takes its own Resume path in the same run, the path a second run
 request would have taken, since everything that path needs is a reversible action inside the run's
@@ -913,49 +940,29 @@ keyed by the branch, and lands through the fix call on that Review. The run land
 that path's own outcome, and the integration line of the Run report's Run section carries the lines of
 both integrations, per [reply.md](reply.md), never the resume as a next step.
 
-That resume is taken once per no-op state and is never a loop on it. When the integration inside it
-ticks as a no-op again and the fix call's landing again returns `not landed: target moved`, the
-branch still holds the target, no other landing happened in between, and integrating again would
-meet the tip already met, so the run stops as blocked like every other `not landed`, the end of the
-loop [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md)
-sets, applied to the resume. A resume whose integration replayed commits met another landing, and
-its `not landed: target moved` is back in the loop above.
+That resume's fix call is routed with `last=resume`: a `not landed: target moved` after its
+integration ticked as a no-op again routes `route=blocked`, and the run stops as blocked like every
+other `not landed`; one after an integration that replayed commits routes `route=fix`, back in the
+loop above.
 
 ### Not landed for any other reason
 
-Not landed, for any other reason the review gives (a Finding `not fixed` or `not verified`, an Axis
-`not run`, a red gate after the fixes, a `not landed: target moved` after the in-run resume's
-integration ticked as a no-op too, a red gate after the retry's rebase, a failed fast-forward, a protected branch), and the run stops as blocked: the review's reason quoted, the
-worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
-nothing lands half fixed. Each of those stops hands the developer a choice between outcomes the
-run holds nothing to decide, so the reply's `Yours:` line, per [reply.md](reply.md), reads
-`direction`, keyed on the review's returned reason and never on the session's own reading of the
-Review. The choice names what that reason leaves open, with the worktree and its branch: fix what
-it names in the worktree and request the run again, which resumes on the Review it has, or leave
-the branch unlanded. The run takes neither.
+On `route=blocked` the run stops as blocked: the `reason=` line quoted, the worktree and its branch
+left in place and named in the reply, the Ticket left `claimed`, nothing landed. The reply's
+`Yours:` line, per [reply.md](reply.md), reads `direction`, keyed on the `direction=` line and
+never on the session's own reading of the Review:
 
-A reason that names Findings, `not landed: Finding <n>[, <n>]... not fixed or not verified`, from
-the review or from any fix call, leaves those Findings open, and only the developer can close them:
-by a fix the next run's fix call settles off the branch, or by overruling the review, which is
-theirs to do in the Review and never the run's, since the run neither opens nor edits it. So the
-choice is those two, built from the landing line and the paths the run already holds, never from
-the Review's text:
+- `direction=findings`: the `yours=` line as printed, naming the open Findings of the `findings=`
+  line, the Review, the worktree and the request to run again (the Ticket, or in `bug-fix` and
+  `refactoring` the request that started the run).
+- `direction=protected`: the `yours=` line as printed, then the two `by_hand=` lines as the Next
+  step's commands, which the run types neither of.
+- `direction=reason`: the session words the choice from the quoted reason, with the worktree and
+  its branch: fix what it names in the worktree and request the run again, which resumes on the
+  Review it has, or leave the branch unlanded. The run takes neither.
 
-```
-Yours: direction: Finding <n>[, <n>]... stays open in <the Review>: fix it in <the worktree> and run do on <the Ticket> again, or overrule it by editing <the Review> and running do on <the Ticket> again
-```
-
-In `bug-fix` and `refactoring` the request typed again names the one that started the run, since no
-Ticket stands behind it. On a protected branch the diff was reviewed and Green
-and only the target was wrong, so the choice is where it lands: landing the reviewed branch
-elsewhere, with the two commands that land it by hand from a branch that takes commits. The run
-types neither:
-
-```
-Yours: direction: land do/<slug> on a branch that takes commits, or leave it in its worktree
-git switch <a branch that takes commits>
-git merge --ff-only do/<slug>
-```
+An `undo=` line, printed on a red gate after a fix call or the resume, is the undo command the
+reply names.
 
 ### The fix call
 
@@ -974,6 +981,9 @@ fix call runs the Gate itself from the Testing Policy's Project facts, which is 
 handed no `command=` line does. What that Gate ran
 is in the fix call's return, which the Run report's gate line carries instead, per
 [reply.md](reply.md).
+On `route=fix` and `route=resume` the call is made from the lines the review route script printed,
+as printed: `fix=` the call and its two arguments, `gate=` the `command=` line only when one was
+given, and `caller=` the line that marks the call as the run's own.
 Last of all the call carries one line that marks it as the run's own, after its one review:
 
 ```

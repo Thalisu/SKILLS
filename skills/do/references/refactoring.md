@@ -652,35 +652,29 @@ The review writes the Review, fixes its `Act on` Findings through its Fixers, on
 Fixers of one Wave at once and each in a worktree of its own, and lands the branch by fast-forward
 when the Review is Green. The run fixes no Finding and lands nothing itself.
 
-The return is recorded for the Run report's Run section, one line per part, as the shared section says.
-The five returns are the ones the `ticket` Playbook gets:
+The return is recorded for the Run report's Run section, one line per part, as the shared section says,
+and routed on the `route=` line of `review-route.sh`, with the request that started the run as
+`rerun=`. The five returns are the ones the `ticket` Playbook gets:
 
-- **Landed.** The line reads `landed at <commit>` and the run goes to the verification.
-- **Not landed: target moved.** The run integrates again in the same run, its Loss ledger keyed by
-  the branch, judged and reapplied with no **Gate** of the run's own after the last reapply, and lands
-  through the fix call on the Review it already has, as the review in [mechanics.md](mechanics.md)
-  says, never a second review, repeating with no fixed count while each integration replayed
-  commits. Right after an integration that ticked as a no-op, the run takes step 2's resume in the
-  same run, as that review says: the Review it already has counts, so it integrates again and lands
-  through the fix call on that Review, and the same return again, after that resume's integration
-  ticked as a no-op too, stops the run as blocked.
-- **Not landed**, for any other reason the review gives. The run stops as blocked with the reason
-  quoted, the worktree and its branch left in place and named in the reply, nothing half fixed,
-  and the reply's `Yours: direction:` line carrying the choice, as the review in
-  [mechanics.md](mechanics.md) says.
+- **Landed.** `route=verify`, and the run goes to the verification.
+- **Not landed: target moved.** On `route=fix` the run integrates again in the same run, its Loss
+  ledger keyed by the branch, judged and reapplied with no **Gate** of the run's own after the last
+  reapply, and lands through the fix call on the Review it already has, from the printed lines, as
+  the review in [mechanics.md](mechanics.md) says, never a second review, with no fixed count. On
+  `route=resume`, right after an integration that ticked as a no-op, the run takes step 2's resume
+  in the same run: the Review it already has counts, so it integrates again and lands through the
+  fix call on that Review.
+- **Not landed**, on `route=blocked`. The run stops as blocked with the `reason=` line quoted, the
+  worktree and its branch left in place and named in the reply, nothing half fixed, and the reply's
+  `Yours: direction:` line carrying the choice, as the review in [mechanics.md](mechanics.md) says.
 - **`do-code-review` not listed.** The step reads `skip: do-code-review not listed`, nothing lands,
   and the reply names the worktree, its branch and the review as the developer's next step.
 - **A protected branch.** The review refuses the landing, whatever the run wrote, and the run
   stops as blocked with the landing handed over under `direction`, as the review in
-  [mechanics.md](mechanics.md) says: the reply's `Yours: direction:` line carries the two commands
-  that land the reviewed branch by hand from a branch that takes commits, and the run types
-  neither:
-
-```
-Yours: direction: land do/<slug> on a branch that takes commits, or leave it in its worktree
-git switch <a branch that takes commits>
-git merge --ff-only do/<slug>
-```
+  [mechanics.md](mechanics.md) says: `route=blocked` with `direction=protected`, the reply's
+  `Yours: direction:` line the printed `yours=` line, and the two printed `by_hand=` lines the
+  commands that land the reviewed branch by hand from a branch that takes commits, which the run
+  types neither of.
 
 Done when the return is recorded for the Run report's Run section with its landing line reading
 `landed at <commit>`, or the run stopped as blocked with the review's reason quoted, or the step

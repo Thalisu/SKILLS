@@ -368,20 +368,19 @@ No Ticket exists to hand over, so the Review names the branch and its fixed poin
   its `verdict=settled`;
 - the landing target: the branch the run started on.
 
-The return is recorded for the Run report's Run section, one line per part, and answered as the review
-in [mechanics.md](mechanics.md) says:
+The return is recorded for the Run report's Run section, one line per part, and routed on the
+`route=` line of `review-route.sh`, as the review in [mechanics.md](mechanics.md) says, with the
+request that started the run as `rerun=`:
 
-- `not landed: target moved` integrates again in the same run, its Loss ledger keyed by the branch,
-  and lands through the fix call on the Review the run already has, repeating with no fixed count
-  while each integration replayed commits.
-- `not landed: target moved` right after an integration that ticked as a no-op sends the run
-  through the Resume above in the same run: the Review it already has counts, so it integrates
-  again and lands through the fix call on it. The same return after that resume's integration
-  ticked as a no-op too stops the run as blocked.
-- A red gate, any other return that reads not landed, a `do-code-review` the session does not list
-  and a protected branch are handled the way the `ticket` Playbook handles them, and the mechanics
-  carry the `Yours: direction:` line and the two commands the Next step adds after a refused
-  protected-branch landing.
+- `route=fix` integrates again in the same run, its Loss ledger keyed by the branch, and lands
+  through the fix call on the Review the run already has, from the printed lines, with no fixed
+  count.
+- `route=resume`, a `not landed: target moved` right after an integration that ticked as a no-op,
+  sends the run through the Resume above in the same run: the Review it already has counts, so it
+  integrates again and lands through the fix call on it.
+- `route=blocked` stops the run as blocked with the printed `yours=`, `by_hand=` and `undo=` lines,
+  and a `do-code-review` the session does not list is handled the way the `ticket` Playbook
+  handles it.
 
 Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as blocked
 with the review's reason quoted and the worktree and its branch named, or the step reads

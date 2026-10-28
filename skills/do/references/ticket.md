@@ -331,7 +331,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   and the run goes on at step 4, then the **Gate** of step 5, the integration of step 6 onto the
   Spec branch and the landing of step 7. That is how a run requested again after a refused landing
   resumes at the landing.
-- When every line of the list is ticked on a Ticket with no Spec, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op leaves,
+- When every line of the list is ticked on a Ticket with no Spec, as on the branch a `route=resume` of `review-route.sh` leaves, a `not landed: target moved` right after an integration that ticked as a no-op,
   whether a later run finds it or the same run takes this path at step 7 without a second request,
   step 3 reads `done: resumed` and the run never waits on a Builder with nothing left to build. It
   goes on at step 4 as a first run does, reading the diff already on the branch, its flows counting
@@ -1375,10 +1375,13 @@ location as the spec source, the `fixed_point=` line of
 `verdict=settled`, as the fixed point, and the branch
 the run started on as the landing target, with the held Rulings after the Gate when the run holds
 any, as the review in [mechanics.md](mechanics.md) says. The return is recorded for the Run report's Run section,
-one line per part. A `not landed: target moved` runs the integration again, in the same run, its
-Loss ledger judged and reapplied with no **Gate** of the run's own, then the fix call on the Review
-the run already has, as that review says, and repeats with no fixed count while each integration replayed
-commits; a `not landed: target moved` right after an integration that ticked as a no-op sends the run through the all-ticked bullet of the Resume above in the same run, as that review says, and the step ends on that path's own landing line; the same return again, after that resume's integration ticked as a no-op too, stops the run as blocked like every other `not landed`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
+one line per part. Each return, and each fix call's, is routed on the `route=` line of
+`review-route.sh`, as that review says: on `route=fix` the run integrates again, in the same run,
+its Loss ledger judged and reapplied with no **Gate** of the run's own, then makes the fix call on
+the Review the run already has from the printed lines, with no fixed count; on `route=resume`, a
+`not landed: target moved` right after an integration that ticked as a no-op, the run goes through
+the all-ticked bullet of the Resume above in the same run, and the step ends on that path's own
+landing line; on `route=blocked` it stops as blocked. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 

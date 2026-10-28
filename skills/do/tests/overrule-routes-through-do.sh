@@ -14,13 +14,14 @@
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
-mech="$here/../references/mechanics.md"
 do_doc="$here/../../../docs/do.md"
 review_doc="$here/../../../docs/do-code-review.md"
 fails=0
 
-echo "# mechanics.md's Yours template: the overrule half runs do on the Ticket again"
-flat="$(grep -F 'Yours: direction: Finding' "$mech")"
+echo "# review-route.sh's Yours line: the overrule half runs do on the Ticket again"
+flat="$(printf '%s\n' "landing=not landed: Finding 3 not fixed or not verified" "integration=rebase" \
+  "last=review" "review=<the Review>" "target=main" "worktree=<the worktree>" "branch=do/x" \
+  "rerun=<the Ticket>" | bash "$here/../scripts/review-route.sh" | sed -n 's/^yours=//p')"
 carries "the overrule half sends the developer back through do on the Ticket" \
   "overrule it by editing <the Review> and running do on <the Ticket> again"
 # shellcheck disable=SC2034 # lib.sh's absent reads $out
