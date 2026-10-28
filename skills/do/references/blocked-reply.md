@@ -1,5 +1,10 @@
 # The blocked reply
 
+Read by the session writing the Reply of a `ticket`, `bug-fix`, `refactoring`, `trivial`, `pr` or
+`integrate` run, when the run ends blocked or refused: at a door's refusal, at the blocked step it
+stopped at, or at the close's `destroy` stop. It holds what that Reply carries in place of, or
+beside, the five parts of [reply.md](reply.md). A run that ends well never reads it.
+
 ## A refusal or a blocked run
 
 A run that ends early writes, in this order:

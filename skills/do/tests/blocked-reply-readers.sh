@@ -7,7 +7,14 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 reference="$here/../references/blocked-reply.md"
 reply="$here/../references/reply.md"
+skill="$here/../SKILL.md"
 fails=0
+
+readers=(
+  "the session" -- "\`ticket\`" -- "\`bug-fix\`" -- "\`refactoring\`" -- "\`trivial\`" -- "\`pr\`" --
+  "\`integrate\`" -- "door" -- "blocked step" "step it stopped at" "stops as blocked" -- "\`destroy\` stop"
+)
+condition=("ends blocked or refused")
 
 # The session writing a blocked Reply copies its shape from these examples: without them the
 # blocker, the Yours: hand-over or the command goes missing and the stop hands nothing over.
@@ -45,5 +52,23 @@ out="$(item_holding <(passage_of "$reply" "## The message" "## ") '[0-9]+\.' "**
 expect "reply.md's The message has a Yours part" test -n "$out"
 check "the Yours part reads Read blocked-reply.md when the run ends blocked or refused" 0 0 \
   "Read [blocked-reply.md](blocked-reply.md) when the run ends blocked or refused"
+
+# A maintainer tells from one place when the file is read: an opening or an entry missing a reader
+# hides a run that loads it, and one naming setup sends a Playbook there that writes its own messages.
+echo "# blocked-reply.md and SKILL.md: the opening and the references-list entry name every reader and the condition"
+for where in opening entry; do
+  if [ "$where" = opening ]; then
+    flat="$(awk '/^## /{exit} {print}' "$reference" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+  else
+    flat="$(bullets_opening_on "$skill" "[blocked-reply.md](references/blocked-reply.md)" | tr -s ' ')"
+  fi
+  expect "the $where of blocked-reply.md exists" test -n "$flat"
+  carries_each "the $where names the session writing the Reply of every Playbook that reaches it, at each stop" \
+    "${readers[@]}"
+  carries_each "the $where names the condition, the run ending blocked or refused" "${condition[@]}"
+  # shellcheck disable=SC2034  # lib.sh's absent reads $out
+  out="$flat"
+  absent "the $where does not send setup there" "\`setup\`"
+done
 
 exit $((fails > 0))
