@@ -181,4 +181,9 @@ rm -f "$plan"
 run verify "${recorded[@]}"
 check_lines "verify refuses when no Plan is at the destination" 1 "$rc" "verdict=refused"
 
+# A tracker Ticket has no file to hash: its one possible Plan records it absent.
+plan_with "ticket: absent" "digest: $digest $d_hash"
+run verify "$root" "https://github.com/owner/repo/issues/42" absent "$digest" "$d_hash" "$plan"
+check_lines "verify matches an issue-backed Ticket recorded absent against a Plan reading ticket: absent" 0 "$rc" "verdict=match"
+
 [ "$fails" = 0 ]
