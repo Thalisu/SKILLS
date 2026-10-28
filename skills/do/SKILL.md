@@ -199,7 +199,7 @@ that Playbook. The reply reference is read last by every Playbook but `setup`, w
   skill, the skipped Planner, the fork and the main checkout check around it, the brief's four keys,
   how its return reads beside a Builder's, and the Reply lines proper to that run.
 - [second-run.md](references/second-run.md): the second reader run, read by the `ticket` door and the reader section of the mechanics only when a Digest already sits beside the Ticket: the digest check `grounding.sh digest` and its `verdict=reuse` and `verdict=fork` routes, and the Digest a stopped run left behind.
-- [resume.md](references/resume.md): the resume of a `ticket` run, read only when one of three readers of
+- [resume.md](references/resume.md): the resume of a `ticket` run, read only when one of these readers of
   ticket.md sends the run there: the Door, when the door prints `verdict=resume` (a `claimed` Ticket whose
   `do/<slug>` worktree exists); the review step, through not-landed.md, when `review-route.sh` prints `route=resume`, for its
   all-ticked bullet; the build step, when a Builder's return fails its checks; and the stopped Final
