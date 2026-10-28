@@ -798,6 +798,19 @@ a_moved_tip_the_worktree_never_met_is_integrated_again() {
 }
 a_moved_tip_the_worktree_never_met_is_integrated_again
 
+# A tip the worktree already holds means the landing and the integration disagree about it, and
+# integrating again would meet the same tip forever: the run stops instead.
+a_moved_tip_the_worktree_already_holds_blocks_the_run() {
+  run_held moved-met
+  tip="$(g rev-parse main)"
+  run_moved "$wt" "moved $tip"
+  check_lines "a tip the worktree already holds stops the run as blocked" 4 "$rc" \
+    "tip=$tip" "verdict=blocked"
+  absent "a tip already met is never integrated again" "verdict=integrate"
+  cd "$repo" || exit 1
+}
+a_moved_tip_the_worktree_already_holds_blocks_the_run
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

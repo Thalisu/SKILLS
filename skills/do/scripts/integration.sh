@@ -21,11 +21,12 @@
 # target's tip after the developer merged it by hand.
 #
 # moved: the retry on land-spec.sh's `moved <tip>`, read off that line alone, with no count and no
-# state carried between laps. Prints tip=<tip>, then verdict=integrate (the tip is not an ancestor of
-# the worktree's HEAD: integrate onto it and land again).
+# state carried between laps. Prints tip=<tip>, then verdict: blocked (the tip is an ancestor of the
+# worktree's HEAD, so the integration before already met it and another lap would meet it again) ·
+# integrate (it is not: integrate onto it and land again).
 #
 # Exit codes, check: 0 noop · 1 rebase · 3 reapply; settle: 0 settled · 1 owed · 3 open; moved: 0
-# integrate. All: 2 usage, <worktree> not a work tree; check and settle: <target> not a branch, or the
+# integrate · 4 blocked. All: 2 usage, <worktree> not a work tree; check and settle: <target> not a branch, or the
 # ledger refused or unreadable (ledger.sh's stderr passed on); check also on a rebase open in
 # <worktree>; moved: a line that is not `moved <40-hex sha>`, or a sha that is no commit.
 set -uo pipefail
@@ -57,6 +58,10 @@ if [ "$verb" = moved ]; then
   tip="${BASH_REMATCH[1]}"
   git -C "$worktree" cat-file -e "$tip^{commit}" 2>/dev/null || refused "$tip is no commit"
   echo "tip=$tip"
+  if git -C "$worktree" merge-base --is-ancestor "$tip" HEAD; then
+    echo "verdict=blocked"
+    exit 4
+  fi
   echo "verdict=integrate"
   exit 0
 fi
