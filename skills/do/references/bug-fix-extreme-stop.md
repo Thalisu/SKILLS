@@ -8,8 +8,7 @@ once landed), the worktree and its branch left in place, and the commits made so
 each, or `none`. The choice between the sides is handed over:
 `Yours: direction: choose <side A> or <side B> through the /discuss below, then type the request again to resume in <worktree>`.
 
-There is no Ticket and no Spec, so the reply's last line is a `/discuss` command that names
-neither, whole, with nothing after it:
+The reply's last line is a `/discuss` command, whole, with nothing after it:
 
 ```
 /discuss the do bug-fix run on "<the bug read back>" stopped at the <step> step on an Extreme fork, <side A> or <side B>; <the weaker side> would give up <the guarantee> (<the risk class>). Which side does the fix take?
@@ -21,8 +20,7 @@ That line is the stdout of `scripts/next-step.sh` on `outcome=extreme-fork`, pip
 Copy it whole; never fill the template yourself.
 
 A side that cannot be undone once landed reads `<the weaker side> cannot be undone once landed:
-<what could not be undone>` in place of the clause after the semicolon. No sidecar is written: the
-next `/do` on the same bug is a resume of the branch, which meets the fork again at its step.
+<what could not be undone>` in place of the clause after the semicolon. No sidecar is written.
 
 ## The unruled stop
 

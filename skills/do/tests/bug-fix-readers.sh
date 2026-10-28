@@ -125,4 +125,14 @@ step6="$(item_holding "$bugfix" '\*\*[0-9]+\.' ". Fix.**" | flat_of)"
 expect "step 6 reaches the Design fork through Read [bug-fix-design-fork.md](bug-fix-design-fork.md) when <condition>" \
   grep -qE "$pointer" <<<"$step6"
 
+echo "# bug-fix.md and every reference cut from it: instructions only, no ADR and no principle given as a reason"
+for file in "$bugfix" "$resume" "$design" "$extreme" "$auto"; do
+  name="$(basename "$file")"
+  # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+  out="$(cat "$file" 2>/dev/null)"
+  expect "$name has text" test -n "$out"
+  check_absent "$name links no ADR and cites no principle as a rule's reason" 0 0 \
+    "docs/adr/" "](../../../.agents/principles/"
+done
+
 exit $((fails > 0))
