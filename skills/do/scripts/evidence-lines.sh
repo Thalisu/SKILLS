@@ -7,6 +7,7 @@
 #
 # Reads key=value lines on stdin, unknown keys ignored:
 #   grounded=<tokens>                 the ground reading's current
+#   resumed=yes|no                    yes when the run recorded the Resume line of ticket.md
 #   peak=<tokens> band=<band> forks=<n> fork_kinds=<kinds>   the close reading, as context-usage.sh prints it
 # Prints the Context line, then the Forks line.
 # Exit codes: 0 both lines printed.
@@ -16,8 +17,10 @@ while IFS= read -r line || [ -n "$line" ]; do
   case "$line" in *=*) in["${line%%=*}"]="${line#*=}" ;; esac
 done
 printf 'Context: grounded %s, peak %s, %s\n' "${in[grounded]}" "${in[peak]}" "${in[band]}"
+suffix=""
+[ "${in[resumed]:-}" = yes ] && suffix=", this session only (resumed run)"
 if [ "${in[forks]}" = 0 ]; then
-  echo "Forks: 0"
+  echo "Forks: 0$suffix"
 else
-  printf 'Forks: %s (%s)\n' "${in[forks]}" "${in[fork_kinds]}"
+  printf 'Forks: %s (%s)%s\n' "${in[forks]}" "${in[fork_kinds]}" "$suffix"
 fi

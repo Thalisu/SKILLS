@@ -25,4 +25,11 @@ run grounded=48210 resumed=no peak=98411 band=small forks=0 fork_kinds=
 check_lines "evidence-lines.sh prints Forks: 0 when the close reading counted no fork" 0 "$rc" \
   "Forks: 0"
 
+run grounded=51004 resumed=yes peak=98411 band=small forks=2 'fork_kinds=Explore 1, do-builder 1'
+check_lines "evidence-lines.sh ends a resumed run's counted Forks line with , this session only (resumed run)" 0 "$rc" \
+  "Forks: 2 (Explore 1, do-builder 1), this session only (resumed run)"
+run grounded=51004 resumed=yes peak=98411 band=small forks=0 fork_kinds=
+check_lines "evidence-lines.sh ends a resumed run's zero Forks line with , this session only (resumed run)" 0 "$rc" \
+  "Forks: 0, this session only (resumed run)"
+
 [ "$fails" = 0 ]
