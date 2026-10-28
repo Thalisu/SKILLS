@@ -48,11 +48,6 @@ to the behaviours still ahead.
      seam would pin the implementation the seam exists to hide. A Builder does not build the seam
      itself: it dispatches `do-implementer` with `Edit: seam`, per `## The Implementer` of
      [builder.md](builder.md).
-   - `BLOCKED` naming a run command the project map lacks, a slot reading
-     `none yet → /testing-policy`: the map does not change during the run, so a second dispatch
-     would meet the same `BLOCKED`. The run writes this behaviour and every remaining one itself,
-     under [tdd-fallback.md](tdd-fallback.md), naming the missing slot and `/testing-policy` as the
-     command that would fill it, and dispatches the unit test author no more this run.
    - `HANDBACK`: the author spent its one fix attempt and stopped. Route on the Handback's
      `Diagnosis` line, never on the verdict:
      - `production` (a bug, a missing seam or a state the test cannot reach): the run writes the
@@ -114,11 +109,8 @@ to the behaviours still ahead.
 Done when every behaviour line has a commit beside it and its build line is recorded for the
 Run report's Run section.
 
-Under the fallback, when the loop line reads `Loop: fallback` (no unit test author
-in the project and no global one that can be dispatched), the same loop runs by
-[tdd-fallback.md](tdd-fallback.md), read only then: the run writes the failing test itself where
-a cheap path exists, and otherwise the closest executable check with the reason stated, and no
-test author is dispatched. Nothing else changes: red first, the smallest green, one commit.
+Read [global-authors.md](global-authors.md) when the loop line reads `Loop: global` or
+`Loop: fallback`.
 
 ## The test authors
 
@@ -138,14 +130,3 @@ still misses the target, per
 [ADR 0051](../../../docs/adr/0051-a-test-author-gets-one-fix-attempt-and-hands-back-what-it-ruled-out.md).
 The bound is counted in runs, never in tokens: a forked agent cannot read its own consumption, and
 `scripts/context-usage.sh` measures this session and nothing it forks.
-
-Under `Loop: global` the project has no Testing Policy, and the authors are the two `do` ships in
-its `agents/` folder, each carrying the policy's agent core unchanged: call the Agent tool with
-`subagent_type: global-unit-test-author` for a unit test and
-`subagent_type: global-e2e-test-author` for a flow, with the same dispatch input and one more line,
-`Project map: <the map's path>`, the file `project-map.sh` wrote once for the whole run, at the
-step its Playbook names. Each author reads its commands
-and its layout from that file, so no dispatch derives the map again, and the verdicts are the ones
-above. The global authors have no inline entry point: with the Agent tool withheld the loop line
-already reads `Loop: fallback`, the run writes every unit test itself by
-[tdd-fallback.md](tdd-fallback.md) and authors the flow itself, and no author is dispatched.

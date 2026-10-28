@@ -64,4 +64,28 @@ carries_each "on stretch=stop the Stretch returns stopped naming the spent budge
 carries "a stop read after the Plan's last behaviour, with no flow left, returns built" "\`built\`"
 carries "the session forks the next Stretch with the same brief" "same brief"
 
+echo "# global-authors.md: a build loop whose loop line reads Loop: policy loads no global or fallback author text"
+
+# build-loop.md and flows.md are read on every policy run: the global authors, the Project map and
+# the TDD fallback are read only once the loop line names them.
+for always in "$refs/build-loop.md" "$refs/flows.md"; do
+  name="$(basename "$always")"
+  flat="$({ tr '\n' ' ' <"$always"; } 2>/dev/null | tr -s ' ')"
+  carries "$name points at global-authors.md when the loop line reads Loop: global or Loop: fallback" \
+    "Read [global-authors.md](global-authors.md) when " "\`Loop: global\`" "\`Loop: fallback\`"
+  # shellcheck disable=SC2034  # lib.sh's absent reads $out
+  out="$flat"
+  absent "$name no longer dispatches the global unit test author" "global-unit-test-author"
+  absent "$name no longer dispatches the global end-to-end test author" "global-e2e-test-author"
+  absent "$name no longer routes to the TDD fallback" "tdd-fallback.md"
+  absent "$name no longer reads an unfilled Project map slot" "none yet → /testing-policy"
+done
+
+expect "global-authors.md exists" test -f "$refs/global-authors.md"
+flat="$({ tr '\n' ' ' <"$refs/global-authors.md"; } 2>/dev/null | tr -s ' ')"
+carries "global-authors.md dispatches both global authors with the Project map" \
+  "subagent_type: global-unit-test-author" "subagent_type: global-e2e-test-author" "Project map: "
+carries "global-authors.md sends Loop: fallback and a BLOCKED map slot to the TDD fallback" \
+  "[tdd-fallback.md](tdd-fallback.md)" "\`BLOCKED\`" "none yet → /testing-policy"
+
 [ "$fails" -eq 0 ]

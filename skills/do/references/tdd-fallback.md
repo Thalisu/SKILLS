@@ -19,7 +19,7 @@ Two ways in, and no other:
 | The loop line | The way in | What the run writes itself |
 |---|---|---|
 | `Loop: fallback` | the build loop reads this file before the run writes its first test | every unit test of the run |
-| `Loop: global` | build-loop.md's `BLOCKED` route: the global unit test author came back `BLOCKED` naming a run command the project map lacks | that behaviour and every one remaining |
+| `Loop: global` | global-authors.md's `BLOCKED` route: the global unit test author came back `BLOCKED` naming a run command the project map lacks | that behaviour and every one remaining |
 
 On the `BLOCKED` route the loop line keeps reading `Loop: global`, and the run dispatches the unit
 test author no more: the map does not change during the run, so a second dispatch would meet the

@@ -39,20 +39,8 @@ The brief's `Loop:` key decides.
     fixture state, placement when it matters.
   - On a consumer surface the flow lives in the consumer repository: no author is dispatched and
     the `fallback:` line names it as pending debt with the consumers named.
-- `Loop: global`: the project has no Testing Policy and so no section marker naming a surface, and
-  the Project map the brief names stands in for it.
-  - When the map's single-flow command is filled, each criterion the Digest marks observable gets
-    its flow from `global-e2e-test-author` with the same complete input and the map's path, and the
-    same verdicts.
-  - When that command reads `none yet → /testing-policy` and the map's full-suite end-to-end
-    command is filled too, no author is dispatched: the `fallback:` line names the single-flow slot
-    the map left unfilled and quotes the full-suite command the map does carry, and the criterion
-    it would have proven is left for the session to leave unticked at the close.
-  - When both commands read `none yet → /testing-policy`, no author is dispatched either: the
-    `fallback:` line reads `no end-to-end command in the project` and names `/testing-policy` as
-    the command that would fill the slot.
-- `Loop: fallback`: the same map decides, and where its command is filled the fork authors the flow
-  itself and says so on a `fallback:` line.
+- `Loop: global` or `Loop: fallback`: Read [global-authors.md](global-authors.md) when the brief's
+  `Loop:` key reads either.
 
 ## Reading the author's report
 
