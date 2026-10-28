@@ -527,4 +527,36 @@ Ticket 03 still reads ready-for-agent.
 Yours: outward: cut the moved behaviour for orders-service with the command below, then run /do on this Ticket again
 /tickets .scratch/feature/spec.md"
 
+finding_unchanged="$(
+  src finding_unchanged <<'EOF'
+spec=/home/dev/app/.scratch/feature/spec.md
+repository=orders-service
+listed=yes
+list=unchanged
+line=written
+home=/home/dev/app
+home_name=app
+here=yes
+EOF
+)"
+run elsewhere --door "$plan_door" "$finding_unchanged" "show the hold"
+check_lines "elsewhere on a repository already listed names the one line and says it was already listed" 0 "$rc" \
+  "Written into the Spec (.scratch/feature/spec.md): one line naming the behaviour as moved by the run on Ticket 03; orders-service was already in its repositories list."
+
+finding_present="$(
+  src finding_present <<'EOF'
+spec=/home/dev/app/.scratch/feature/spec.md
+repository=orders-service
+listed=yes
+list=unchanged
+line=present
+home=/home/dev/app
+home_name=app
+here=yes
+EOF
+)"
+run elsewhere --door "$plan_door" "$finding_present" "show the hold"
+check_lines "elsewhere on a finding line an earlier run wrote says the line was already there" 0 "$rc" \
+  "Written into the Spec (.scratch/feature/spec.md): the line naming the behaviour as moved, already there, written by an earlier run on Ticket 03; orders-service was already in its repositories list."
+
 exit "$((fails > 0))"

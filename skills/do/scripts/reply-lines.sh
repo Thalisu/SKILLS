@@ -313,7 +313,7 @@ cmd_final() {
 }
 
 cmd_elsewhere() { # $@ finding file and behaviour pairs: the whole stop message after its first line
-  local i=0 spec home number status relative repository repositories=() written pairs=("$@")
+  local i=0 spec home number status relative repository repositories=() written list line moved pairs=("$@")
   while [ "$#" -ge 2 ]; do
     i=$((i + 1))
     [ -f "$1" ] && [ -r "$1" ] || usage
@@ -336,7 +336,15 @@ cmd_elsewhere() { # $@ finding file and behaviour pairs: the whole stop message 
     i=$((i + 1))
     value_of repository "finding$i" repository
     repositories+=("$repository")
-    written="$repository added to its repositories list, and one line naming the behaviour as moved by the run on Ticket $number."
+    value_of list "finding$i" list
+    value_of line "finding$i" line
+    moved="one line naming the behaviour as moved by the run on Ticket $number"
+    [ "$line" != present ] || moved="the line naming the behaviour as moved, already there, written by an earlier run on Ticket $number"
+    case "$list" in
+      added) written="$repository added to its repositories list, and $moved." ;;
+      unchanged) written="$moved; $repository was already in its repositories list." ;;
+      *) failed no-shape ;;
+    esac
     echo "Stopped at the Plan, before anything was built: \"$2\" has no place in this repository. It belongs to $repository."
     echo "Written into the Spec ($relative): $written"
     shift 2
