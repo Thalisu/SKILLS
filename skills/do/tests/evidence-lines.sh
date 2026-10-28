@@ -21,4 +21,8 @@ same "evidence-lines.sh prints Context: grounded <g>, peak <p>, <band> then Fork
 Forks: 3 (Explore 1, do-code-review 2)"
 [ "$rc" = 0 ] || fail "a measured pair exits 0 (exit $rc)"
 
+run grounded=48210 resumed=no peak=98411 band=small forks=0 fork_kinds=
+check_lines "evidence-lines.sh prints Forks: 0 when the close reading counted no fork" 0 "$rc" \
+  "Forks: 0"
+
 [ "$fails" = 0 ]

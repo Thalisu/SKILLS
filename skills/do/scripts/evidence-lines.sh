@@ -16,4 +16,8 @@ while IFS= read -r line || [ -n "$line" ]; do
   case "$line" in *=*) in["${line%%=*}"]="${line#*=}" ;; esac
 done
 printf 'Context: grounded %s, peak %s, %s\n' "${in[grounded]}" "${in[peak]}" "${in[band]}"
-printf 'Forks: %s (%s)\n' "${in[forks]}" "${in[fork_kinds]}"
+if [ "${in[forks]}" = 0 ]; then
+  echo "Forks: 0"
+else
+  printf 'Forks: %s (%s)\n' "${in[forks]}" "${in[fork_kinds]}"
+fi
