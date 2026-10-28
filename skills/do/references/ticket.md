@@ -224,17 +224,15 @@ verdict printed, `land` or `integration` on a rebase stopped after that review, 
 Digest's state, a hash that differs or no Digest at all: only the integration and the landing are
 left, and nothing they run opens a Digest.
 Every other run, a resume whose `review=` line reads `none` included, goes on to the Digest
-decision. Then the door decides between
-the Digest already beside the Ticket and a reader, as the second run section of
-[mechanics.md](mechanics.md) fixes, and reads this Ticket's Ruling lines off the Spec by the fixed
-command of the reader section there, whichever way it decides. Two recorded hashes that both match are a reuse: the run says
-in one line that it reused the Digest and forked no reader, and derives its behaviours from the
-Digest already beside the Ticket. A hash that differs, and a Ticket with no Digest yet, are the
-two states the run forks the reader for, and it forks it for no other. The door resolves both
-documents and hashes both itself before it forks, the way the reader section of
-[mechanics.md](mechanics.md) says. That fork runs over the Ticket's Spec, where the format says it
-is (the spec file in the folder above the `issues/` folder, or the issue the parent section names),
-and over the journey its `Journey:` line names when it names one, and the run opens neither itself:
+decision. Then the door runs the digest check,
+`bash <skill-dir>/scripts/grounding.sh digest <root> <ticket=> <the Digest's path>`, as the second
+run section of [mechanics.md](mechanics.md) fixes, and reads this Ticket's Ruling lines off its
+`spec=` path by the fixed command of the reader section there, whichever verdict it prints. On
+`verdict=reuse` the run says in one line that it reused the Digest and forked no reader, and
+derives its behaviours from the Digest already beside the Ticket. On `verdict=fork` it forks the
+reader, and on no other verdict. That fork runs over the `spec=` path the check printed, or the
+issue the parent section names on a remote tracker, and over the `journey=` path unless it reads
+`none`, and the run opens neither itself:
 it says in one line that both are being read in a window of their own, then
 the session writes the Digest from the text that comes back, in the format of
 [digest.md](digest.md), and the run derives its behaviours from that file. Read
@@ -242,7 +240,8 @@ the session writes the Digest from the text that comes back, in the format of
 session, or it lists no `do-reader`. The Digest and the `.scratch/` line its write needs are the run's first
 marks on the developer's checkout, so a Ticket refused above leaves `git status` in the main
 checkout exactly as it found it. Both go under `<root>`, the door's `root=` line: the Digest beside
-the Ticket, the `.scratch/` line in that repository's `.gitignore`, and both hashes taken there.
+the Ticket, the `.scratch/` line in that repository's `.gitignore`, and the digest check run with
+that `<root>`.
 On a Ticket run from its Build repository `<root>` is the Home repository, so the Spec and the
 journey the reader is handed are the ones above the Ticket's `issues/` folder there, and no Digest
 and no `.scratch/` line is written into the repository the session is in.
@@ -280,17 +279,23 @@ and leaves the worktree as it is, since no branch can be read from it to build o
 - An `extreme=` line means an earlier run stopped on an Extreme fork and left its sidecar, per the
   forks in [forks.md](forks.md). It is read on `verdict=extreme` and on `verdict=ask` alike, since
   the script prints `ask` first and a Builder stopped mid-behaviour can leave uncommitted work. The
-  door's Digest decision settles it before anything below runs:
-  - Both hashes match: nothing the fork stands on moved, so the run stops again as blocked, by the
-    blocked shape of [reply.md](reply.md). The reply names what the Extreme stop names, the fork's
+  door's Digest decision settles it before anything below runs, the `extreme=` value passed to the
+  digest check as its fourth argument:
+
+  ```sh
+  bash <skill-dir>/scripts/grounding.sh digest <root> <ticket=> <the Digest's path> <the extreme= value>
+  ```
+
+  - `verdict=extreme` (exit 5): the run stops again as blocked, by the blocked shape of
+    [reply.md](reply.md). The reply names what the Extreme stop names, the fork's
     own facts read off the `discuss=` line and the commits off the script's `commit=` lines, and
     its last line is the `discuss=` line whole. The run forks no Planner, no Builder and no
     `choice-taker`, since judging the fork a second time could read it the other way, and it asks
     nothing about uncommitted work, since a stopped run discards none.
-  - A hash differs: the Spec was amended, by `discuss` or by hand, and the recorded command asks a
-    question that may no longer stand. The run removes the sidecar, a write of the session's in
-    the main checkout, and goes on as the amended-Spec bullet below says, with `verdict=extreme`
-    read as `build` and `verdict=ask` handled by its own bullet.
+  - `extreme=removed`, with `verdict=fork` (exit 1): the Spec was amended, by `discuss` or by hand,
+    and the check removed the sidecar. The run forks the reader as on any `verdict=fork` and goes
+    on as the amended-Spec bullet below says, with `verdict=extreme` read as `build` and
+    `verdict=ask` handled by its own bullet.
 - On every verdict but `land`, the Plan step runs again as step 1 says, unless `review=` names a
   Review, which skips it as the `verdict=land` bullet says: the run hashes the Ticket and the Digest afresh and
   reuses the Plan beside the Ticket while its `## Sources` section is still exactly those two
@@ -452,15 +457,16 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   read the branch and it lands as the `verdict=land` bullet says, and a Ruling reversed after that
   is built by a new Ticket, per
   [ADR 0038](../../../docs/adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md).
-  On every other verdict the Spec's hash no longer matches the Digest's, so the run prints
-  the one line naming the Spec as changed, and the reader is forked again over the amended Spec and
+  On every other verdict the digest check prints `moved=spec` and `verdict=fork`, so the run
+  prints the one line naming the Spec as changed, and the reader is forked again over the amended Spec and
   the journey both, never over the Spec alone, whose Digest would come back with no Journey Path
   for step 1 to read. The list is re-derived from the Digest that comes back, every commit whose
   `Behaviour:` line still matches a line of it is kept, and the loop continues at the first
   behaviour without a commit, building the side the Spec now takes. A criterion an earlier Ruling
   rewrote to the side the developer's edit reversed is met at step 1 as a Design fork against the
   edited line, as the forks in [forks.md](forks.md) say. After an Extreme stop with the Spec
-  unchanged, both hashes match and the resume stops on the sidecar's `discuss=` line, as the
+  unchanged, the digest check prints `verdict=extreme` and the resume stops on the sidecar's
+  `discuss=` line, as the
   `extreme=` bullet above says.
 
 ### A stopped Final integration

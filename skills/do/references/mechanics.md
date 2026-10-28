@@ -172,23 +172,30 @@ location of every quote, so the check is a quote read against its line. The one 
 the session makes is the fixed command over its Ruling lines below, which prints those lines and
 no other part of it.
 
-Before anything is forked, the door resolves both paths from the Ticket, the way the second run
-below does, and the door hashes both itself before it forks: `git hash-object <path>` run under
-the door's `root=`, the Home repository, for each, recording `absent` for a document not on
-disk. It resolves and hashes them the same way when no reader can be forked. Those two values are the
-Digest's `## Sources` lines, so the record the reuse gate trusts is the run's own reading and never
-the fork's. When it forks the reader, the door says in one line that both are being read in a
-window of their own.
+Before anything is forked, the door runs the digest check from the main checkout, `<root>` the
+door's `root=`, the Home repository, and `<ticket=>` the door's `ticket=`, passed as printed:
+
+```sh
+bash <skill-dir>/scripts/grounding.sh digest <root> <ticket=> <the Digest's path>
+```
+
+It prints `spec=` and `journey=`, the two paths it resolved from the Ticket (`none` for no such
+document), and `spec_hash=` and `journey_hash=`, each `absent` for a document not on disk, before
+its `verdict=` line. It runs the same check when no reader can be forked. Those two hashes are the
+Digest's `## Sources` lines, `spec: <spec=> <spec_hash=>` or `spec: absent`, and `journey:` the
+same way, so the record the reuse gate trusts is the run's own reading and never the fork's. When
+it forks the reader, the door says in one line that both are being read in a window of their own.
 
 On every run that reaches the Digest decision, whichever way it goes, a Digest reused, a reader
 forked or no reader forkable, the door also reads this Ticket's own
 `Ruled by the choice-taker on Ticket <this Ticket>` lines the Spec's Implementation Decisions
-already carries, right after it hashed the Spec, with one fixed command and never by opening it:
-`grep -F -- 'Ruled by the choice-taker on Ticket <this Ticket> at the ' <the Spec's path>`, run
+already carries, right after the digest check, with one fixed command over its `spec=` path and
+never by opening it:
+`grep -F -- 'Ruled by the choice-taker on Ticket <this Ticket> at the ' <the spec= path>`, run
 under the same `root=`, the trailing ` at the ` keeping one Ticket's lines from matching another
 whose name it begins. It
 records them, their `Fork:`, side-taken and `Norm:` text, for the session, none when the command
-prints nothing or the Spec is `absent`: the Digest carries no Implementation Decisions section, so this is the one place those lines reach the Plan step, whose
+prints nothing or `spec_hash=` reads `absent`: the Digest carries no Implementation Decisions section, so this is the one place those lines reach the Plan step, whose
 Planner brief carries them, the Builder's `Rulings:` key and the Run report's `Rulings` section. A
 reused Digest needs them as much as a fresh one: a Spec whose hash still matches still carries
 the Rulings an earlier run wrote, and a brief that arrived without them would bring a settled
@@ -244,39 +251,24 @@ second run below says.
 
 A Digest already sits beside the Ticket whenever a run reaches this point a second time, on a
 resume, on a `/do` typed again on the same Ticket, or inside the run once a Ruling amended the
-Spec, the forks of [forks.md](forks.md). Before it dispatches anything the door
-resolves both paths from the Ticket itself and never from the Digest: the Spec is the spec file in
-the folder above the Ticket's `issues/` folder, and the journey is the one that Spec's `Journey:`
-line names. Then it recomputes the hash of each document at the path it resolved, with the same
-`git hash-object` it ran before the fork, and compares the pair with the pair the Digest's `## Sources`
-records.
+Spec, the forks of [forks.md](forks.md). Before it dispatches anything the door runs the digest
+check of the reader section above, `grounding.sh digest`, and routes on its `verdict=` line, never on a comparison of its
+own:
 
-- Both match: the run reuses it, forks no second reader, and says in one line that it reused it.
-- Either differs: the run re-forks the reader over both documents, replacing the Digest at the same
-  path, and names which of the two changed, in one line.
-
-Both hashes are compared before the run decides, never one and then the other: a comparison that
-stopped at the first match would serve an amended Spec, or an amended journey, from the slice the
-first run cut. A document recorded `absent` and still not on disk is a match, since nothing about
-it moved; a document that appeared where the record says `absent`, one that is gone where the
-record carries a hash, and a `## Sources` line the Digest does not carry are each not a match: the
-run re-forks.
-
-A `## Sources` path that is not the path the door resolved is not a match either. Both the path and
-the hash on that line come out of the file the comparison is there to vouch for, so a Digest naming
-a document this Ticket does not reach for is a Digest cut from somewhere else, or one steered by a
-document a stranger wrote, and the run re-forks over the resolved paths rather than serving it.
+- `verdict=reuse` (exit 0): the run reuses the Digest, forks no second reader, and says in one line
+  that it reused it.
+- `verdict=fork` (exit 1): the run re-forks the reader over the `spec=` and `journey=` paths,
+  replacing the Digest at the same path, and names the document of each `moved=` line, in one line.
 
 A re-forked reader whose return is not a usable Digest stops the door as a first fork's does, in one
 line naming what is missing, since the session writes only from a return it checked.
-The Digest already at that path stays where it was, untouched. No run serves it while a recorded
-hash or path differs from what the door resolves and hashes there.
-A document restored to the exact bytes its record hashes is a match again, served like any other.
+The Digest already at that path stays where it was, untouched. A later run serves it only on
+`verdict=reuse`.
 
 A Digest a run left behind when the reading of the tree and the scratch stopped it, the reading
 [ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md)
-removed, is judged by its record alone, since the gate never asks who wrote the file, so it
-is served like any other while both of its hashes match, whether it sits beside the Ticket the
+removed, is judged by the digest check alone, which never asks who wrote the file, so it is
+served on `verdict=reuse` like any other, whether it sits beside the Ticket the
 stopped run was on or beside a sibling Ticket the stop's own line named. A developer who does not
 trust one deletes it by hand before running that Ticket again, and that run forks the reader as a
 first run does.
