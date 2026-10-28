@@ -1,5 +1,12 @@
 # The resume of a ticket run
 
+Read by the session of a `ticket` run, from three places of [ticket.md](ticket.md): the Door, when
+the door prints `verdict=resume` (a `claimed` Ticket whose `do/<slug>` worktree exists); the review
+step, when `review-route.sh` prints `route=resume`, for the all-ticked bullet in the same run; and
+the build step, when a Builder's return fails its checks, to pick the stretch up from what
+`resume-state.sh` printed. A run none of the three sends here never opens it. The steps named below
+are the steps of [ticket.md](ticket.md).
+
 ## Resume
 
 The run reads `resume-state.sh`, as below, before the Digest decision of the Door of

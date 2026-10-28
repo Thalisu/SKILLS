@@ -8,6 +8,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 do_dir="$(cd "$here/.." && pwd -P)"
 ticket="$do_dir/references/ticket.md"
+resume="$do_dir/references/resume.md"
 fails=0
 
 pointer_shape='Read \[resume\.md\]\(resume\.md\) when [^ ]'
@@ -35,5 +36,15 @@ expect "every passage sending a verdict=resume-final run names the stopped Final
   test "$(grep -c "A stopped Final integration" <<<"$senders")" -ge 3
 expect "no passage sending a verdict=resume-final run names a Resume section" \
   bash -c '! grep -qE "Resume section|the Resume above|Resume of" <<<"$1"' _ "$senders"
+
+readers=("the Door" "The Door" -- "the review step" "The review step" -- "the build step" "The build step")
+conditions=("verdict=resume" -- "route=resume" -- "fails its checks" "fails either check" "fails a check")
+
+echo "# resume.md: its opening names every reader that reaches it and the condition that sends each"
+flat="$(awk '/^## /{exit} !/^# / {print}' "$resume" | tr '\n' ' ' | tr -s ' ')"
+expect "resume.md has an opening before its first section" grep -q '[a-z]' <<<"$flat"
+carries_each "the opening names the Door, the review step and the build step" "${readers[@]}"
+carries_each "the opening names each condition: verdict=resume, route=resume, a Builder return failing its checks" \
+  "${conditions[@]}"
 
 exit $((fails > 0))
