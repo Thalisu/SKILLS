@@ -9,7 +9,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 do_dir="$(cd "$here/.." && pwd -P)"
 direction="$do_dir/references/change-of-direction.md"
 forks="$do_dir/references/forks.md"
-ticket="$do_dir/references/ticket.md"
+elsewhere="$do_dir/references/elsewhere.md"
 fails=0
 pointer="Read [change-of-direction.md](change-of-direction.md) when "
 
@@ -24,10 +24,10 @@ expect "forks.md holds no change-of-direction section" \
   test -z "$(grep -iE '^#+ .*change-of-direction' "$forks")"
 
 echo "# each step that meets the change-of-direction stop is sent to change-of-direction.md"
-flat="$(paragraph_with "$ticket" "A finding either moves a behaviour or changes the feature" | tr -s ' ')"
-carries "ticket.md's Plan step, on a finding that changes the feature" "$pointer"
-flat="$(paragraph_with "$ticket" "When the finding changes what the feature is" | tr -s ' ')"
-carries "ticket.md's Reply, ending on that stop's \`/discuss\` command" "$pointer"
+flat="$(paragraph_with "$elsewhere" "**A change of direction**" | tr -s ' ')"
+carries "elsewhere.md's Plan step, on an item that changes the feature" "$pointer"
+flat="$(paragraph_with "$elsewhere" "The move is told from a change of direction here too" | tr -s ' ')"
+carries "elsewhere.md's build step, on a line whose behaviour changes the feature" "$pointer"
 
 echo "# every pointer to change-of-direction.md reads \`Read [change-of-direction.md](change-of-direction.md) when <condition>\`"
 pointers_shaped "every pointer to change-of-direction.md has the \`Read <file> when <condition>\` shape" \

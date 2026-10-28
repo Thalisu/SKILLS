@@ -24,8 +24,9 @@ Before it writes anything, the run reads the item against the Ticket's criteria 
   building it there would contradict another story, criterion or decision. Then
   `spec-finding.sh` is not run, nothing is written into the Spec and no `/tickets` command is
   handed over. The run stops as blocked the same way, under the `direction` Handover class, and
-  its Reply ends on the `/discuss` command the change-of-direction stop of [forks.md](forks.md)
-  fixes, naming the Ticket, the Spec and what the run found.
+  its Reply ends on the `/discuss` command of the change-of-direction stop, naming the Ticket, the
+  Spec and what the run found: Read [change-of-direction.md](change-of-direction.md) when the item
+  changes the feature.
 
 Before it stops on a move, the run writes the finding into the Spec, by script and never by hand,
 once per `Elsewhere:` item, with the item's own values, `<n>` its number among the `Elsewhere:`
@@ -89,4 +90,5 @@ behaviour. The run takes the stop of `## At the Plan step` with these difference
 
 The move is told from a change of direction here too, on the line's behaviour, and a change of
 direction ends on the same `/discuss` command, with the Ticket, worktree, branch and commits kept
-and named.
+and named: Read [change-of-direction.md](change-of-direction.md) when the line's behaviour changes
+the feature.

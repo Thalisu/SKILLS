@@ -1,14 +1,14 @@
 # The change-of-direction stop
 
 Read by a `ticket` run only when it finds work for another repository that changes what the
-feature is: a story or a criterion would have to change, not move. It is read at the Plan step of
-[ticket.md](ticket.md) on such an `Elsewhere:` item, at the build step on a Builder's
-`stopped:` line for work for another repository that does the same, and by the Reply, which ends that
-run on this stop's `/discuss` command.
+feature is: a story or a criterion would have to change, not move. It is read through
+`elsewhere.md`, at the Plan step of [ticket.md](ticket.md) on such an `Elsewhere:`
+item and at the build step on a Builder's `stopped:` line for work for another repository that does
+the same, and by the Reply, which ends that run on this stop's `/discuss` command.
 
 A run that found work for another repository ends on a `/discuss` command, and never on `/tickets`,
 when the finding changes what the feature is rather than where a piece of it is built: a story or a
-criterion would have to change, not move, as the Plan step of [ticket.md](ticket.md) tells the two
+criterion would have to change, not move, as `elsewhere.md` tells the two
 apart. It is no fork. Nothing has two sides for a `choice-taker` to rule between, so none is
 forked, under `--auto` as without it, and nothing is written into the Spec: no entry in its
 repositories list, no finding line, no Ruling.

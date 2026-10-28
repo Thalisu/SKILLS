@@ -31,8 +31,8 @@ expect "elsewhere.md carries a section for the Plan step" test -n "$flat"
 carries_each "one \`Elsewhere:\` item stops the run as blocked before the claim, the worktree and the Spec branch" \
   "as blocked" -- "before the claim, the worktree and the Spec branch"
 carries "the Ticket keeps the status the door printed" "\`status=\`"
-carries_each "a change of direction runs no spec-finding.sh and ends on forks.md's /discuss command" \
-  "change of direction" -- "\`spec-finding.sh\` is not run" -- "\`direction\`" -- "\`/discuss\`" -- "[forks.md](forks.md)"
+carries_each "a change of direction runs no spec-finding.sh and ends on change-of-direction.md's /discuss command" \
+  "change of direction" -- "\`spec-finding.sh\` is not run" -- "\`direction\`" -- "\`/discuss\`" -- "Read [change-of-direction.md](change-of-direction.md) when "
 carries "spec-finding.sh is run once per \`Elsewhere:\` item, its output saved per item" \
   "scripts/spec-finding.sh <the Ticket's path> '<Belongs to>' '<the behaviour>' '<Location>' | tee <state>/finding.<n>"
 carries_each "each value is single-quoted, a quote inside written as '\\''" "single quotes" -- "'\\''"
