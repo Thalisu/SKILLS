@@ -63,4 +63,12 @@ run outcome=final-landed yours=no branch=main
 same "a Final integration of a single-repository feature, with no landing record, ends on the push" \
   "$(printf '%s\n' 'git push origin main' 'exit 0')"
 
+run outcome=claim-taken yours=no claim=taken holder_ticket=.scratch/notes-export/issues/02-x.md
+same "a run whose Final integration claim read taken ends on a sentence saying another run is integrating the Spec, with nothing to type" \
+  "$(printf '%s\n' 'Another run is integrating the Spec, and there is nothing to type.' 'exit 0')"
+
+run outcome=final-stopped yours=no ticket=.scratch/notes-export/issues/03-export-job.md takeover=yes
+same "a stopped Final integration, or a resume stopped again or on a claim nobody yielded, ends on /do of the run's Ticket alone" \
+  "$(printf '%s\n' '/do .scratch/notes-export/issues/03-export-job.md' 'exit 0')"
+
 exit "$((fails > 0))"

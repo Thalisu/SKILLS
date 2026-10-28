@@ -89,6 +89,11 @@ main() {
     landed) push_line ;;
     spec-landed | setup-resolved) next_line ;;
     final-landed | landing-wait) landing_line ;;
+    claim-taken) echo "Another run is integrating the Spec, and there is nothing to type." ;;
+    final-stopped)
+      need ticket
+      echo "/do ${key[ticket]}"
+      ;;
   esac
 }
 
