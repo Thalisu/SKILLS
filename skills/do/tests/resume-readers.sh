@@ -47,4 +47,14 @@ carries_each "the opening names the Door, the review step and the build step" "$
 carries_each "the opening names each condition: verdict=resume, route=resume, a Builder return failing its checks" \
   "${conditions[@]}"
 
+echo "# SKILL.md: the references-list entry for resume.md names the same readers and conditions"
+skill="$do_dir/SKILL.md"
+flat="$(bullets_opening_on "$skill" "[resume.md](references/resume.md)" | tr -s ' ')"
+expect "SKILL.md's references list has an entry for resume.md" test -n "$flat"
+carries_each "the entry names the Door, the review step and the build step" "${readers[@]}"
+carries_each "the entry names each condition: verdict=resume, route=resume, a Builder return failing its checks" \
+  "${conditions[@]}"
+skill_links="$(grep -cE '\]\(([^)]*/)?resume\.md\)' "$skill")"
+expect "SKILL.md links resume.md in its references-list entry alone" test "$skill_links" = 1
+
 exit $((fails > 0))
