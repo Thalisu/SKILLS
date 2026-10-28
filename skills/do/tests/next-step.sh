@@ -99,4 +99,8 @@ run outcome=unlanded yours=no worktree=/home/dev/notes/.claude/worktrees/do-expo
 same "a run that landed nothing names its worktree, its branch, and the review and the landing as the developer's to run" \
   "$(printf '%s\n' 'Nothing landed: the work sits in /home/dev/notes/.claude/worktrees/do-export on do/export, and the review and the landing are yours to run.' 'exit 0')"
 
+run outcome=final-stopped yours=yes ticket=.scratch/notes-export/issues/03-export-job.md
+same "a Reply carrying a Yours: line opens its Next step on doing what that line names first, and the command follows" \
+  "$(printf '%s\n' 'First do what the Yours: line names, then:' '/do .scratch/notes-export/issues/03-export-job.md' 'exit 0')"
+
 exit "$((fails > 0))"

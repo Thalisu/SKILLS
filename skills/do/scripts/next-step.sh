@@ -91,10 +91,7 @@ merge_lines() { # $1 awaiting when a required approval is missing: the pr routes
   echo "gh pr merge ${key[pr]}"
 }
 
-main() {
-  [ "$#" = 0 ] || usage "takes no argument"
-  read_keys
-  need outcome
+route() {
   case "${key[outcome]}" in
     landed) push_line ;;
     spec-landed | setup-resolved) next_line ;;
@@ -123,6 +120,16 @@ main() {
       echo "/do ${key[ticket]}"
       ;;
   esac
+}
+
+main() {
+  [ "$#" = 0 ] || usage "takes no argument"
+  read_keys
+  need outcome
+  local body
+  body="$(route)" || exit 2
+  [ "${key[yours]:-no}" = yes ] && echo "First do what the Yours: line names, then:"
+  printf '%s\n' "$body"
 }
 
 main "$@"
