@@ -165,4 +165,12 @@ out="$flat"
 check_absent "the Resume section has the session strip no behaviour= prefix and drop no none line itself" 0 0 \
   "after its \`behaviour=<sha> \` prefix" "a line reading \`none\` left out"
 
+echo "# skills/do/references/plan.md: the brief's Built: lines are printed by resume-tick.sh built"
+plan_ref="$here/../references/plan.md"
+flat="$(flat_section "$plan_ref" "## The brief")"
+carries "the brief names resume-tick.sh built as what prints the Built: lines" "resume-tick.sh built"
+out="$(tr '\n' ' ' <"$plan_ref" | tr -s ' ')"
+check_absent "plan.md has the session strip no behaviour= prefix and drop no none line itself" 0 0 \
+  "the session strips the \`behaviour=<sha> \` prefix" "past its \`behaviour=<sha> \`"
+
 exit "$fails"

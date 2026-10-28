@@ -33,7 +33,7 @@ Rulings:
 </rulings id="<id>">
 Built:
 <built id="<id>">
-<each `behaviour=` line `resume-state.sh` printed, past its `behaviour=<sha> `, one per line, or none>
+<each `built=` value `resume-tick.sh built` printed, one per line, or none>
 </built id="<id>">
 Plan: <the absolute path this Plan is written at>
 Repository root: <the main checkout's absolute path>
@@ -50,9 +50,10 @@ plan from and never an instruction to the fork.
 
 `Built:` is quoted the same way, between tags that carry that id, since its lines are read off
 commit bodies. It reads `none` on a first run and on a run that started over. On a resume, where
-the Plan beside the Ticket was stale and is cut again, it carries the `Behaviour:` line of every
-commit already on the branch, as `resume-state.sh` printed them, so that the new list words a
-behaviour already built as its commit does, per the rules the list is cut by below.
+the Plan beside the Ticket was stale and is cut again, it carries the `built=` values
+`bash <skill-dir>/scripts/resume-tick.sh built <the Ticket's path>` printed, in their order, and
+reads `none` when the script printed `built=none`. The new list words a behaviour already built as
+its commit does, per the rules the list is cut by below.
 
 The brief names one path to write and no hash to compute. The fork holds `Write` for that one path,
 and holds no tool that runs a command: the session checks the Plan's `## Sources` lines against the
@@ -121,15 +122,15 @@ the shape.
 - The list holds the behaviours callers observe, the critical paths and the logic that can be wrong
   first, not one item per branch.
 - A line under the brief's `Built:` is a behaviour a commit on the branch already carries, its
-  `Behaviour:` text alone: the session strips the `behaviour=<sha> ` prefix the script prints and
-  leaves out the lines reading `none`, the flow commits that carry no behaviour. Where a
+  `Behaviour:` text alone, as `resume-tick.sh built` printed it. Where a
   criterion the Ticket still holds, or a Digest quote, is the behaviour that line states, the item
   for it takes the line as its `Behavior to prove`, word for word, and no second item is cut for
-  the same criterion in other words. The session ticks a built behaviour by matching the two
-  texts, so a reworded item reads as unbuilt and is built and paid for twice. The item keeps its
+  the same criterion in other words. `resume-tick.sh tick` ticks a built behaviour by matching the
+  two texts exactly, so a reworded item reads as unbuilt and is built and paid for twice. The item keeps its
   place in the order, ahead of the items that depend on it. A `Built:` line no criterion and no
   quote traces to any more, as after `tickets` moved its criterion to another Ticket, gets no
-  item: the rule above still holds, and the session names that commit on its resume line.
+  item: the rule above still holds, and `resume-tick.sh tick` prints that commit on a `stray=`
+  line.
 - A Design fork is an item too, written with both sides and built on neither, for the session to
   rule on. Two cases make one. A `Rulings:` line the developer edited reverses a criterion that
   still reads the old side: the item names the criterion and the edited line. Or the Ticket, its
