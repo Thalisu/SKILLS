@@ -52,7 +52,7 @@ expect "the Builder's flows rule's REFUSED_INCOMPLETE_INPUT route resolves in bu
   grep -qF "[build-loop.md](build-loop.md)" <<<"$refused_para"
 
 expect "resume.md's resume step links build-loop.md for the Behaviour: line" \
-  grep -qF "per the build loop in [build-loop.md](build-loop.md)" "$here/../references/resume.md"
+  grep -qF "per the build loop (Read [build-loop.md](build-loop.md) when" "$here/../references/resume.md"
 expect "bug-fix-resume.md, the bug-fix resume, links build-loop.md for the Behaviour: line" \
   grep -qF "per the build loop in [build-loop.md](build-loop.md)" "$bug_fix_resume"
 
