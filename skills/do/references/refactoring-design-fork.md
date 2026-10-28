@@ -32,8 +32,7 @@ order:
 A `settled` Ruling is written to no file of the project. It reaches the developer in two places.
 The Reply's Pending debt carries it on every run, as one line:
 `Ruled by the choice-taker at the <step> step: <the side taken>. Norm: <the norm, or "no norm: the side easiest to undo">. Fork: <side A> or <side B>.`
-Under `--auto` the Run report lists it under `Rulings`, in its `On the run:` group, per
-[reply.md](reply.md).
+Under `--auto` the Run report lists it under `Rulings`, in its `On the run:` group.
 
 On no Ruling (the Agent tool withheld, no `choice-taker` listed, or a return that fails the check)
 the run rules nothing itself, never forks the `choice-taker` a second time, and stops at its step

@@ -145,12 +145,12 @@ Four checks, before any edit and in this order.
    `discover` batch for two or more names, one `rg -n -w` for a single one. A name that comes back
    FOUND is reused rather than created, and the audit line,
    `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, is recorded for the Run report's Run section, which
-   carries it after the checklist per [reply.md](reply.md).
+   carries it after the checklist.
 4. **The branch.** The protected branch in [mechanics.md](mechanics.md), as a warning and not a
    refusal: the run builds to the gate, and the review refuses the landing at step 12.
 
 Then, still before any edit, the run records these lines for the Run report's Run section, in the order
-[reply.md](reply.md) fixes. The Run report carries them under `--auto`:
+the Run section fixes. The Run report carries them under `--auto`:
 
 - `Playbook: refactoring`, as plain text on the first line, which also opens the message.
 - The reshape confirmed back in one line, with the target files named, the same files the Run
@@ -194,8 +194,7 @@ titles, and `git status --short` in the worktree.
   worktree gets its worktree back on that branch, `git worktree add .claude/worktrees/do-<slug>
   do/<slug>`, without `-b`.
 - Step 1 ran before this step on the resume as on a first run, so its lines are recorded again from
-  the request. The run records the resume line for the Run report's Run section, per
-  [reply.md](reply.md): it says the run resumed, names the worktree and its branch, and lists the
+  the request. The run records the resume line for the Run report's Run section: it says the run resumed, names the worktree and its branch, and lists the
   commits found, one line each with its title.
 - The run continues at the first step the branch does not evidence, every step before it ticked
   `done: resumed`:
@@ -368,7 +367,7 @@ will call, or a changed signature. Then the `sketch` agent draws the shape in a 
   files that text at the destination, whole and with nothing added, appending the `.scratch/`
   ignore line first when [scratch.md](../../../.agents/scratch.md) owes it. The run records for
   the Run report's Run section what it handed over, in one line, and the Sketch's location with the
-  shape it settled, per [reply.md](reply.md).
+  shape it settled.
 - Reshape against the Sketch. The sketch is the contract, and it is also what settles step 3's
   target interface when the request did not.
 - When `sketch` writes nothing (the Agent tool withheld, no `sketch` among the agents the session
@@ -389,7 +388,7 @@ When no boundary is crossed the step reads `skip: no boundary crossed`, and the 
 is still named.
 
 Done when the structure and the target shape, with the sketch or its skip, are recorded for the
-Run report's Run section as its structure line, per [reply.md](reply.md), beside the hand-over and
+Run report's Run section as its structure line, beside the hand-over and
 Sketch lines or the shaped-by line where the reshape crossed a boundary.
 
 ### 5. Subtract
@@ -649,7 +648,7 @@ of these that the run met:
   run met a Design fork the `choice-taker` ruled, for the line that carries it.
 
 Read [run-report.md](run-report.md) when the run is under `--auto`, before it writes the Run report.
-Under `--auto` the Run report carries the rest, each where [reply.md](reply.md) puts it:
+Under `--auto` the Run report carries the rest, each in the section that holds it:
 
 - In the Run section, the structure line: the structure the reshape gave the code, the one step 4
   named, and the target shape it reached, with the sketch or its skip.

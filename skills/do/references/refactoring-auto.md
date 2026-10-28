@@ -37,8 +37,7 @@ step 3's harness outside its bound, and step 13's full suite or remote run.
 On a `settled` Ruling, do what the step says for that answer, as if the developer had typed it, and
 carry on with no message asking for a confirmation: step 1 takes the home the Ruling names, and
 step 3 runs the harness on `yes` and takes the step's no on `no`. The Ruling is written to no file
-of the project, and the Run report lists it under `Rulings`, in its `On the run:` group, per
-[reply.md](reply.md).
+of the project, and the Run report lists it under `Rulings`, in its `On the run:` group.
 
 On an `extreme` return or on no Ruling (the Agent tool withheld, no `choice-taker` listed, or a
 return that fails the check), ask the question as without the flag, one line above it naming the
