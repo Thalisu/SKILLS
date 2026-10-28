@@ -5,8 +5,9 @@ fork reads as Extreme, when the `choice-taker` returns `extreme`, and when no Ru
 the unruled stop.
 
 The session never overrules either reading: a fork it read as ordinary that the `choice-taker`
-returned `extreme` on stops, under `--auto` as without it. The stop is a blocked run, written by
-the blocked shape of [reply.md](reply.md), nothing landed, and its blocker lines name the step, both
+returned `extreme` on stops, under `--auto` as without it.
+Read [blocked-reply.md](blocked-reply.md) when the run makes the Extreme stop. The stop is a blocked
+run, written by the blocked shape, nothing landed, and its blocker lines name the step, both
 sides, the guarantee the weaker side would lose with its risk class (or what could not be undone
 once landed), the worktree and its branch left in place, and the commits made so far, one line
 each, or `none`. The choice between the sides is handed over:
