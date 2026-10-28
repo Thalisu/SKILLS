@@ -97,11 +97,25 @@ behaviour_commit "feat: archive a note" "Archiving a note hides it from the list
 behaviour_commit "feat: export tags" "Exporting a note keeps its tags"
 exported="$(git -C "$wt" rev-parse --short HEAD)"
 behaviour_commit "test: flow for archiving" ""
-plan_file "Archiving a note hides it from the list"
+plan_file "Archiving a note hides it from the list" "Restoring a note puts it back in place"
 run tick "$ticket_path" "$plan"
 check_lines "a commit whose Behaviour: line matches no Plan behaviour is named on a stray= line" 0 "$rc" \
   "stray=$exported Exporting a note keeps its tags"
 expect "only that commit is stray: neither the ticked one nor the one whose line reads none" \
   test "$(grep -c '^stray=' <<<"$out")" = 1
+
+echo "# resume-tick.sh tick: where the Builder starts, and a Plan every commit already built"
+cd "$tmp" || exit 1
+claimed_ticket next archive
+behaviour_commit "feat: restore a note" "Restoring a note puts it back in place"
+plan_file "Archiving a note hides it from the list" "Restoring a note puts it back in place" "Deleting a note asks first"
+run tick "$ticket_path" "$plan"
+check_lines "the first open behaviour is next, routed to the build with exit 0" 0 "$rc" "next=1" "route=build"
+behaviour_commit "feat: archive a note" "Archiving a note hides it from the list"
+run tick "$ticket_path" "$plan"
+check_lines "with the first behaviour built, the next open one is next" 0 "$rc" "next=3" "route=build"
+behaviour_commit "feat: delete a note" "Deleting a note asks first"
+run tick "$ticket_path" "$plan"
+check_lines "every behaviour ticked prints next=none and route=resumed with exit 1" 1 "$rc" "next=none" "route=resumed"
 
 exit "$fails"

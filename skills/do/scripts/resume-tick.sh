@@ -9,9 +9,10 @@
 #     one item=<n> <short sha> | item=<n> open per item of the Plan's ## Behaviours section that
 #     carries `Behavior to prove:`, in Plan order, ticked with the oldest commit whose built text
 #     equals the item's text exactly; then one stray=<short sha> <text> per built text that equals
-#     no item's text, oldest first
+#     no item's text, oldest first; then next=<n> of the first open item, or next=none; then
+#     route=build, or route=resumed when no item is open
 #
-# Exit codes: 0 · 2 usage, an unknown subcommand, a missing argument, an unreadable Plan, or
+# Exit codes: 0 (route=build, and built always) · 1 route=resumed · 2 usage, an unknown subcommand, a missing argument, an unreadable Plan, or
 # resume-state.sh exiting 2 · 3 the Plan has no ## Behaviours section.
 set -uo pipefail
 
@@ -72,9 +73,19 @@ case "$1" in
           if (!(text[i] in tick)) tick[text[i]] = sha[i]
         }
       }
-      { item[$2] = 1; print "item=" $1 " " (($2 in tick) ? tick[$2] : "open") }
-      END { for (i = 1; i <= m; i++) if (!(text[i] in item)) print "stray=" sha[i] " " text[i] }
+      {
+        item[$2] = 1
+        if (!($2 in tick) && next_item == "") next_item = $1
+        print "item=" $1 " " (($2 in tick) ? tick[$2] : "open")
+      }
+      END {
+        for (i = 1; i <= m; i++) if (!(text[i] in item)) print "stray=" sha[i] " " text[i]
+        if (next_item == "") { print "next=none"; print "route=resumed"; exit 1 }
+        print "next=" next_item
+        print "route=build"
+      }
     '
+    exit
     ;;
   *) usage ;;
 esac
