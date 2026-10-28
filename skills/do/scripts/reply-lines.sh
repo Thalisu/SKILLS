@@ -314,7 +314,7 @@ cmd_final() {
 
 cmd_elsewhere() { # $@ finding file and behaviour pairs: the whole stop message after its first line
   local i=0 spec home number status relative repository written list line moved
-  local out=() listed=() unknown=() pairs=("$@") command
+  local out=() listed=() unknown=() pairs=("$@") command name
   while [ "$#" -ge 2 ]; do
     i=$((i + 1))
     [ -f "$1" ] && [ -r "$1" ] || usage
@@ -362,6 +362,14 @@ cmd_elsewhere() { # $@ finding file and behaviour pairs: the whole stop message 
     out+=("Yours: outward: cut the moved behaviour for $(joined "${listed[@]}") with the command below, then run /do on this Ticket again")
   else
     out+=("Yours: outward: the location of $(joined "${unknown[@]}") on this machine is the one thing you supply: type it in the command below in place of <its absolute location on this machine>, with no file to edit by hand, then run /do on this Ticket again")
+  fi
+  if [ "$(v finding1 here)" = no ]; then
+    value_of name finding1 home_name
+    if [ "$name" = none ]; then
+      out+=("Open a session in $home")
+    else
+      out+=("$name: open a session in $home")
+    fi
   fi
   out+=("$command")
   printf '%s\n' "${out[@]}"

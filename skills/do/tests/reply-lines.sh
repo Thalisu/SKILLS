@@ -579,4 +579,41 @@ Ticket 03 still reads ready-for-agent.
 Yours: outward: the location of orders-service on this machine is the one thing you supply: type it in the command below in place of <its absolute location on this machine>, with no file to edit by hand, then run /do on this Ticket again
 /tickets .scratch/feature/spec.md orders-service: <its absolute location on this machine>"
 
+finding_away="$(
+  src finding_away <<'EOF'
+spec=/home/dev/app/.scratch/feature/spec.md
+repository=orders-service
+listed=no
+list=added
+line=written
+home=/home/dev/app
+home_name=app
+here=no
+EOF
+)"
+run elsewhere --door "$plan_door" "$finding_away" "show the hold"
+same "elsewhere stopped outside the Home repository names it as the place to open a session in, before the command" \
+  "Stopped at the Plan, before anything was built: \"show the hold\" has no place in this repository. It belongs to orders-service.
+Written into the Spec (.scratch/feature/spec.md): orders-service added to its repositories list, and one line naming the behaviour as moved by the run on Ticket 03.
+Ticket 03 still reads ready-for-agent.
+Yours: outward: cut the moved behaviour for orders-service with the command below, then run /do on this Ticket again
+app: open a session in /home/dev/app
+/tickets .scratch/feature/spec.md"
+
+finding_nameless="$(
+  src finding_nameless <<'EOF'
+spec=/home/dev/app/.scratch/feature/spec.md
+repository=orders-service
+listed=no
+list=added
+line=written
+home=/home/dev/app
+home_name=none
+here=no
+EOF
+)"
+run elsewhere --door "$plan_door" "$finding_nameless" "show the hold"
+check_lines "elsewhere names a Home repository with no name by its location alone" 0 "$rc" \
+  "Open a session in /home/dev/app"
+
 exit "$((fails > 0))"
