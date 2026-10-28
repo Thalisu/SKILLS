@@ -930,10 +930,15 @@ check's output when the run landed on a Spec branch, the blocked stop of step 7'
 did not, `outcome=final-landed` with `landing-order.sh`'s second read when its Final integration
 landed, `outcome=landing-wait` when its landing record read `wait`, and `outcome=claim-taken` or
 `outcome=final-stopped` when its claim read `taken` or its Final integration stopped. The Final
-integration lines above the Next step stay as [reply.md](reply.md) words them. A run that stopped
-on an Extreme fork ends on `outcome=extreme-fork` with `playbook=ticket`, per [forks.md](forks.md),
-and one on a Design fork no `choice-taker` ruled on the `/discuss` command [forks.md](forks.md)
-fixes, as its last line.
+integration lines above the Next step stay as [reply.md](reply.md) words them. Read
+[extreme-fork.md](extreme-fork.md) when the run stopped on an Extreme fork: it ends on
+`outcome=extreme-fork` with `playbook=ticket`. A run that stopped on a Design fork no
+`choice-taker` ruled ends on the `/discuss` command the unruled stop fixes, as its last line: Read
+[forks.md](forks.md) when the run stopped there. A run that stopped on work for another repository,
+at the Plan or on a Builder's return, ends on `/tickets <spec>`, in the message
+[reply.md](reply.md) fixes for that stop. When the finding changes what the feature is, it ends on
+the `/discuss` command of the change-of-direction stop instead: Read
+[change-of-direction.md](change-of-direction.md) when the run stopped on that finding.
 
 What it puts in the Run report: the Ticket and the Review under the files left uncommitted; under
 `Rulings`, every Ruling the run's forks made (Read [forks.md](forks.md) when the run holds one), a
