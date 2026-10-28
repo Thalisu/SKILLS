@@ -32,7 +32,7 @@ facts="${facts%%:*}"
 facts="$(sed 's/^ *//; s/ *$//' <<<"$facts")"
 
 full_unit=no full_e2e=no
-case "$facts" in
+[ "$last" = no ] || case "$facts" in
   "full unit suite") full_unit=yes ;;
   "full E2E suite") full_e2e=yes ;;
   both) full_unit=yes full_e2e=yes ;;
