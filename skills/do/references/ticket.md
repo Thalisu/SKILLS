@@ -991,8 +991,9 @@ test layout, and every other slot reads `none yet → /testing-policy`. The step
 the map's location and the slots it filled, off the lines the script printed, for the Run report's Run
 section's map line per [reply.md](reply.md); the loop and the flows step read that file and never
 derive it again. Then read the session's context once,
-`bash <skill-dir>/scripts/context-usage.sh`, and keep its `current` figure: it is the `grounded`
-figure of the `Context:` line the close writes per [mechanics.md](mechanics.md). Neither is the
+`bash <skill-dir>/scripts/context-usage.sh`, and keep its `current` figure, or its stderr when it
+exits non-zero: the close feeds it to `evidence-lines.sh` as `grounded=` or `ground_reason=`, per
+[mechanics.md](mechanics.md). Neither is the
 fork's: the first writes a second file the Plan never quotes, and the second measures this session,
 which no fork can read from inside its own window.
 
@@ -1398,8 +1399,8 @@ flow is green or recorded as not run on the developer's no, or the step reads
 
 **9. Close.** The close in [mechanics.md](mechanics.md): the Ticket file, at the door's `ticket=`
 path under `root=`, which on a Ticket run from its Build repository is in the Home repository,
-ticked where the evidence proves it, the evidence appended under `## Evidence` with the
-`Context:` line first and the `Forks:` line after it, and, on a run that forked `do-impeccable`, the
+ticked where the evidence proves it, the evidence appended under `## Evidence` with the two
+lines `evidence-lines.sh` prints first, as it prints them, and, on a run that forked `do-impeccable`, the
 fork's `scan:` line (the detector scan's command line and the count of findings that remain)
 appended under `## Evidence` beside the flows' command lines, unchanged as the fork returned it,
 the status line set to `resolved`, the file left uncommitted, or, on a

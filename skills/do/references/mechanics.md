@@ -157,14 +157,10 @@ run.
   that exception included: the rewrite rides the close's yes.
 - The status walk and who writes each word are the format's. The run writes `claimed` at the
   start and `resolved` at the close, and nothing in between. With `resolved` it writes the
-  `Context:` line the format defines as the first line under `## Evidence`, from two readings of
-  `bash <skill-dir>/scripts/context-usage.sh`: the `current` figure read at the end of the ground
-  step, written as `grounded`, and the `peak` and `band` read at the close, after the last edit. A
-  reading that exits non-zero writes `Context: not measured` with the script's reason. The
-  `Forks:` line the format defines as the second line comes from that close reading too, so it
-  counts the forks this session made up to its close, never an earlier session's: a resumed run,
-  one that recorded the resume line of the Resume in [ticket.md](ticket.md), says so on the line,
-  `Forks: <n> (<kinds>), this session only (resumed run)`.
+  `Context:` and `Forks:` lines the format defines as the first two lines under `## Evidence`, as
+  `bash <skill-dir>/scripts/evidence-lines.sh` prints them from the two readings of
+  `bash <skill-dir>/scripts/context-usage.sh`, one at the end of the ground step and one at the
+  close, after the last edit, per `## The close` step 2.
 
 ## The reader
 
@@ -1066,16 +1062,18 @@ repository.
 1. Tick each criterion the evidence proves, and only those: a criterion whose flow the developer
    waived stays unticked. The evidence is the run's own output, produced after the last edit.
 2. Append the evidence under `## Evidence`, the last heading of the format, added first when the
-   Ticket was published without it. The first line is the `Context:` line, from the `current`
-   figure the run kept when it grounded and a second reading of `scripts/context-usage.sh` now, for
-   the `peak` and the `band`; a reading that fails writes `Context: not measured` with the
-   script's reason. The second line is the `Forks:` line, from the `forks` and `fork_kinds` keys
-   of that same reading: `Forks: <forks> (<fork_kinds>)`, `Forks: 0` when `forks` reads 0, and
-   `Forks: not measured` with the same reason when the reading fails. The reading covers this
-   session's transcript alone, so a resumed run labels the line as partial:
-   `Forks: <forks> (<fork_kinds>), this session only (resumed run)`, and
-   `Forks: 0, this session only (resumed run)` when `forks` reads 0. All in the format of
-   [ticket-format.md](../../../.agents/formats/ticket-format.md). Then the landed commit, the Review's location, the command lines of the gate
+   Ticket was published without it. The first two lines are the two
+   `bash <skill-dir>/scripts/evidence-lines.sh` prints, written as it prints them, in the format of
+   [ticket-format.md](../../../.agents/formats/ticket-format.md). Read
+   `bash <skill-dir>/scripts/context-usage.sh` now and feed the script these key=value lines on
+   stdin:
+   - `grounded=<the current figure>` the run kept when it grounded, or
+     `ground_reason=<its stderr>` when that reading exited non-zero;
+   - the lines this reading printed, or `close_reason=<its stderr>` when it exits non-zero;
+   - `resumed=yes` on a run that recorded the resume line of the Resume in
+     [ticket.md](ticket.md), `resumed=no` on any other.
+
+   Then the landed commit, the Review's location, the command lines of the gate
    and the flows with their quoted output lines, and each waiver.
 3. Set the `**Status:**` line to `resolved`. The file stays uncommitted, for the developer, and
    the Run report lists it beside the Review under the files left uncommitted.
