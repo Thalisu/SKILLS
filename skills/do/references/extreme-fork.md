@@ -26,8 +26,9 @@ The session never overrules either reading: a fork it read as ordinary and the `
 returned `extreme` on stops, and so does a fork it read as Extreme that a `choice-taker` might have
 settled.
 
-The stop is a blocked run, written by the blocked shape of [reply.md](reply.md), and its blocker
-lines, above its `Yours:` line, name:
+Read [blocked-reply.md](blocked-reply.md) when the run makes the Extreme stop.
+The stop is a blocked run, written by the blocked shape, and its blocker lines, above its `Yours:`
+line, name:
 
 - the step it stopped at, the Plan step or the build step, with the
   behaviour in flight when it was the build step;

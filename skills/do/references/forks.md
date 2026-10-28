@@ -139,8 +139,7 @@ flag.
 ### The unruled stop
 
 Read [extreme-fork.md](extreme-fork.md) when the run takes the unruled stop: it is a blocked run,
-written by the blocked shape of [reply.md](reply.md), like the Extreme stop that file fixes and
-naming the same things, the reason in place of the guarantee: the Agent tool withheld,
+written by the blocked shape, like the Extreme stop that file fixes and naming the same things, the reason in place of the guarantee: the Agent tool withheld,
 `choice-taker` not listed, or the return quoted.
 Read [blocked-reply.md](blocked-reply.md) when the run makes the unruled stop.
 
