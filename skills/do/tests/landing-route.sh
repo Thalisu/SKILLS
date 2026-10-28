@@ -54,4 +54,11 @@ route resume < <(record wait)
 expect "at the resume site, verdict wait exits 0" [ "$rc" = 0 ]
 same "at the resume site, verdict wait routes the run to the out-of-order stop" "route=out-of-order"
 
+for other in ambiguous:blocked-ambiguous unordered:blocked-unordered no-spec:blocked-no-spec \
+  landed:skip-landed elsewhere:skip-elsewhere incomplete:skip-open; do
+  route resume < <(record "${other%%:*}")
+  expect "at the resume site, verdict ${other%%:*} exits 0" [ "$rc" = 0 ]
+  same "at the resume site, verdict ${other%%:*} routes the run as the final site routes it" "route=${other#*:}"
+done
+
 exit "$fails"

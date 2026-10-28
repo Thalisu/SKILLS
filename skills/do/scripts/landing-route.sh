@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # landing-route.sh: the route a run takes on a landing-order.sh record at one of its sites.
 #
-#   landing-route.sh <final>   (the record on stdin, as landing-order.sh printed it)
+#   landing-route.sh <final|resume>   (the record on stdin, as landing-order.sh printed it)
 #
 # Prints one line, route=<value>.
 #
@@ -16,10 +16,10 @@ while IFS= read -r line; do
 done
 
 case "$1:$verdict" in
-  final:land | resume:land) echo "route=claim" ;;
   resume:wait) echo "route=out-of-order" ;;
-  final:wait) echo "route=skip-waits" ;;
-  final:ambiguous | final:unordered | final:no-spec) echo "route=blocked-$verdict" ;;
-  final:landed | final:elsewhere) echo "route=skip-$verdict" ;;
-  final:incomplete) echo "route=skip-open" ;;
+  *:land) echo "route=claim" ;;
+  *:wait) echo "route=skip-waits" ;;
+  *:ambiguous | *:unordered | *:no-spec) echo "route=blocked-$verdict" ;;
+  *:landed | *:elsewhere) echo "route=skip-$verdict" ;;
+  *:incomplete) echo "route=skip-open" ;;
 esac
