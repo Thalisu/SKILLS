@@ -1402,7 +1402,7 @@ on stdin, and routes on the one `route=` line it prints, choosing no route from 
 
 - **`route=claim`**: the run lands its own repository, and no other, through the final
   integration in [mechanics.md](mechanics.md), in its order:
-  - `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>`, routed on its exit code.
+  - `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path> | tee <state>/claim`, routed on its exit code.
     `claim=taken` (exit 1) ends the run, not as blocked: the Reply reads that the Spec is being
     integrated by another run. `claim=failed` (exit 3) stops the run as blocked with its reason.
   - On `claim=claimed`, a worktree at the `tree=` path holding the Spec branch itself, the rebase
