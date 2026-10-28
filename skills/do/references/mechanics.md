@@ -538,10 +538,9 @@ repository landed and no run remembers it. The run reads the record twice:
   and integrates nothing, here or there, and its Reply hands over the landing commands in order,
   per [reply.md](reply.md). On `route=out-of-order` the run stops as the resumed Final integration
   below says. Every other `route=` line is routed by step 9a of [ticket.md](ticket.md).
-- **After the release**, on a record that printed `repositories=` above 1. The Reply's landed and
-  still-to-land lines and its last line are copied from this second read, never predicted from the
-  first: a Final integration that stopped after the first read would otherwise be reported as
-  landed.
+- **After the release**, on a record that printed `repositories=` above 1, saved over
+  `<state>/order`, so the Reply's lines are printed from this second read and never from the
+  first.
 
 A feature of one repository prints one group named `none` and `verdict=land`, is read once, and
 lands as the steps below say, with nothing added to its Reply.
