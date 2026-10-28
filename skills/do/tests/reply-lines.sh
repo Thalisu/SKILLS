@@ -223,4 +223,51 @@ check_lines "final on a repository that already landed, with another still to la
 same "final on a repository that already landed, with another still to land, says it already landed" \
   "Final integration: not started, api already landed"
 
+yielded="$(
+  src yielded <<'EOF'
+claim=yielded
+file=/home/dev/app/.scratch/feature/spec.integration.claim
+EOF
+)"
+stop_order="$(
+  src stop_order <<'EOF'
+ticket=/home/dev/web/.scratch/feature/issues/04-show.md
+repositories=2
+repository=api
+repository_location=/home/dev/api
+repository_here=no
+repository_state=landed
+repository_ticket=/home/dev/app/.scratch/feature/issues/03-export.md
+repository=web
+repository_location=/home/dev/web
+repository_here=yes
+repository_state=unlanded
+repository_ticket=/home/dev/app/.scratch/feature/issues/04-show.md
+own=web
+waits_for=none
+next_landing=web
+next_landing_location=/home/dev/web
+next_landing_ticket=/home/dev/app/.scratch/feature/issues/04-show.md
+verdict=land
+EOF
+)"
+reason="not landed: Finding 1 not fixed or not verified"
+run final --door "$door" --claim "$claim" --yield "$yielded" --order "$stop_order" --reason "$reason"
+check_lines "final on a yielded claim: exit 0" 0 "$rc"
+same "final on a yielded claim prints the stop with its reason, then Landed and Still to land across repositories" \
+  "Final integration: stopped: $reason
+Landed: api
+Still to land: web"
+
+run final --door "$resume_door" --state "$state" --claim "$takeover_claim" --yield "$yielded" --order "$stop_order" --reason "$reason"
+check_lines "final on a yielded claim it had taken over reads stopped again" 0 "$rc" \
+  "Final integration: stopped again: $reason" "Landed: api" "Still to land: web"
+
+run final --door "$resume_door" --state "$state" --claim "$claim" --yield "$yielded" --order "$stop_order" --reason "$reason"
+check_absent "final on a yielded claim with no takeover never reads stopped again, even on a resumed door" 0 "$rc" "stopped again"
+
+run final --door "$door" --claim "$claim" --yield "$yielded" --order "$order" --reason "$reason"
+same "final on a yielded claim of a feature of one repository prints the stop alone" \
+  "Final integration: stopped: $reason"
+
 exit "$((fails > 0))"

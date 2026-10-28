@@ -61,7 +61,7 @@ select_shape() { # the sources present -> one FinalShape word, or failed no-shap
   door="$(v door verdict)" claim="$(v claim claim)" order="$(v order verdict)"
   if [ "$door" = resume-final ] && [ -z "${given[claim]-}" ] && [ "$order" = wait ]; then
     echo out-of-order
-  elif [ "$door" = resolved ] && [ "$order" = landed ] && [ "$(v order next_landing)" != done ]; then
+  elif [ "$door" = resolved ] && [ "$order" = landed ] && [ "$(v order next_landing)" != "done" ]; then
     echo already-landed
   elif [ -z "${given[claim]-}" ] && [ "$order" = wait ]; then
     echo waiting
@@ -71,9 +71,54 @@ select_shape() { # the sources present -> one FinalShape word, or failed no-shap
     echo claimed-elsewhere
   elif [ "$claim" = claimed ] && [ "$(v release claim)" = released ]; then
     echo landed
+  elif [ "$claim" = claimed ] && [ "$(v yield claim)" = yielded ] && [ "$(v claim takeover)" = yes ]; then
+    echo stopped-again
+  elif [ "$claim" = claimed ] && [ "$(v yield claim)" = yielded ]; then
+    echo stopped
   else
     failed no-shape
   fi
+}
+
+g_name=() g_state=() g_reason=()
+
+load_groups() { # the --order record's repository groups, in its order, into the g_ arrays
+  local line key value n=-1
+  [ -n "${given[order]-}" ] || return 0
+  while IFS= read -r line || [ -n "$line" ]; do
+    key="${line%%=*}" value="${line#*=}"
+    case "$key" in
+      repository)
+        n=$((n + 1))
+        g_name[n]="$value" g_state[n]="" g_reason[n]=""
+        ;;
+      repository_state) [ "$n" -lt 0 ] || g_state[n]="$value" ;;
+      repository_reason) [ "$n" -lt 0 ] || g_reason[n]="$value" ;;
+    esac
+  done <"${given[order]}"
+}
+
+joined() { # $@ the entries: comma-joined, or none when there is none
+  local IFS=,
+  if [ "$#" = 0 ]; then echo none; else
+    local out="$*"
+    echo "${out//,/, }"
+  fi
+}
+
+group_lines() { # the record's groups -> the Landed: and Still to land: lines
+  local i landed=() still=()
+  for i in "${!g_name[@]}"; do
+    if [ "${g_state[i]}" = landed ]; then
+      landed+=("${g_name[i]}")
+    elif [ "${g_state[i]}" = unreadable ]; then
+      still+=("${g_name[i]} (unreadable: ${g_reason[i]})")
+    else
+      still+=("${g_name[i]}")
+    fi
+  done
+  echo "Landed: $(joined "${landed[@]}")"
+  echo "Still to land: $(joined "${still[@]}")"
 }
 
 ticket_number() { # the door Ticket's leading number, from its file name
@@ -97,7 +142,7 @@ resume_line() { # the opener of a resumed Final integration
 }
 
 cmd_final() {
-  local shape branch holder since number own waits location next resumed=no
+  local shape branch holder since number own waits location next count again="" resumed=no
   shape="$(select_shape)" || {
     echo "$shape"
     exit 3
@@ -141,6 +186,17 @@ cmd_final() {
       fi
       cat "${given[review]}"
       [ -z "${branch-}" ] || echo "$branch removed"
+      ;;
+    stopped | stopped-again)
+      [ -n "${given[reason]-}" ] || failed "--reason missing"
+      value_of count order repositories
+      [ "$shape" = stopped ] || again=" again"
+      [ "$resumed" = no ] || resume_line
+      echo "Final integration: stopped$again: ${given[reason]}"
+      if [ "$count" -gt 1 ]; then
+        load_groups
+        group_lines
+      fi
       ;;
   esac
 }
