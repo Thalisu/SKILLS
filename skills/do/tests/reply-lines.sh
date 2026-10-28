@@ -308,4 +308,31 @@ web: open a session in /home/dev/web
 jobs: open a session in /home/dev/jobs
 /do /home/dev/app/.scratch/feature/issues/05-jobs.md"
 
+done_order="$(
+  src done_order <<'EOF'
+ticket=/home/dev/web/.scratch/feature/issues/04-show.md
+repositories=2
+repository=api
+repository_location=/home/dev/api
+repository_here=no
+repository_state=landed
+repository_ticket=/home/dev/app/.scratch/feature/issues/03-export.md
+repository=web
+repository_location=/home/dev/web
+repository_here=yes
+repository_state=landed
+repository_ticket=/home/dev/app/.scratch/feature/issues/04-show.md
+own=web
+waits_for=none
+next_landing=done
+verdict=landed
+EOF
+)"
+run repositories --door "$door" --claim "$claim" --release "$release" --order "$done_order"
+check_lines "repositories at the last landing: exit 0" 0 "$rc"
+same "repositories at the last landing says every repository landed and hands over no command" \
+  "Landed: api, web
+Still to land: none
+Every repository of the feature landed"
+
 exit "$((fails > 0))"

@@ -145,7 +145,11 @@ cmd_repositories() {
       [ "$count" -gt 1 ] || return 0
       load_groups
       group_lines
-      command_lines
+      if [ "$(v order next_landing)" = "done" ]; then
+        echo "Every repository of the feature landed"
+      else
+        command_lines
+      fi
       ;;
   esac
 }
