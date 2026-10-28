@@ -91,6 +91,24 @@ merge_lines() { # $1 awaiting when a required approval is missing: the pr routes
   echo "gh pr merge ${key[pr]}"
 }
 
+discuss_line() { # the /discuss template of playbook=
+  need playbook subject step side_a side_b weaker
+  local loss
+  if [ -n "${key[undone]:-}" ]; then
+    loss="${key[weaker]} cannot be undone once landed: ${key[undone]}"
+  else
+    need guarantee risk_class
+    loss="${key[weaker]} would give up ${key[guarantee]} (${key[risk_class]})"
+  fi
+  local fork="stopped at the ${key[step]} step on an Extreme fork, ${key[side_a]} or ${key[side_b]}; $loss."
+  case "${key[playbook]}" in
+    ticket) echo "/discuss ${key[subject]}: the do run $fork Which side does the Spec take?" ;;
+    bug-fix) echo "/discuss the do bug-fix run on \"${key[subject]}\" $fork Which side does the fix take?" ;;
+    refactoring) echo "/discuss the do refactoring run on \"${key[subject]}\" $fork Which side does the reshape take?" ;;
+    *) usage "unknown playbook=${key[playbook]}" ;;
+  esac
+}
+
 route() {
   case "${key[outcome]}" in
     landed) push_line ;;
@@ -130,6 +148,7 @@ route() {
       need ticket worktree spec_branch
       echo "Switch ${key[worktree]} off ${key[spec_branch]}, then run /do ${key[ticket]} again."
       ;;
+    extreme-fork) discuss_line ;;
     claim-taken) echo "Another run is integrating the Spec, and there is nothing to type." ;;
     final-stopped)
       need ticket

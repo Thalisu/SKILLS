@@ -120,4 +120,20 @@ run outcome=checked-out yours=no ticket=.scratch/notes-export/issues/01-export.m
 same "a landing that met the Spec branch checked out in a worktree says to switch that checkout off the Spec branch and run /do of the Ticket again" \
   "$(printf '%s\n' 'Switch /home/dev/notes-spec off spec/notes-export, then run /do .scratch/notes-export/issues/01-export.md again.' 'exit 0')"
 
+fork_keys=(step=build 'side_a=archived notes are skipped' 'side_b=archived notes are exported' 'weaker=exporting archived notes')
+run outcome=extreme-fork yours=yes playbook=ticket 'subject=Ticket .scratch/notes-export/issues/03-export-job.md, Spec .scratch/notes-export/spec.md' \
+  "${fork_keys[@]}" 'guarantee=the archive stays private' risk_class=privacy
+same "a ticket run stopped on an Extreme fork ends on the /discuss line naming the Ticket and Spec, the step, both sides, the weaker side and the guarantee with its risk class" \
+  "$(printf '%s\n' 'First do what the Yours: line names, then:' \
+    '/discuss Ticket .scratch/notes-export/issues/03-export-job.md, Spec .scratch/notes-export/spec.md: the do run stopped at the build step on an Extreme fork, archived notes are skipped or archived notes are exported; exporting archived notes would give up the archive stays private (privacy). Which side does the Spec take?' \
+    'exit 0')"
+
+run outcome=extreme-fork yours=no playbook=bug-fix 'subject=the export drops archived notes' "${fork_keys[@]}" 'undone=the exported files on the shared drive'
+same "a bug-fix run stopped on an Extreme fork whose weaker side cannot be undone ends on the /discuss line saying what could not be undone" \
+  "$(printf '%s\n' '/discuss the do bug-fix run on "the export drops archived notes" stopped at the build step on an Extreme fork, archived notes are skipped or archived notes are exported; exporting archived notes cannot be undone once landed: the exported files on the shared drive. Which side does the fix take?' 'exit 0')"
+
+run outcome=extreme-fork yours=no playbook=refactoring 'subject=split the exporter' "${fork_keys[@]}" 'guarantee=the archive stays private' risk_class=privacy
+same "a refactoring run stopped on an Extreme fork ends on its own /discuss line" \
+  "$(printf '%s\n' '/discuss the do refactoring run on "split the exporter" stopped at the build step on an Extreme fork, archived notes are skipped or archived notes are exported; exporting archived notes would give up the archive stays private (privacy). Which side does the reshape take?' 'exit 0')"
+
 exit "$((fails > 0))"
