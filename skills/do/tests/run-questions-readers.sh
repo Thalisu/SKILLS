@@ -13,6 +13,7 @@ forks="$do_dir/references/forks.md"
 ticket="$do_dir/references/ticket.md"
 mechanics="$do_dir/references/mechanics.md"
 reply="$do_dir/references/reply.md"
+blocked_reply="$do_dir/references/blocked-reply.md"
 fails=0
 pointer="Read [run-questions.md](run-questions.md) when "
 
@@ -54,7 +55,7 @@ at "mechanics.md's verification, before a full suite or a remote run" "$mechanic
 at "mechanics.md's close, before a write to a remote tracker" "$mechanics" \
   "under the same \`Yours: outward:\` line, with the \`choice-taker\`'s return"
 at "reply.md's Rulings, on a run question's Ruling" "$reply" "**A Ruling on a run question.**"
-at "reply.md's handover, before a write to a remote tracker" "$reply" "**A write to a remote tracker.**"
+at "blocked-reply.md's handover, before a write to a remote tracker" "$blocked_reply" "**A write to a remote tracker.**"
 
 echo "# every pointer to run-questions.md reads \`Read [run-questions.md](run-questions.md) when <condition>\`"
 pointers_shaped "every pointer to run-questions.md has the \`Read <file> when <condition>\` shape" \

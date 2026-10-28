@@ -159,7 +159,8 @@ Three writes outside the repository have a fixed place:
   claim's and the close's, carries the same line under `outward`, its choice the yes that makes
   every write the question lists or the no that makes none of them. Under `--auto` the question
   is still asked of the developer and carries that line all the same, with the `choice-taker`'s
-  return on lines of its own above the question, per [forks.md](forks.md).
+  return on lines of its own above the question. Read [run-questions.md](run-questions.md) when a
+  `ticket` run under `--auto` asks it.
 
 ## Whole replies
 
