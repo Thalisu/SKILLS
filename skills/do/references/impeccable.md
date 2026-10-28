@@ -68,6 +68,42 @@ withheld or lists no `do-impeccable`, the run stops as blocked in one line sayin
 holds, with the worktree and its branch named and `scripts/link-skills.sh` as the run that links
 the agent before the next `/do`.
 
+Around the fork of `do-impeccable`, and around that fork alone, the run reads the main checkout
+twice by script: the fork's write guard matches text, and a builder that ignored its worktree
+leaves files in the developer's checkout that no commit carries. Before the fork,
+`bash <skill-dir>/scripts/main-untouched.sh snapshot <the main checkout> <the state file>` records
+the checkout's uncommitted state, with its git hooks and its git config, which every worktree
+shares and no `git status` reports. A file git ignores is outside what it reads. The state file is
+`<the main checkout's git common dir>/do/main-state/<the slug>.state`, the path
+`git -C <the main checkout> rev-parse --path-format=absolute --git-path do/main-state/<the slug>.state`
+prints, under the slug step 2 cut the worktree with: no `git status` reports it, so it
+needs no `.scratch/` ignore line, which a Ticket run from its Build repository under
+`Loop: policy` never writes there, and it stays out of the Ticket's `issues/` folder, per
+[ADR 0110](../../../docs/adr/0110-the-main-checkouts-snapshot-is-kept-in-the-git-common-dir-not-the-scratch.md).
+After the fork returns, right after the revoke step 3 takes as soon as the fork returns and before
+any check or route of the return,
+`bash <skill-dir>/scripts/main-untouched.sh check <the main checkout> <the state file>` compares
+the checkout with that record, so the check always runs before step 4 and before the Gate. Every fork gets a snapshot of its own: a re-fork after a `fork` or a
+cleared `stopped`, and a resumed run that forks again, snapshots again first, since the developer
+may have worked in the checkout between the two forks.
+
+Either call exiting 2 prints no verdict, and no verdict is never an untouched checkout. A snapshot
+that exits 2 stops the run as blocked before the fork, with nothing forked, the Ticket still
+`claimed` and the worktree and its branch kept and named, in one line quoting the script's reason. A
+check that exits 2 stops the run as blocked before any check or route of the return, the way
+`verdict=changed` does below, the worktree, its branch and its commits kept for the resume and its
+line quoting the script's reason. On `verdict=untouched` from `main-untouched.sh check` the run goes
+on to the checks and the routes of the return with nothing added to the Run report. On
+`verdict=changed` the run stops as blocked before the Gate, whatever verdict the fork returned. The
+stop's class is `direction`: the Reply lists the `file=` lines the check printed, which are the
+files that changed since the fork began and never the work that was already uncommitted, a git hook
+or the git config among them as an absolute path, and carries one `Yours: direction:` line with the
+two choices, to move the files into the worktree by hand and run `/do` on the Ticket again, or to
+discard them and run `/do` again, in the blocked shape [reply.md](reply.md) fixes. The run removes
+nothing, in the main checkout or anywhere else: which of those files belong to the screen is the
+developer's to say. The worktree and its commits stay in place for the resume, and the Ticket still
+reads `claimed`.
+
 The return of `do-impeccable` is the lines and the one terminal verdict a Builder returns, so
 everything step 3 reads of a Builder's return is read with `do-impeccable` in the Builder's place
 and nothing is added for it: the same checks of the return against the branch, the first line and
@@ -86,11 +122,18 @@ wherever it sits, as one of the commits that carry no `Behaviour:` line by contr
 returned line to match it. From `do-impeccable` those commits are a flow committed on its own, the
 fix a `HANDBACK` diagnosed `production` and the fix of its detector scan.
 
+When `do-impeccable` returned `built` and the check of the main checkout read `verdict=untouched`,
+the run takes the same path from the routes of step 3 as after a Builder: the diff of step 4, the
+Gate of step 5, the integration of step 6, the landing of step 7 and the close of step 9 run exactly
+as they do after a Builder, with no step added, skipped or changed for this fork. The run ends as a
+Builder's does: the Ticket reads `resolved`, and the Reply's last line is the next `/do`, the one
+the Completion check's `next=` line names.
+
 The fallback of step 3, the session running the loop when no Builder can be forked, never reaches a
-Front-end ticket of a Spec reading `Front-end: impeccable`. The Door stopped it when the session lists no impeccable skill, and the
-build step never falls back to the Builder for it on its own, neither by forking `do-builder` nor
-by the session running the loop in its place: the Spec's line names who builds the screen, and
-only the developer changes it.
+Front-end ticket of a Spec reading `Front-end: impeccable`. The Door stopped it when the session
+lists no impeccable skill, and the build step never falls back to the Builder for it on its own,
+neither by forking `do-builder` nor by the session running the loop in its place: the Spec's line
+names who builds the screen, and only the developer changes it.
 
 ## The brief
 

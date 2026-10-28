@@ -280,10 +280,10 @@ left_in_place=(
   "are left" "is left" "stay where" "stays where" "both stay" "still there" "left standing"
 )
 
-echo "# ticket.md / step 3: the Main checkout is snapshotted before the do-impeccable fork and checked after it"
-flat="$(paragraph_with <(passage_of "$ticket" "**3. Build.**" "**4. Diff.**") "main-untouched.sh" all |
+echo "# impeccable.md / ## The build step: the Main checkout is snapshotted before the do-impeccable fork and checked after it"
+flat="$(paragraph_with <(passage_of "$reference" "## The build step" "## ") "main-untouched.sh" all |
   tr '\n' ' ' | tr -s ' ')"
-expect "step 3 has a passage on main-untouched.sh" test -n "$flat"
+expect "the build step has a passage on main-untouched.sh" test -n "$flat"
 carries_any "the passage is for the run that forks do-impeccable" "${this_flow[@]}"
 before "the snapshot comes before the check" "main-untouched.sh snapshot" "main-untouched.sh check"
 carries_each "the snapshot is taken before the fork and the check runs after the fork returns" \
@@ -301,7 +301,7 @@ carries_any "the check runs before the Gate" \
   "before the Diff" "ahead of the Gate" "ahead of the **Gate**" "ahead of step 5" \
   "ahead of step 4" "never reaches the Gate" "never reaches the **Gate**"
 
-echo "# ticket.md / step 3: a Main checkout the fork changed stops the run before the Gate"
+echo "# impeccable.md / ## The build step: a Main checkout the fork changed stops the run before the Gate"
 carries "the stop is keyed on verdict=changed" "verdict=changed"
 carries_any "the run stops as blocked" "blocked"
 carries_any "the stop's class is direction" "Yours: direction:" "\`direction\`"
@@ -320,7 +320,7 @@ carries_any "the run removes nothing" "${removes_nothing[@]}"
 carries_each "the worktree and its commits stay for the resume" \
   "worktree" -- "commits" "commit" "branch" -- "${left_in_place[@]}"
 
-echo "# ticket.md / step 3: an untouched Main checkout lets the run go on, and a resume that forks again snapshots again"
+echo "# impeccable.md / ## The build step: an untouched Main checkout lets the run go on, and a resume that forks again snapshots again"
 carries_each "on verdict=untouched the run goes on with nothing added" \
   "verdict=untouched" -- \
   "goes on" "go on" "continues" "continue" "proceeds" "proceed" "carries on" "moves on" \
@@ -333,6 +333,14 @@ carries_each "a run resumed that forks again snapshots again first" \
   "takes the snapshot again" "snapshot is taken again" "\`snapshot\` again" "snapshot anew" \
   "snapshots anew" "snapshots first" "snapshot first" "again first" "snapshots it again" \
   "snapshot it again" "own snapshot"
+
+# A Logic ticket's run reads step 3 whole, so the snapshot and the check around the do-impeccable
+# fork live in impeccable.md, and step 3 carries no read of the main checkout a Logic run pays for.
+echo "# ticket.md / step 3: the build step carries no read of the main checkout around the do-impeccable fork"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(passage_of "$ticket" "**3. Build.**" "**4. Diff.**")"
+expect "ticket.md has a build step" test -n "$out"
+absent "step 3 names no main-untouched.sh call" "main-untouched.sh"
 
 # The blocked shape runs from the paragraph that names the fork to the fenced example that closes
 # it, so the facts may sit in any paragraph between the two and the shapes written for other stops,
@@ -489,8 +497,8 @@ carries_each "that line is copied as the fork returned it" \
 # built in a worktree and a Spec that cannot move. The paragraphs read are the ones that name the
 # fork and hold both ends of the path, the `built` return and the `resolved` Ticket, each from its
 # first naming of the fork on: the Gate, a landing or a last line said of another run never answer.
-echo "# ticket.md / steps 4 to 10: a built do-impeccable return after an untouched check runs the Builder's path to resolved"
-flat="$(paragraph_with <(passage_of "$ticket" "**3. Build.**" "## ") "do-impeccable" all |
+echo "# impeccable.md / ## The build step: a built do-impeccable return after an untouched check runs the Builder's path to resolved"
+flat="$(paragraph_with <(passage_of "$reference" "## The build step" "## ") "do-impeccable" all |
   awk '{ print substr($0, index($0, "do-impeccable")) }' |
   grep -F -- "\`built\`" | grep -F -- "\`resolved\`" | tr '\n' ' ' | tr -s ' ')"
 expect "a passage on do-impeccable takes its built return to a resolved Ticket" test -n "$flat"
