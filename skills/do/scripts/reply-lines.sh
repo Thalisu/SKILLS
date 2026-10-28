@@ -222,7 +222,11 @@ cmd_landing() {
   echo "Review: none, the Spec is reviewed once its last Ticket lands"
   if [ "${land%% *}" = landed ] && [ -n "${given[check]-}" ]; then
     entries="$(open_entries)"
-    [ -z "$entries" ] || echo "Open: $entries"
+    if [ -n "$entries" ]; then
+      echo "Open: $entries"
+    elif [ "$(v check verdict)" = complete ]; then
+      echo "Open: none"
+    fi
   fi
 }
 

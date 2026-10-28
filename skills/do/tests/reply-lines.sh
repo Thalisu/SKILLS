@@ -473,4 +473,27 @@ wt="$(branch_worktree "$main_checkout" export)"
 run_in "$wt" landing --door "$home_door" --land "$land"
 check_absent "landing from a worktree of the checkout that holds the artifacts prints no Repositories line" 0 "$rc" "Repositories:"
 
+check_complete="$(
+  src check_complete <<'EOF'
+spec_branch=spec/feature
+open=none
+verdict=complete
+EOF
+)"
+run_in "$main_checkout" landing --door "$home_door" --land "$land" --check "$check_complete"
+same "landing on a run whose Completion check read complete prints Open: none" \
+  "landed at 1a2b3c4d5e6f on spec/feature
+Review: none, the Spec is reviewed once its last Ticket lands
+Open: none"
+
+check_none="$(
+  src check_none <<'EOF'
+spec_branch=spec/feature
+open=none
+verdict=wait
+EOF
+)"
+run_in "$main_checkout" landing --door "$home_door" --land "$land" --check "$check_none"
+check_absent "landing with nothing open on a check that did not read complete prints no Open line" 0 "$rc" "Open:"
+
 exit "$((fails > 0))"
