@@ -4,7 +4,8 @@
 #   harness-hooks.sh | guard-reply.sh
 #
 # Reads harness-hooks.sh's key=value lines on stdin, the last value of a key winning.
-# Exit codes: 0 pattern-and-header · 2 usage: any argument, nothing printed.
+# Exit codes: 0 pattern-and-header · 1 header-only, or no guard= line on stdin (the probe failed):
+# the Reply lists the line under Pending debt too · 2 usage: any argument, nothing printed.
 set -uo pipefail
 
 [ "$#" = 0 ] || {
@@ -19,4 +20,19 @@ while IFS= read -r line || [ -n "$line" ]; do
   esac
 done
 
-echo "Guard: guard=${key[guard]} (harness=${key[harness]}, hooks=${key[hooks]}): the pattern guard beside the header check."
+if [ -z "${key[guard]:-}" ]; then
+  echo "Guard: no verdict: the guard probe printed none; the header check alone, the whole guard."
+  exit 1
+fi
+
+reading="harness=${key[harness]:-}, hooks=${key[hooks]:-}"
+if [ "${key[guard]}" = pattern-and-header ]; then
+  echo "Guard: guard=pattern-and-header ($reading): the pattern guard beside the header check."
+  exit 0
+fi
+case "${key[disabled_by]:-none}" in
+  none) ;;
+  *) reading="$reading, disabled_by=${key[disabled_by]}" ;;
+esac
+echo "Guard: guard=${key[guard]} ($reading): the header check alone, the whole guard."
+exit 1
