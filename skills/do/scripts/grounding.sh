@@ -3,16 +3,19 @@
 # cut from. Run from the main checkout; <root> is the door's root=, the directory every
 # git hash-object runs in, and <ticket> is the door's ticket=, a relative path read from <root>.
 #
-#   grounding.sh digest <root> <ticket> <digest path>
+#   grounding.sh digest <root> <ticket> <digest path> [<extreme sidecar>]
 #       the Digest reuse gate: reuse when the Digest's ## Sources records the Spec beside the
 #       Ticket's issues/ folder and the journey its Journey: line names, each with its current
-#       hash, or `<name>: absent` for a document not on disk; fork otherwise
+#       hash, or `<name>: absent` for a document not on disk; fork otherwise, one moved= line per
+#       record that is not a match. With the sidecar resume-state.sh printed as extreme= (it must
+#       be <ticket> with .md replaced by .extreme.md): extreme when both match, the sidecar kept;
+#       otherwise fork, the sidecar removed
 #
 # A record is one ## Sources line, `<name>: <absolute path> <hash>`, or `<name>: absent`. It matches
 # when the section holds exactly one line opening `<name>:` and that line equals it.
 #
-# Prints key=value lines, verdict= last. Exit codes: digest 0 reuse, 1 fork · 2 usage, or <root>
-# not a git work tree.
+# Prints key=value lines, verdict= last. Exit codes: digest 0 reuse, 1 fork, 5 extreme · 2 usage,
+# <root> not a git work tree, or a sidecar that is not the Ticket's own.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -20,7 +23,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/ticket-read.sh"
 
 usage() {
-  echo "usage: grounding.sh digest <root> <ticket> <digest path>" >&2
+  echo "usage: grounding.sh digest <root> <ticket> <digest path> [<extreme sidecar>]" >&2
   exit 2
 }
 
@@ -52,11 +55,18 @@ matches() { # $1 section, $2 record
 }
 
 cmd_digest() {
-  [ $# = 3 ] || usage
+  [ $# = 3 ] || [ $# = 4 ] || usage
   root="$1"
   at_root "$root"
-  local ticket spec journey spec_hash journey_hash section
+  local ticket spec journey spec_hash journey_hash section sidecar="" moved=0
   ticket="$(absolute "$2")"
+  if [ $# = 4 ]; then
+    sidecar="$(absolute "$4")"
+    [ "$sidecar" = "${ticket%.md}.extreme.md" ] || {
+      echo "the extreme sidecar is not ${ticket%.md}.extreme.md: $4" >&2
+      exit 2
+    }
+  fi
   spec="$(spec_beside "$ticket")"
   journey="$(journey_beside "$spec")"
   [ "$spec" = /dev/null ] && spec=none
@@ -69,7 +79,6 @@ cmd_digest() {
   if [ -f "$3" ]; then
     echo "digest=present"
     section="$(sources_of "$3")"
-    local moved=0
     matches "$section" "$(record spec "$spec" "$spec_hash")" || {
       echo "moved=spec"
       moved=1
@@ -78,12 +87,21 @@ cmd_digest() {
       echo "moved=journey"
       moved=1
     }
-    if [ "$moved" = 0 ]; then
-      echo "verdict=reuse"
-      return 0
-    fi
   else
     echo "digest=none"
+    moved=1
+  fi
+  if [ -n "$sidecar" ]; then
+    if [ "$moved" = 0 ]; then
+      echo "extreme=kept"
+      echo "verdict=extreme"
+      return 5
+    fi
+    rm -f -- "$sidecar"
+    echo "extreme=removed"
+  elif [ "$moved" = 0 ]; then
+    echo "verdict=reuse"
+    return 0
   fi
   echo "verdict=fork"
   return 1

@@ -106,4 +106,24 @@ digest_with "spec: $root/planted.md $(hash_of "$root/planted.md")" "journey: abs
 run digest "$root" "$ticket_file" "$digest"
 check_lines "digest forks when a record names a path other than the Spec beside the Ticket" 1 "$rc" "moved=spec" "verdict=fork"
 
+# The sidecar resume-state.sh named on an Extreme fork: kept while the Spec still asks the question,
+# removed once an amendment moved what the fork was cut from.
+home extreme-kept 'Journey: not needed'
+digest_with "spec: $spec $(hash_of "$spec")" "journey: absent"
+sidecar="${ticket_file%.md}.extreme.md"
+printf '/discuss the fork\n' >"$sidecar"
+run digest "$root" "$ticket_file" "$digest" "$sidecar"
+check_lines "digest keeps the sidecar and stops on extreme when both records match" 5 "$rc" "extreme=kept" "verdict=extreme"
+expect "the kept sidecar is still on disk" test -f "$sidecar"
+
+printf 'amended\n' >>"$spec"
+run digest "$root" "$ticket_file" "$digest" "$sidecar"
+check_lines "digest removes the sidecar and forks when the Spec moved" 1 "$rc" "moved=spec" "extreme=removed" "verdict=fork"
+expect "the removed sidecar is gone from disk" test ! -e "$sidecar"
+
+home extreme-planted 'Journey: not needed'
+printf 'keep me\n' >"$root/README.md"
+refuses "digest refuses a sidecar that is not the Ticket's own" names extreme digest "$root" "$ticket_file" "$digest" "$root/README.md"
+expect "a refused sidecar argument removes nothing" test -f "$root/README.md"
+
 [ "$fails" = 0 ]
