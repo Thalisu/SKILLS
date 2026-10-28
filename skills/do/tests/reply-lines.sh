@@ -673,8 +673,8 @@ same "elsewhere refuses findings that name different Specs with one failed line 
 reply="$here/../references/reply.md"
 blocked="$here/../references/blocked-reply.md"
 elsewhere_ref="$here/../references/elsewhere.md"
-item29="$(item_holding "$reply" '[0-9]+\.' '**Spec landing lines.**')"
-item30="$(item_holding "$reply" '[0-9]+\.' '**Final integration lines.**')"
+item29="$(item_holding "$here/../references/run-report.md" '[0-9]+\.' '**Spec landing lines.**')"
+item30="$(item_holding "$here/../references/run-report.md" '[0-9]+\.' '**Final integration lines.**')"
 elsewhere_passage="$(flat_section "$elsewhere_ref" '## At the Plan step')"
 out="$item29"
 check "run-report.md's Spec landing lines are the ones reply-lines.sh landing printed" 0 0 'reply-lines.sh landing'
