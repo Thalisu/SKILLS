@@ -36,4 +36,16 @@ run outcome=setup-resolved yours=no next=.scratch/notes-export/issues/06-web-exp
 same "a next Ticket built in a repository the Spec lists no location for says so, then /do of the Ticket's absolute location" \
   "$(printf '%s\n' "notes-web: the Spec's ## Repositories list holds no location for it" "/do $elsewhere" 'exit 0')"
 
+run outcome=spec-landed yours=no next=wait
+same "a Completion check reading wait ends on one sentence saying the Spec integrates when the runs holding its open Tickets land" \
+  "$(printf '%s\n' 'Every open Ticket is claimed by another run: the Spec integrates when those runs land, and there is nothing to type.' 'exit 0')"
+
+run outcome=setup-resolved yours=no next=none
+same "a Completion check reading none ends on one sentence saying nothing else is open" \
+  "$(printf '%s\n' 'Nothing else in the Spec is open, and there is nothing to type.' 'exit 0')"
+
+run outcome=spec-landed yours=no 'ambiguous=03 no **Status:** line' next=ambiguous
+same "a Completion check reading ambiguous ends on one sentence naming the Ticket whose Status line to repair" \
+  "$(printf '%s\n' 'Repair the **Status:** line of Ticket 03 (no **Status:** line).' 'exit 0')"
+
 exit "$((fails > 0))"

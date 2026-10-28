@@ -47,6 +47,21 @@ repository_line() { # $1 the repository's name, $2 its location or unlisted
 
 next_line() { # the Completion check's next= routes, shared by spec-landed and setup-resolved
   need next
+  case "${key[next]}" in
+    wait)
+      echo "Every open Ticket is claimed by another run: the Spec integrates when those runs land, and there is nothing to type."
+      return
+      ;;
+    none)
+      echo "Nothing else in the Spec is open, and there is nothing to type."
+      return
+      ;;
+    ambiguous)
+      need ambiguous
+      echo "Repair the **Status:** line of Ticket ${key[ambiguous]%% *} (${key[ambiguous]#* })."
+      return
+      ;;
+  esac
   if [ -n "${key[next_build]:-}" ]; then
     need next_build_location next_location
     repository_line "${key[next_build]}" "${key[next_build_location]}"
