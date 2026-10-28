@@ -1414,8 +1414,8 @@ on stdin, and routes on the one `route=` line it prints, choosing no route from 
   - On `landed at <commit>`, that worktree removed and
     `bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path> | tee <state>/release`.
   - After `claim=released`, when the first read printed `repositories=` above 1, the same
-    `landing-order.sh` call a second time. The Reply's lines are copied from this second read and
-    never from the first, so they state what the repositories hold now.
+    `landing-order.sh` call a second time, saved over `<state>/order`, so the Reply's lines state
+    what the repositories hold now.
 - **`route=skip-waits`**: the step reads `skip: <own=> waits for <waits_for=>`: no claim, no
   worktree, no rebase and no review, in this repository or in the provider's. The record is the
   Reply's, which hands over the landing commands in order.
