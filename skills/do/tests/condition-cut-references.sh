@@ -88,4 +88,24 @@ carries "global-authors.md dispatches both global authors with the Project map" 
 carries "global-authors.md sends Loop: fallback and a BLOCKED map slot to the TDD fallback" \
   "[tdd-fallback.md](tdd-fallback.md)" "\`BLOCKED\`" "none yet → /testing-policy"
 
+echo "# second-run.md: a run that forks the reader once loads no text about a second reader run"
+
+# The reader section of mechanics.md is read by every run that forks the reader; the reuse gate is
+# read only once a Digest already sits beside the Ticket.
+flat="$(flat_section "$refs/mechanics.md" "## The reader")"
+carries "mechanics.md's reader section points at second-run.md when a Digest already sits beside the Ticket" \
+  "Read [second-run.md](second-run.md) when " "Digest already sits beside the Ticket"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$flat"
+absent "mechanics.md's reader section no longer holds the second run" "### A second run"
+absent "mechanics.md's reader section no longer reuses a Digest itself" "\`verdict=reuse\` (exit 0)"
+absent "mechanics.md's reader section no longer re-forks the reader itself" "\`verdict=fork\` (exit 1)"
+flat="$(flat_section "$refs/ticket.md" "## Door")"
+carries "ticket.md's door points at second-run.md for the digest check" "Read [second-run.md](second-run.md) when "
+
+expect "second-run.md exists" test -f "$refs/second-run.md"
+flat="$({ tr '\n' ' ' <"$refs/second-run.md"; } 2>/dev/null | tr -s ' ')"
+carries "second-run.md runs the digest check and routes on its reuse and fork verdicts" \
+  "grounding.sh digest" "\`verdict=reuse\`" "\`verdict=fork\`"
+
 [ "$fails" -eq 0 ]

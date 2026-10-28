@@ -242,7 +242,7 @@ the one line the Ruling appended above it, and a developer who opens it per [dig
 to check the slice instead of trusting it finds the wrong text there.
 
 The saving is scoped to this Ticket's own next run. Left stale, the `## Sources` lines would send
-the reuse gate of the second run of [mechanics.md](mechanics.md) into a reader on that run. A
+that run's digest check into a reader. A
 Digest is keyed by its own Ticket's slug, so a sibling Ticket's Digest is untouched and still costs
 a reader on its own next run, whether or not this rewrite runs.
 

@@ -216,10 +216,10 @@ verdict printed, `land` or `integration` on a rebase stopped after that review, 
 Digest's state, a hash that differs or no Digest at all: only the integration and the landing are
 left, and nothing they run opens a Digest.
 Every other run, a resume whose `review=` line reads `none` included, goes on to the Digest
-decision. Then the door runs the digest check,
-`bash <skill-dir>/scripts/grounding.sh digest <root> <ticket=> <the Digest's path>`, as the second
-run section of [mechanics.md](mechanics.md) fixes, and reads this Ticket's Ruling lines off its
-`spec=` path by the fixed command of the reader section there, whichever verdict it prints. On
+decision. Read [second-run.md](second-run.md) when a Digest already sits beside the Ticket. Then
+the door runs the digest check,
+`bash <skill-dir>/scripts/grounding.sh digest <root> <ticket=> <the Digest's path>`, and reads this Ticket's Ruling lines off its
+`spec=` path by the fixed command of the reader section of [mechanics.md](mechanics.md), whichever verdict it prints. On
 `verdict=reuse` the run says in one line that it reused the Digest and forked no reader, and
 derives its behaviours from the Digest already beside the Ticket. On `verdict=fork` it forks the
 reader, and on no other verdict. That fork runs over the `spec=` path the check printed, or the

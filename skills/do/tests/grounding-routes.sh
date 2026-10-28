@@ -6,7 +6,7 @@
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
-mech="$here/../references/mechanics.md"
+second_run="$here/../references/second-run.md"
 ticket="$here/../references/ticket.md"
 impeccable="$here/../references/impeccable.md"
 fails=0
@@ -20,9 +20,9 @@ no_session_compare() { # $1 label: $flat names no hashing or comparison the sess
     "recomputes the hash" "Two recorded hashes that both match"
 }
 
-echo "# mechanics.md / ### A second run: the Digest reuse gate"
-flat="$(passage_of "$mech" "### A second run" "## Delegates" | tr '\n' ' ' | tr -s ' ')"
-expect "mechanics.md carries the second run section" test -n "$flat"
+echo "# second-run.md: the Digest reuse gate"
+flat="$({ tr '\n' ' ' <"$second_run"; } 2>/dev/null | tr -s ' ')"
+expect "second-run.md carries the second run" test -n "$flat"
 carries "the second run runs grounding.sh digest" "grounding.sh digest"
 carries_each "the second run routes on the digest check's reuse and fork verdicts" \
   "verdict=reuse" -- "verdict=fork"
