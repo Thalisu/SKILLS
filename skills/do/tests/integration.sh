@@ -494,6 +494,85 @@ a_replayed_commit_the_resolution_left_empty_is_named_skipped_and_the_rebase_fini
 }
 a_replayed_commit_the_resolution_left_empty_is_named_skipped_and_the_rebase_finishes
 
+# integration.sh is the integration step's one reader of ancestry: it prints the verdict the session
+# acts on, never one the session derives. Each case runs it in a throwaway main checkout with the run's
+# worktree beside it, and a ledger at the run's path under the main checkout's scratch.
+integrationsh="$repo/skills/do/scripts/integration.sh"
+run_check() { # $1 worktree, $2 target, $3 ledger: integration.sh check's output in $out, its exit in $rc
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+  out="$(bash "$integrationsh" check "$1" "$2" "$3" 2>&1)" || rc=$?
+}
+run_held() { # $1 name: a main checkout whose main the run's worktree already holds, entered; the worktree in $wt
+  fresh "$1"
+  echo base >base.txt
+  commit base
+  wt="$(branch_worktree "$PWD" "$1")"
+  echo run >"$wt/run.txt"
+  g -C "$wt" add run.txt
+  g -C "$wt" commit -qm "the run's work"
+}
+
+a_branch_that_holds_its_target_with_nothing_owed_is_a_noop() {
+  run_held held-absent
+  run_check "$wt" main "$PWD/.scratch/run.ledger.md"
+  check_lines "a worktree holding its target with no ledger at all is a no-op" 0 "$rc" "verdict=noop"
+
+  run_held held-settled
+  mkdir -p .scratch
+  cat >.scratch/run.ledger.md <<'LEDGER'
+# Loss ledger
+
+## aaaaaaaaaaa1
+
+- file: dropped.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+- verdict: drop, already on the target
+
+### Target (kept)
+
+```
+kept
+```
+
+### Incoming (set aside)
+
+```
+set aside
+```
+
+## bbbbbbbbbbb2
+
+- file: applied.txt
+- location: L4-L6
+- shape: rewrite-vs-rewrite
+- commit: 3333333333333333333333333333333333333333
+- before: 4444444444444444444444444444444444444444
+- verdict: reapply, the incoming fix is still needed
+- applied: 5555555555555555555555555555555555555555, reapplied onto the rebased tip
+
+### Target (kept)
+
+```
+kept
+```
+
+### Incoming (set aside)
+
+```
+set aside
+```
+LEDGER
+  run_check "$wt" main "$PWD/.scratch/run.ledger.md"
+  check_lines "a worktree holding its target whose ledger owes nothing is a no-op" 0 "$rc" "verdict=noop"
+  absent "a no-op owes no reapply" "owed="
+  cd "$repo" || exit 1
+}
+a_branch_that_holds_its_target_with_nothing_owed_is_a_noop
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
