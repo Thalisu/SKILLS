@@ -26,4 +26,14 @@ door="$(passage_of "$ticket" "## Door" "## A stopped Final integration")"
 expect "the Door reads Read [resume.md](resume.md) when the door prints verdict=resume" \
   grep -qF "Read [resume.md](resume.md) when the door prints verdict=resume" <<<"$door"
 
+echo "# ticket.md: a verdict=resume-final run still reaches the stopped Final integration it keeps"
+expect "ticket.md carries the stopped Final integration as a section of its own" \
+  grep -qx "## A stopped Final integration" "$ticket"
+senders="$(paragraph_with "$ticket" "verdict=resume-final" all | grep -vF -- "- [ ]" | tr -s ' ')"
+expect "ticket.md sends a verdict=resume-final run somewhere" test -n "$senders"
+expect "every passage sending a verdict=resume-final run names the stopped Final integration" \
+  test "$(grep -c "A stopped Final integration" <<<"$senders")" -ge 3
+expect "no passage sending a verdict=resume-final run names a Resume section" \
+  bash -c '! grep -qE "Resume section|the Resume above|Resume of" <<<"$1"' _ "$senders"
+
 exit $((fails > 0))
