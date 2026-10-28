@@ -118,8 +118,8 @@ In place, in the developer's checkout.
 3. **The start.** The `start=` line, as the door printed it. A replay with no conflict finishes
    there, and the step reads `done:` with what the operation did: how many commits the rebase
    replayed, or the merge commit.
-4. **A stop.** Every stop runs the conflict loop of [conflict-loop.md](conflict-loop.md), whole,
-   and never a copy of it here: the class read from `conflict-class.sh` before anything is
+4. **A stop.** Every stop runs the conflict loop whole, and never a copy of it here (Read
+   [conflict-loop.md](conflict-loop.md) when the operation stops): the class read from `conflict-class.sh` before anything is
    resolved, the mechanical hunks resolved by the union rule, the union read for a key defined
    twice, the contested hunks resolved to the **Target** side by `contested.sh`, which reads a
    stopped merge as it reads a stopped rebase, the ledger judged and its reapplies brought back.

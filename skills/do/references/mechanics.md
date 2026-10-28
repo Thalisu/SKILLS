@@ -19,8 +19,8 @@ below guards against one of three:
 A case no rule here names is judged by which of the three it risks.
 
 Read the section the step links whole, with the sections it points at. A part a step reads on its
-own is a file beside this one, so a step that reaches for it carries none of the rest:
-[conflict-loop.md](conflict-loop.md) carries the conflict loop every stop of the integration
+own is a file beside this one, so a step that reaches for it carries none of the rest. Read
+[conflict-loop.md](conflict-loop.md) when the integration stops, for the conflict loop every stop
 runs. Read [build-loop.md](build-loop.md) when a step builds, for the loop and its test authors. Read
 [forks.md](forks.md) when a `ticket` run meets a fork: `bug-fix` and `refactoring` never read it,
 since each carries its own. [integrate.md](integrate.md) builds in no worktree and reads that last file alone.
@@ -342,7 +342,8 @@ tree to a fix call, such a run goes to the landing on the Spec branch below inst
 Every command of this step that can meet a conflict runs with git's conflict-resolution reuse off,
 the rebase itself as `git -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/<the
 developer's branch>`, qualified so a tag sharing the branch's name can never shadow it, and the
-continue and the skip of [conflict-loop.md](conflict-loop.md) with the same prefix. The setting is
+continue and the skip of the conflict loop with the same prefix (Read
+[conflict-loop.md](conflict-loop.md) when the rebase stops). The setting is
 the developer's own and may be on: then a resolution recorded at one stop is replayed into the next
 stop of the same shape, the class would be read from what the cache put back instead of from what
 git left, and the run's own resolutions would land in a cache that outlives it.
@@ -363,8 +364,8 @@ It acts on the `verdict=` line the script prints and never derives the verdict i
 - `verdict=noop`, exit 0: the run skips the rebase. It ticks the step as a no-op, reruns nothing,
   asks nothing, and the review is called with the fixed point `settle` prints below.
 - `verdict=reapply`, exit 3: the run brings back each entry an `owed=` line names, an entry judged
-  `reapply` with no applied line, the same way **The reapplies brought back** of
-  [conflict-loop.md](conflict-loop.md) does, one commit or `none` recorded into the ledger as that
+  `reapply` with no applied line, the same way **The reapplies brought back** does (Read
+  [conflict-loop.md](conflict-loop.md) when the check prints `verdict=reapply`), one commit or `none` recorded into the ledger as that
   state records it, then runs the whole **Gate** once before the review is called, or, on a run the
   review already read, hands the tree to the fix call with no **Gate** of its own, never ticking
   the step as a no-op over an entry still owed a commit.
@@ -387,8 +388,8 @@ the failing check named, the command that undoes the rebase, `git reset --hard <
 before it started>`, the worktree and its branch left in place and named, the Ticket left
 `claimed`, nothing landed and nothing pushed.
 
-**A rebase that stopped.** Every stop runs the conflict loop of
-[conflict-loop.md](conflict-loop.md), from the class the script reads through the states git
+**A rebase that stopped.** Every stop runs the conflict loop (Read
+[conflict-loop.md](conflict-loop.md) when the rebase stops), from the class the script reads through the states git
 refuses, and never a copy of it here. The loop ends the step in one of the two states it names: the
 rebase carried to its end, or the run stopped as blocked with the rebase left open.
 
@@ -556,7 +557,8 @@ branch above, which is the refusal wanted while the Spec is being integrated.
 
 **3. The rebase.** The integration above, in that tree, with `spec_upstream` as the developer's
 branch and the Spec branch as the branch that moves: the ancestor check, the rebase with conflict
-reuse off, the conflict loop of [conflict-loop.md](conflict-loop.md) at every stop, a contested
+reuse off, the conflict loop at every stop (Read [conflict-loop.md](conflict-loop.md) when the
+rebase stops), a contested
 hunk taking the **Target** side, here the developer's branch's. The Loss ledger is the path the
 claim printed as `ledger=`, beside the Spec and named for this repository as the claim is, and
 never a Ticket's own ledger: a resume may come through any Ticket of the Spec built in this

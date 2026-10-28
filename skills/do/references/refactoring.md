@@ -17,8 +17,8 @@ A case no step names is judged by which of these three errors it risks:
 
 The shared parts are in [mechanics.md](mechanics.md), linked from the steps that use them: the
 worktree, the protected branch, the gate, the integration, the review, the verification and the
-close, with every stop of the integration in [conflict-loop.md](conflict-loop.md). Read
-[build-loop.md](build-loop.md) when a step builds, for the loop and its test authors. The reply is written by [reply.md](reply.md):
+close. Read [conflict-loop.md](conflict-loop.md) when the integration stops, for the conflict loop
+every stop runs. Read [build-loop.md](build-loop.md) when a step builds, for the loop and its test authors. The reply is written by [reply.md](reply.md):
 five parts, and every line a step records for the Run report reaches a file under `--auto` alone.
 
 `<skill-dir>`, in the commands those references give, is the folder that holds this file's
@@ -569,7 +569,8 @@ Done when the suite and the typecheck are green in output produced after the las
 
 The integration in [mechanics.md](mechanics.md), with the branch the run started on as the target:
 the branch it built on rebased onto that branch, every conflicted hunk classed by
-`conflict-class.sh`, per [conflict-loop.md](conflict-loop.md), before anything is resolved, and the gate's command lines run again when the rebase replayed
+`conflict-class.sh` (Read [conflict-loop.md](conflict-loop.md) when the rebase stops on a
+conflict) before anything is resolved, and the gate's command lines run again when the rebase replayed
 commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to the Loss
 ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout. The no-op is
 ticked on `integration.sh check`'s `verdict=noop`, and never on an ancestor check of the run's own.

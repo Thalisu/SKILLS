@@ -3,9 +3,9 @@
 The last step of the chain. It takes one Ticket, in the format of
 [ticket-format.md](../../../.agents/formats/ticket-format.md), and nothing else: never a Spec,
 never a session summary. The parts it shares with the other Playbooks that build in a worktree
-are in [mechanics.md](mechanics.md), linked from the steps that use them, with every stop of the
-integration in [conflict-loop.md](conflict-loop.md), read by the step that reaches it and by no
-other. Read [build-loop.md](build-loop.md) when a step builds, for the loop and its test
+are in [mechanics.md](mechanics.md), linked from the steps that use them. Read
+[conflict-loop.md](conflict-loop.md) when the integration stops, for the conflict loop every stop
+runs. Read [build-loop.md](build-loop.md) when a step builds, for the loop and its test
 authors. Read
 [forks.md](forks.md) when a step meets a fork. The reply is written by [reply.md](reply.md): five parts, and every other line a step
 records here goes to the Run report, a file written under `--auto` alone and kept nowhere without

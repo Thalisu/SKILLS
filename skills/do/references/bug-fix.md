@@ -260,7 +260,8 @@ when the suite and the typecheck are green in output produced after the last edi
 
 **9. Integration.** The integration in [mechanics.md](mechanics.md), with the branch the run
 started on as the target: the branch it built on rebased onto that branch, every conflicted hunk
-classed by `conflict-class.sh`, per [conflict-loop.md](conflict-loop.md), before anything is resolved, and the gate's command lines run again when
+classed by `conflict-class.sh` (Read [conflict-loop.md](conflict-loop.md) when the rebase stops on
+a conflict) before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
 the Loss ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout.
 The no-op is ticked on `integration.sh check`'s `verdict=noop`, and never on an ancestor check of

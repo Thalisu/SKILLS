@@ -35,5 +35,9 @@ else
   fail "SKILL.md's conflict-loop.md entry names the no-op state as a reader (entry: $entry)"
 fi
 
+echo "# every pointer to conflict-loop.md reads \`Read [conflict-loop.md](conflict-loop.md) when <condition>\`"
+pointers_shaped "every pointer to conflict-loop.md has the \`Read <file> when <condition>\` shape" \
+  "$(cd "$here/.." && pwd -P)" conflict-loop.md 10
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
