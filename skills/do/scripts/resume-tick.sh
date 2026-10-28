@@ -30,15 +30,21 @@ built_pairs() { # $1 the Ticket
   sed -n 's/^behaviour=//p' <<<"$state" | awk '{ sha = $1; sub(/^[^ ]+ /, ""); if ($0 != "none") print sha " " $0 }'
 }
 
-# Each `Behavior to prove:` item of the Plan's ## Behaviours section, as <n><TAB><text>.
+# Each `Behavior to prove:` item of the Plan's ## Behaviours section, as <n><TAB><text>, the text
+# joined with single spaces up to the item's first key line.
 plan_items() { # $1 the Plan
   awk '
-    /^## / { on = ($0 == "## Behaviours"); next }
+    function flush() { if (n != "") print n "\t" text; n = ""; wrap = 0 }
+    /^## / { flush(); on = ($0 == "## Behaviours"); next }
     !on { next }
+    /^[0-9]+\. / || /^[[:space:]]*$/ || /^[[:space:]]+(Relied on by|Target|Origin):/ { wrap = 0 }
+    wrap { line = $0; sub(/^[[:space:]]+/, "", line); text = text " " line; next }
+    /^[0-9]+\. / { flush() }
     match($0, /^[0-9]+\. Behavior to prove: /) {
       n = $0; sub(/\..*/, "", n)
-      print n "\t" substr($0, RLENGTH + 1)
+      text = substr($0, RLENGTH + 1); wrap = 1
     }
+    END { flush() }
   ' "$1"
 }
 

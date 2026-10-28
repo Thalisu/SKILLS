@@ -118,4 +118,41 @@ behaviour_commit "feat: delete a note" "Deleting a note asks first"
 run tick "$ticket_path" "$plan"
 check_lines "every behaviour ticked prints next=none and route=resumed with exit 1" 1 "$rc" "next=none" "route=resumed"
 
+echo "# resume-tick.sh tick: a Design fork, an Elsewhere item and a wrapped Behavior to prove"
+cd "$tmp" || exit 1
+claimed_ticket shapes archive
+behaviour_commit "feat: archive a note" "Archiving a note hides it from the list and keeps it in the archive folder"
+wrapped="$(git -C "$wt" rev-parse --short HEAD)"
+plan="${ticket_path%.md}.plan.md"
+cat >"$plan" <<'PLAN'
+## Behaviours
+
+1. Behavior to prove: Archiving a note hides it from the list and keeps it
+   in the archive folder
+   Relied on by: the developer
+   Target: notes
+   Origin: new feature
+2. Design fork: criterion 2 reads "archived notes are exported", and the Ruling reads
+   "archived notes are skipped". Built on neither side until ruled.
+3. Elsewhere: Syncing an archived note to the phone
+   Belongs to: notes-mobile
+   Location: not known
+   Traces to: criterion 3
+   Shown by: the sync client lives in the mobile repository
+4. Behavior to prove: Restoring a note puts it back in place
+   Relied on by: the developer
+   Target: notes
+   Origin: new feature
+
+## Sketch
+
+none
+PLAN
+run tick "$ticket_path" "$plan"
+check_lines "a Behavior to prove wrapped over two lines is joined with a single space and ticked" 0 "$rc" "item=1 $wrapped"
+absent_prefix "a Design fork item prints no item= line" "item=2"
+absent_prefix "an Elsewhere item prints no item= line" "item=3"
+check_lines "the item after them is read, open, and next" 0 "$rc" "item=4 open" "next=4"
+absent_prefix "the wrapped behaviour's commit is not stray" "stray="
+
 exit "$fails"
