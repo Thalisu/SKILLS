@@ -31,5 +31,6 @@ argues_no_rule do-reader.md
 argues_no_rule do-planner.md
 argues_no_rule do-builder.md
 argues_no_rule choice-taker.md
+argues_no_rule ledger-judge.md
 
 exit $((fails > 0))
