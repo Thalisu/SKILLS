@@ -7,6 +7,37 @@ of [mechanics.md](mechanics.md) and step 9a of [ticket.md](ticket.md), when it s
 question nobody answered, a red gate, a Review that did not land, or a stop of the review's own. A
 run none of them sends here never opens it.
 
+## The stop
+
+A rebase question nobody answered, a red gate, a Review that did not land, or a stop of the
+review's own (Read [not-landed.md](not-landed.md) when the review's `route=` line reads anything
+but `route=verify`): the run stops as blocked and makes no `release` call. The tree, the Spec
+branch and the claim file all stay in place, since they are what a later run resumes from, and the
+run's own Ticket stays `resolved`. Before its Reply, at every stop the run controls, a first run's
+or a resume's, it yields the claim, so the `/do` that resumes can take it over:
+
+```
+bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path> | tee <state>/yield
+```
+
+The yield marks the claim as given up and leaves the claim file as it was written, so the claim
+still keeps a first run out while a resume can take it over, per ADR 0063. A run that died yields
+nothing, and its claim reads `taken` to every resume until the developer yields it by hand. The
+Reply says the Final integration stopped and why, and that `/do <the run's Ticket>`, or a `do` on
+any Ticket of the Spec, resumes it, per [reply.md](reply.md).
+
+A stop touches this repository's landing and no other's. A repository of the feature that landed
+before it stays landed: the run moves no ref there, reverts nothing and removes nothing, since
+what landed was reviewed and is already the developer's to push, per ADR 0084. So that a partial
+landing is never silent, the run reads the landing record once more after the yield, the same
+`landing-order.sh` call saved over `<state>/order`, on a first run and on a resume alike, and the
+Reply's lines are printed from that read.
+
+A resume that stops again yields the claim it holds before its Reply, as every stop of the Final
+integration does, so the next `/do` can take it over. Its blocker is the lines step 9a of
+[ticket.md](ticket.md) has `reply-lines.sh final` print, with `--state <state>/state` added, and
+its Next step is the same `/do`.
+
 ## The resume
 
 Entered on the door's `verdict=resume-final` and on nothing else. The Ticket handed over is

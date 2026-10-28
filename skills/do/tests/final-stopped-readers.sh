@@ -110,4 +110,35 @@ carries "step 4 ends in the release on landed at <commit>" "release" "landed at 
 carries_each "after claim=released on more than one repository, landing-order.sh runs a second time over <state>/order" \
   "claim=released" -- "repositories=" -- "landing-order.sh" -- "<state>/order" -- "second time" "a second" "again"
 
+# A stop that never yields leaves a claim no later /do can take over, and one that never reads the
+# landing record again leaves a partial landing silent: the stop's steps are read in the section of
+# final-stopped.md whose heading names the stop, so the resume's own yield or record never answers
+# for them.
+echo "# final-stopped.md: the stop of a Final integration, in a section of its own"
+stop_section="$(awk '/^## / { if (on) exit; h = tolower($0); on = h ~ /stop/ && h !~ /resume/ } on' "$final_stopped")"
+flat="$(tr '\n' ' ' <<<"$stop_section" | tr -s ' ')"
+expect "final-stopped.md has a section whose heading names the stop" test -n "$stop_section"
+carries_any "a stop makes no release call" \
+  "no \`release\` call" "no release call" "never calls \`release\`" "never makes a \`release\` call"
+carries_each "the tree, the Spec branch and the claim file stay in place" \
+  "tree" "worktree" -- "Spec branch" -- "claim file" "the claim" -- "stay" "in place"
+carries_any "the run's own Ticket stays resolved" "stays \`resolved\`" "remains \`resolved\`"
+carries "the run yields the claim and saves the yield" \
+  "final-claim.sh yield <the Ticket's path>" "| tee <state>/yield"
+carries_each "the yield is made at every stop the run controls, a first run's or a resume's" \
+  "every stop" "any stop" "each stop" -- "first run" -- "resume"
+carries_any "the yield comes before the Reply" \
+  "Before its Reply" "before its Reply" "Before the Reply" "before the Reply" \
+  "Before that Reply" "before that Reply" "before it replies" "Before it replies"
+flat="$(paragraph_with /dev/stdin "landing-order.sh" <<<"$stop_section" | tr -s ' ')"
+expect "the stop's section reads the landing record" test -n "$flat"
+carries_each "after the yield the landing record is read again over <state>/order, on a first run and on a resume alike" \
+  "after the yield" "After the yield" "after yielding" "After yielding" -- "<state>/order" -- "first run" -- "resume"
+flat="$(tr '\n' ' ' <<<"$stop_section" | tr -s ' ')"
+carries_each "a repository that landed before the stop stays landed and the run moves no ref there" \
+  "stays landed" "stay landed" -- "moves no ref" "no ref moved" "never moves a ref" "touches nothing there"
+flat="$(paragraph_with /dev/stdin "stops again" <<<"$stop_section" | tr -s ' ')"
+expect "the stop's section names a resume that stops again" test -n "$flat"
+carries_any "a resume that stops again yields as any stop does" "yields" "yield"
+
 exit $((fails > 0))
