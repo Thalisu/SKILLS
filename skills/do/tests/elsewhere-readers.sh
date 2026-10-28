@@ -6,6 +6,7 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 elsewhere="$here/../references/elsewhere.md"
+skill="$here/../SKILL.md"
 fails=0
 
 echo "# elsewhere.md's readers: named in its opening, with the condition that sends them"
@@ -20,5 +21,13 @@ carries "the opening names the condition that sends the Plan step: an \`Elsewher
 carries "the opening names the build step" "build step"
 carries "the opening names the condition that sends the build step: the Builder's work-for-another-repository stopped line" \
   "\`stopped: work for another repository:\`"
+
+echo "# SKILL.md's references list names elsewhere.md with its readers and its condition"
+
+flat="$(grep -F -- '- [elsewhere.md](references/elsewhere.md):' "$skill" | tr -s ' ')"
+expect "SKILL.md's Links list carries an entry for elsewhere.md" test -n "$flat"
+carries "the entry names its readers: the ticket Plan step and build step" "\`ticket\`" "Plan step" "build step"
+carries "the entry names the conditions: an \`Elsewhere:\` item, and the Builder's stopped line" \
+  "\`Elsewhere:\`" "\`stopped: work for another repository:\`"
 
 [ "$fails" -eq 0 ]
