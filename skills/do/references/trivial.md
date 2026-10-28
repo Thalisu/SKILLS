@@ -206,4 +206,4 @@ Nothing is pushed. Done when the commit's short sha is recorded for the Run repo
 
 ### 7. Reply
 
-By [reply.md](reply.md), in the same message.
+By [reply.md](reply.md), in the same message. Read [run-report.md](run-report.md) when the run is under `--auto`, before it writes the Run report.
