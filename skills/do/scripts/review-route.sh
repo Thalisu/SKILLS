@@ -10,9 +10,15 @@
 # request that started the run). Optional: command (the run's own gate command= line, only when that
 # gate ran before the review), before (the commit recorded before the integration started).
 #
-# Prints, in order: landing=landed|not landed, commit=<sha> (landed only), then route=verify.
+# Prints, in order: landing=landed|not landed, commit=<sha> (landed only), reason=<reason> (not
+# landed only), the fix call's lines on fix (fix=fix <review> <target>, gate=<the command= line as
+# given> only when command= was given, caller=Caller: do), then route, first match wins:
 #
-# Exit codes: 0 verify · 2 usage: a missing required key, an unknown or repeated key, an integration=
+#   landing      integration       route
+#   landed       any               verify
+#   target moved rebase, reapply   fix
+#
+# Exit codes: 0 verify · 1 fix · 2 usage: a missing required key, an unknown or repeated key, an integration=
 # or last= word outside its union, or a landing= line of neither form.
 set -uo pipefail
 
@@ -46,4 +52,25 @@ if [[ "$landing" =~ ^landed\ at\ ([0-9a-f]{7,40})(,|$) ]]; then
   echo "route=verify"
   exit 0
 fi
-usage "a landing= line of neither form: $landing"
+[[ "$landing" =~ ^not\ landed:\ (.+)$ ]] || usage "a landing= line of neither form: $landing"
+reason="${BASH_REMATCH[1]}"
+echo "landing=not landed"
+echo "reason=$reason"
+
+fix_call() {
+  echo "fix=fix ${in[review]} ${in[target]}"
+  [ -z "${in[command]:-}" ] || echo "gate=${in[command]}"
+  echo "caller=Caller: do"
+}
+
+case "$reason" in
+  "target moved"*)
+    case "${in[integration]}" in
+      rebase | reapply)
+        fix_call
+        echo "route=fix"
+        exit 1
+        ;;
+    esac
+    ;;
+esac

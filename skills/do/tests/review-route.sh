@@ -42,4 +42,16 @@ route "landing=landed at 0123456789abcdef0123456789abcdef01234567, rebased onto 
 check_lines "a landing rebased onto its target goes on to the verification" 0 "$rc" \
   "landing=landed" "commit=0123456789abcdef0123456789abcdef01234567" "route=verify"
 
+# A target that moved while the review ran, after an integration that moved the branch, is
+# integrated again and landed through the fix call on the Review already held: the call names the
+# Review and the target, hands on the run's own gate command, and is marked as do's own.
+moved="not landed: target moved, spec/feature is at 89abcde and the branch is not on it"
+for integration in rebase reapply; do
+  route "landing=$moved" "integration=$integration" "command=command=bash skills/do/scripts/gate.sh"
+  check_lines "a target that moved after an integration that read $integration is landed through the fix call" 1 "$rc" \
+    "landing=not landed" "reason=target moved, spec/feature is at 89abcde and the branch is not on it" \
+    "fix=fix /repo/.scratch/feature/issues/07-ticket.review.md spec/feature" \
+    "gate=command=bash skills/do/scripts/gate.sh" "caller=Caller: do" "route=fix"
+done
+
 exit $((fails > 0))
