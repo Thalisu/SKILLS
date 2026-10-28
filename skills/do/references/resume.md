@@ -2,9 +2,9 @@
 
 Read by the session of a `ticket` run, from these places of [ticket.md](ticket.md): the Door, when
 the door prints `verdict=resume` (a `claimed` Ticket whose `do/<slug>` worktree exists); the review
-step, when `review-route.sh` prints `route=resume`, for the all-ticked bullet in the same run; the
-build step, when a Builder's return fails its checks, to pick the stretch up from what
-`resume-state.sh` printed; and the stopped Final integration, when `final-state.sh` prints
+step, through not-landed.md, when `review-route.sh` prints `route=resume`, for the all-ticked bullet
+in the same run; the build step, when a Builder's return fails its checks, to pick the stretch up
+from what `resume-state.sh` printed; and the stopped Final integration, when `final-state.sh` prints
 `verdict=integration` (for the mid-rebase bullet, with the Spec branch as the branch that moves) or
 `verdict=ask` (for the discard question). A run none of them sends here never opens it. The steps
 named below are the steps of [ticket.md](ticket.md).
@@ -63,8 +63,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   bash <skill-dir>/scripts/grounding.sh digest <root> <ticket=> <the Digest's path> <the extreme= value>
   ```
 
-  - `verdict=extreme` (exit 5): the run stops again as blocked, by the blocked shape of
-    [reply.md](reply.md). The reply names what the Extreme stop names, the fork's
+  - `verdict=extreme` (exit 5): the run stops again as blocked, by the blocked shape.
+    Read [blocked-reply.md](blocked-reply.md) when the run stops again as blocked here. The reply names what the Extreme stop names, the fork's
     own facts read off the `discuss=` line and the commits off the script's `commit=` lines, and
     its last line is the `discuss=` line whole. The run forks no Planner, no Builder and no
     `choice-taker`, since judging the fork a second time could read it the other way, and it asks
@@ -107,6 +107,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   **Gate** of the run's own after it,
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
+  Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
 - On a Ticket of a Spec, one whose door printed `spec_exists=yes`, the script prints
   `base=spec/<feature-slug>` and reads `merge_base`, `tip`
   and `stop=` against that branch, so wherever a bullet of this section says the developer's
@@ -116,7 +117,9 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   and the run goes on at step 4, then the **Gate** of step 5, the integration of step 6 onto the
   Spec branch and the landing of step 7. That is how a run requested again after a refused landing
   resumes at the landing.
-- When every line of the list is ticked on a Ticket with no Spec, as on the branch a `route=resume` of `review-route.sh` leaves, a `not landed: target moved` right after an integration that ticked as a no-op,
+- When every line of the list is ticked on a Ticket with no Spec, as on the branch a moved target
+  leaves right after an integration that ticked as a no-op (Read [not-landed.md](not-landed.md)
+  when the review route sends the run here in the same run),
   whether a later run finds it or the same run takes this path at step 7 without a second request,
   step 3 reads `done: resumed` and the run never waits on a Builder with nothing left to build. It
   goes on at step 4 as a first run does, reading the diff already on the branch, its flows counting
@@ -226,7 +229,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
 
   A `review=` line that names a Review means the rebase came after the review: once it finishes,
   the branch lands through the fix call on that Review with no **Gate** of the run's own before it,
-  and is never reviewed a second time.
+  and is never reviewed a second time. Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
 - A Spec amended while the Ticket is `claimed` is resumed the same way whoever amended it: `discuss`
   after a run stopped on an Extreme fork (the forks in [forks.md](forks.md)), or the
   developer editing a Ruling line in the Spec's Implementation Decisions to reverse it. No

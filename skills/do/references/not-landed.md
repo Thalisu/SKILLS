@@ -65,8 +65,8 @@ own artifacts, per
 [ADR 0057](../../../docs/adr/0057-a-do-run-stops-only-on-a-handover-class-its-reply-names.md), and
 the developer never types the request again only so that a human is present. The run already holds
 what that path reads off `resume-state.sh`, every behaviour committed and the Review its own review
-wrote, so it reads neither again. In `ticket` the path is the all-ticked bullet of the Resume of
-[ticket.md](ticket.md): the integration run again, which resolves each contested hunk the review's
+wrote, so it reads neither again. In `ticket`, Read [resume.md](resume.md) when review-route.sh prints route=resume: its
+all-ticked bullet is the path, the integration run again, which resolves each contested hunk the review's
 landing left to the **Target** side and writes its **Incoming** side to the ledger, the Loss ledger
 judged and the reapplies brought back, with no **Gate** of the run's own, then the landing through
 the fix call on the Review the run already has, never a second review. In `bug-fix` and

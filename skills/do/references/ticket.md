@@ -919,7 +919,6 @@ one line per part. Each return, and each fix call's, is routed on the `route=` l
 reads anything but `route=verify`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
-Read [resume.md](resume.md) when review-route.sh prints route=resume: its all-ticked bullet is the path that route takes.
 
 **8. Verification.** On a Ticket of a Spec the step reads
 `skip: landed on the Spec branch, which the main checkout does not hold`: the flows run from the

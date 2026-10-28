@@ -59,13 +59,13 @@ points_at_not_landed "refactoring.md's review step" \
 # not-landed.md alone, so a path without the pointer calls the review with no `Caller: do` line.
 echo "# each Resume path that lands through the fix call on a Review the run has reads not-landed.md there"
 via_fix="it lands through the fix call on a Review the run already has"
-points_at_not_landed "ticket.md's verdict=land resume bullet" \
-  "$(bullets_opening_on "$refs/ticket.md" "On \`verdict=land\`, the review already read this branch")" "$via_fix"
-points_at_not_landed "ticket.md's mid-rebase resume, a review= line naming a Review" \
-  "$(passage_of "$refs/ticket.md" "  A \`review=\` line that names a Review means the rebase came after the review" "- " |
+points_at_not_landed "resume.md's verdict=land resume bullet" \
+  "$(bullets_opening_on "$refs/resume.md" "On \`verdict=land\`, the review already read this branch")" "$via_fix"
+points_at_not_landed "resume.md's mid-rebase resume, a review= line naming a Review" \
+  "$(passage_of "$refs/resume.md" "  A \`review=\` line that names a Review means the rebase came after the review" "- " |
     tr '\n' ' ' | tr -s ' ')" "$via_fix"
 points_at_not_landed "ticket.md's stopped Final integration, step 3's verdict=land" \
-  "$(passage_of "$refs/ticket.md" "### A stopped Final integration" "## " |
+  "$(passage_of "$refs/ticket.md" "## A stopped Final integration" "## " |
     bullets_opening_on /dev/stdin "\`verdict=land\`, exit 4: the Review beside the Spec counts")" "$via_fix"
 points_at_not_landed "bug-fix.md's resume on a Review that counts" \
   "$(bullets_opening_on "$refs/bug-fix.md" "A Review of the branch" |
