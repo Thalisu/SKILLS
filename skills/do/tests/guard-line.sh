@@ -18,6 +18,11 @@ flat="$(item_holding "$playbook" '\*\*[0-9]+\.' "subagent_type: do-planner" | tr
 carries "the Plan step runs the guard probe" "harness-hooks.sh"
 before "the Plan step takes the verdict before it forks the Planner" \
   "harness-hooks.sh" "subagent_type: do-planner"
+# The Guard: line is printed by guard-reply.sh from the probe's lines, never composed by the run.
+carries "the Plan step pipes the probe into guard-reply.sh and keeps its line" \
+  "bash <skill-dir>/scripts/harness-hooks.sh | bash <skill-dir>/scripts/guard-reply.sh"
+carries_any "and keeps the printer's exit, which says whether Pending debt lists the line too" \
+  "exit 1" "non-zero exit" "exits 1"
 
 # A carried Plan forks no Planner, so the Builder is the run's first fork and the probe moves there,
 # and only there: a second probe on a run that already took one is a second, possibly different line.
@@ -125,6 +130,13 @@ expect "the Run list carries a Plan line" test -n "$plan_item"
 flat="$(tr '\n' ' ' <<<"$plan_item" | tr -s ' ')"
 
 carries "the Plan line carries a \`Guard:\` line" "Guard:"
+carries "the \`Guard:\` line is the one \`guard-reply.sh\` printed, copied" "guard-reply.sh"
+pending_item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' '**Pending debt.**' | tr '\n' ' ' | tr -s ' ')"
+saved="$flat"
+flat="$pending_item"
+carries_each "Pending debt lists the \`Guard:\` line \`guard-reply.sh\` printed when it exits 1" \
+  "guard-reply.sh" -- "exit 1" "exits 1" "non-zero"
+flat="$saved"
 
 # A paraphrase ("hooks were fine") hides which harness ran and whether hooks fired; the probe's own
 # values are what let the developer tell a Codex run from a Claude Code with hooks off.

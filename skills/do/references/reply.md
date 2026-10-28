@@ -155,9 +155,9 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     so there is neither a location nor a Planner's fallback to name. Its `Guard:` line below still
     rides, on the fork of `do-impeccable`.
 
-    Whenever a fork ran, the Planner or the Builder, one `Guard:` line rides it, quoting the
-    `guard=` line the guard probe printed with its `harness=` and `hooks=` values, so the
-    developer knows which of the two mechanisms held:
+    Whenever a fork ran, the Planner or the Builder, one `Guard:` line rides it: the line
+    `guard-reply.sh` printed from the guard probe, per the Plan step of [ticket.md](ticket.md),
+    copied whole. It quotes the `guard=` line with its `harness=` and `hooks=` values and reads:
     - On `pattern-and-header`, the pattern guard beside the header check.
     - On `header-only`, the header check alone, the whole guard over the fork itself, with the
       review marker's token, revoked again as soon as the Builder returns, guarding the window
@@ -531,12 +531,11 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
    fixes. A held Ruling the close did not post, per the Rulings item above, with its
    whole Spec line and its `Criterion:` and `Now reads:` lines. On a run that forked `do-impeccable`, each `finding:` line the fork
    returned is listed here, one line per finding, so a finding counted under Evidence is always
-   named. Findings that remain are debt and never a stop: the Ticket still lands. A run whose guard
-   probe printed `guard=header-only`, or failed and printed no verdict, lists its `Guard:` line
-   here too, with the `disabled_by=` file when the probe named one (for a probe that failed, the
-   line says it printed no verdict), in the message, with or without `--auto`: a repository whose
-   settings turn hooks off strips the forks' pattern guard, and the Run report that also holds the
-   line is written only under `--auto`. A `pattern-and-header` verdict adds nothing here. The line for
+   named. Findings that remain are debt and never a stop: the Ticket still lands. When
+   `guard-reply.sh` exits 1, on a `guard=header-only` probe or one that failed and printed no
+   verdict, its `Guard:` line is listed here too, as printed, with the `disabled_by=` file when the
+   probe named one, in the message, with or without `--auto`. On exit 0, a `pattern-and-header`
+   verdict, nothing is added here. The line for
    consumer flows not run opens `consumer flows not run:` and names the Ticket that carries them,
    off the Completion check's `consumer=` lines: each `consumer=<NN> <name>` line is a Ticket of
    another repository blocked by the one this run built, the one whose criteria cross the two

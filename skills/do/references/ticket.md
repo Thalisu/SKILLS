@@ -740,9 +740,15 @@ resolves to, and it says in one line that the stale Plan was removed:
 rm -f -- <the destination>
 ```
 
-Right before it forks the Planner, the run takes the guard probe, `bash <skill-dir>/scripts/harness-hooks.sh`
-from the main checkout with no argument, and keeps its `guard=` line, with its `harness=`,
-`hooks=` and `disabled_by=` lines, for the Run report's Plan line, per [reply.md](reply.md). It runs once per run, right
+Right before it forks the Planner, the run takes the guard probe from the main checkout, piped
+into the printer of the `Guard:` line:
+
+```
+bash <skill-dir>/scripts/harness-hooks.sh | bash <skill-dir>/scripts/guard-reply.sh
+```
+
+It keeps the one line printed for the Run report's Plan line, per [reply.md](reply.md), and the
+exit: exit 1 lists that line under Pending debt too. The probe, `harness-hooks.sh`, runs once per run, right
 before the run's first fork of either agent, the Planner here or the Builder at step 3, since a harness does not change within
 a session and a resume is a new session that takes it again before its own first fork. It is never
 taken on a run that forks neither agent: no pattern guard can hold where no agent runs. The verdict
@@ -752,8 +758,7 @@ the fork and the `## Sources` check below runs beside it. `guard=header-only` is
 no hook, Codex among them, or a Claude Code whose settings turn hooks off, the file the
 `disabled_by=` line names: the `## Sources` check is then the whole guard. The run never stops on
 either verdict and asks nothing: the check runs the same way under both, and the verdict only says
-which mechanism held. An exit other than 0 prints no verdict, and the Plan line says the probe
-failed rather than quoting a guard.
+which mechanism held.
 
 The fork is the `do-planner` agent `do` ships in [do-planner.md](../agents/do-planner.md), called
 through the Agent tool with `subagent_type: do-planner` and the brief [plan.md](plan.md) fixes,
