@@ -264,6 +264,18 @@ expect "asking a ledger for its owed reapplies succeeds (got $rc)" test "$rc" = 
 same "only the reapply entries with no applied line are owed, in file order" \
   "$(printf 'aaaaaaaaaaa1\neeeeeeeeeee5')"
 
+# A run with no contested hunk has no ledger at all, and its integration still has to reach its
+# no-op: the missing ledger owes nothing, and asking it neither creates it nor the scratch.
+fresh ledger-owed-absent
+nooledger="$PWD/.scratch/run.ledger.md"
+rc=0
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(bash "$ledgersh" owed "$nooledger" 2>&1)" || rc=$?
+expect "asking a ledger no stop ever wrote for its owed reapplies succeeds (got $rc)" test "$rc" = 0
+same "a ledger no stop ever wrote owes no reapply" ""
+expect "asking an absent ledger for its owed reapplies does not create it" test ! -e "$nooledger"
+expect "asking an absent ledger for its owed reapplies does not create the scratch on the way to it" test ! -e "$PWD/.scratch"
+
 # A ledger that exists but that this run cannot read is not a ledger with nothing in it: the read
 # failed, it did not come back empty. Answering with the same rc 0 and empty stdout an empty or
 # absent ledger gets is indistinguishable data loss, since a run cannot tell "nothing to judge" from
