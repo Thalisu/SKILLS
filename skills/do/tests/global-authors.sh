@@ -26,6 +26,34 @@ for kind in unit e2e; do
   else fail "global-$kind-test-author carries the $kind core's markers and every section heading, in order"; fi
 done
 
+echo "# the agents' bodies carry instructions only, no ADR and no argument beside a rule"
+
+# The build loop dispatches a global author once per behaviour, and every sentence of the body is paid
+# in each of those windows: why a rule holds lives in docs/adr/ alone. A Goal clause naming what an
+# instruction protects stays allowed, so only the argument forms are read, over the flattened body
+# since the core hard-wraps. The <example> blocks and the sentence the Report has the author state
+# verbatim are output the author writes, not arguments, and are left out. The hooks' deny reasons sit
+# in the frontmatter and are not read here.
+verbatim='*commit these together with the test, or in a refactor commit immediately before it; splitting them leaves the other test file broken at that commit.*'
+# shellcheck disable=SC2043  # e2e joins the list once its author's body is cut to instructions too
+for kind in unit; do
+  agent="$skill/agents/global-$kind-test-author.md"
+  author_body="$(body_of "$agent" | sed '/^<example>$/,/^<\/example>$/d' | tr '\n' ' ' | tr -s ' ')"
+  author_body="${author_body//"$verbatim"/}"
+  out="$(grep -oE '.{0,40}(docs/adr/|\bADRs?\b).{0,40}' <<<"$author_body")"
+  same "global-$kind-test-author's body names no ADR and links nothing under docs/adr/" ""
+  out="$(grep -oiE '.{0,40}(\b(because|so that|since)\b|, so (a|an|the|it|you|nothing)\b).{0,40}' <<<"$author_body")"
+  same "global-$kind-test-author's body gives no because, so-that, since or \", so a/the/it/you/nothing\" reason beside a rule" ""
+  # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+  out="$author_body"
+  check_absent "global-$kind-test-author's body keeps none of the arguments it carried beside its rules" 0 0 \
+    "is worthless when the code is wrong" \
+    "pins the implementation and stays green when the real path breaks" \
+    "The ceiling is not a licence to give up on the first run" "worth more to the caller" \
+    "so no one project's commands and layout can live here" \
+    "the run needs that command to see red"
+done
+
 echo "# scripts/project-map.sh: only what a command read"
 mapper="$skill/scripts/project-map.sh"
 none='none yet → /testing-policy'
