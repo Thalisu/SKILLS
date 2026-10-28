@@ -46,4 +46,23 @@ digest_with "spec: $spec $(hash_of "$spec")" "journey: absent"
 run digest "$root" "$ticket_file" "$digest"
 check_lines "digest reuses a Digest whose records match the Spec and a journey still absent" 0 "$rc" "digest=present" "verdict=reuse"
 
+# The reader's brief and the Ruling-line grep read these two paths: a journey resolved from anywhere
+# but the Ticket's own Spec is another document.
+home relative 'Journey: journeys/checkout.md'
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest prints the Spec beside the Ticket and a relative journey joined to the Spec's folder" 1 "$rc" \
+  "spec=$spec" "journey=$feature/journeys/checkout.md"
+
+home absolute "Journey: $tmp/elsewhere/journey.md"
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest keeps an absolute journey location as written" 1 "$rc" "journey=$tmp/elsewhere/journey.md"
+
+home required 'Journey: required'
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest prints journey=none for a Journey: line reading required" 1 "$rc" "spec=$spec" "journey=none"
+
+home not-needed 'Journey: not needed, the run is a script'
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest prints journey=none for a Journey: line reading not needed" 1 "$rc" "journey=none"
+
 [ "$fails" = 0 ]

@@ -55,16 +55,22 @@ cmd_digest() {
   [ $# = 3 ] || usage
   root="$1"
   at_root "$root"
-  local ticket spec journey section
+  local ticket spec journey spec_hash journey_hash section
   ticket="$(absolute "$2")"
   spec="$(spec_beside "$ticket")"
   journey="$(journey_beside "$spec")"
   [ "$spec" = /dev/null ] && spec=none
+  spec_hash="$(hash_at "$spec")"
+  journey_hash="$(hash_at "$journey")"
+  echo "spec=$spec"
+  echo "spec_hash=$spec_hash"
+  echo "journey=$journey"
+  echo "journey_hash=$journey_hash"
   if [ -f "$3" ]; then
     echo "digest=present"
     section="$(sources_of "$3")"
-    if matches "$section" "$(record spec "$spec" "$(hash_at "$spec")")" &&
-      matches "$section" "$(record journey "$journey" "$(hash_at "$journey")")"; then
+    if matches "$section" "$(record spec "$spec" "$spec_hash")" &&
+      matches "$section" "$(record journey "$journey" "$journey_hash")"; then
       echo "verdict=reuse"
       return 0
     fi
