@@ -616,4 +616,18 @@ run elsewhere --door "$plan_door" "$finding_nameless" "show the hold"
 check_lines "elsewhere names a Home repository with no name by its location alone" 0 "$rc" \
   "Open a session in /home/dev/app"
 
+g -C "$main_checkout" branch spec/feature
+printf 'one\n' >"$wt/one.txt"
+g -C "$wt" add one.txt && g -C "$wt" commit -qm one
+printf 'two\n' >"$wt/two.txt"
+g -C "$wt" add two.txt && g -C "$wt" commit -qm two
+run_in "$main_checkout" elsewhere --door "$plan_door" --build "$wt" "$finding_added" "show the hold"
+same "elsewhere --build opens at the build step, reads the Ticket as claimed and names the worktree, its branch and the commits kept" \
+  "Stopped at the build step: \"show the hold\" has no place in this repository. It belongs to orders-service.
+Written into the Spec (.scratch/feature/spec.md): orders-service added to its repositories list, and one line naming the behaviour as moved by the run on Ticket 03.
+Ticket 03 still reads claimed.
+Kept for the next /do on this Ticket: $wt on do/export, 2 commits.
+Yours: outward: cut the moved behaviour for orders-service with the command below, then run /do on this Ticket again
+/tickets .scratch/feature/spec.md"
+
 exit "$((fails > 0))"

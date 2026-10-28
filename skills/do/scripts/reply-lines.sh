@@ -329,7 +329,20 @@ cmd_elsewhere() { # $@ finding file and behaviour pairs: the whole stop message 
     echo "$number"
     exit 3
   }
-  value_of status door status
+  local opening="Stopped at the Plan, before anything was built:" kept="" tree branch base count
+  if [ -n "${given[build]-}" ]; then
+    tree="${given[build]}"
+    value_of base door spec_branch
+    branch="$(git -C "$tree" rev-parse --abbrev-ref HEAD 2>/dev/null)" &&
+      count="$(git -C "$tree" rev-list --count "$base..HEAD" 2>/dev/null)" || {
+      echo "reply-lines.sh: --build $tree: no branch past $base to read" >&2
+      exit 2
+    }
+    opening="Stopped at the build step:" status=claimed
+    kept="Kept for the next /do on this Ticket: $tree on $branch, $count commits."
+  else
+    value_of status door status
+  fi
   relative="${spec#"$home"/}"
   command="/tickets $relative"
   set -- "${pairs[@]}"
@@ -353,11 +366,12 @@ cmd_elsewhere() { # $@ finding file and behaviour pairs: the whole stop message 
     else
       listed+=("$repository")
     fi
-    out+=("Stopped at the Plan, before anything was built: \"$2\" has no place in this repository. It belongs to $repository.")
+    out+=("$opening \"$2\" has no place in this repository. It belongs to $repository.")
     out+=("Written into the Spec ($relative): $written")
     shift 2
   done
   out+=("Ticket $number still reads $status.")
+  [ -z "$kept" ] || out+=("$kept")
   if [ "${#unknown[@]}" = 0 ]; then
     out+=("Yours: outward: cut the moved behaviour for $(joined "${listed[@]}") with the command below, then run /do on this Ticket again")
   else
