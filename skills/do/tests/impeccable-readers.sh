@@ -36,4 +36,16 @@ carries_each "the entry names the condition, the door printing kind=front-end wi
 out="$flat"
 absent "the entry no longer says one step alone reads the file" "read by that step alone"
 
+echo "# skills/do: every pointer to impeccable.md reads Read [impeccable.md](impeccable.md) when <condition>"
+# A link to the file, under any relative path, is a pointer, except SKILL.md's references-list entry
+# and the links impeccable.md makes to itself.
+do_dir="$(cd "$here/.." && pwd -P)"
+pointers="$(grep -rnE '\]\(([^)]*/)?impeccable\.md\)' "$do_dir" --include='*.md' --exclude-dir=tests |
+  grep -vF -e "$do_dir/references/impeccable.md:" -e "$do_dir/SKILL.md:")"
+expect "the do skill carries at least one pointer to impeccable.md" test -n "$pointers"
+misshaped="$(grep -vE 'Read \[impeccable\.md\]\(impeccable\.md\) when [^ ]' <<<"$pointers")"
+expect "no pointer to impeccable.md has another shape" test -z "$misshaped"
+skill_links="$(grep -cE '\]\(([^)]*/)?impeccable\.md\)' "$skill")"
+expect "SKILL.md links impeccable.md in its references-list entry alone" test "$skill_links" = 1
+
 exit $((fails > 0))
