@@ -53,6 +53,10 @@ value_of() { # $1 flag, $2 key: the last value, or the missing-key refusal
 }
 
 select_shape() { # the sources present -> one FinalShape word, or failed no-shape
+  local flag
+  for flag in claim release yield; do
+    [ "$(v "$flag" claim)" != failed ] || failed "--$flag failed"
+  done
   if [ "$(v claim claim)" = claimed ] && [ "$(v release claim)" = released ]; then
     echo landed
     return

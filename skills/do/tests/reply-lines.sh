@@ -83,4 +83,19 @@ first="$out"
 run final --door "$door" --claim "$claim" --release "$release" --review "$review" --order "$order"
 same "final prints the same lines on a second call with the same files" "$first"
 
+run final --door "$door" --claim "$claim" --review "$review" --order "$order"
+check_lines "final refuses sources that match no shape: exit 3" 3 "$rc"
+same "final refuses sources that match no shape with one failed line and no Reply line" "failed no-shape"
+
+failed_claim="$(
+  src failed_claim <<'EOF'
+claim=failed
+file=/home/dev/app/.scratch/feature/spec.integration.claim
+reason=no-upstream
+EOF
+)"
+run final --door "$door" --claim "$failed_claim" --release "$release" --review "$review" --order "$order"
+check_lines "final refuses a claim that failed: exit 3" 3 "$rc"
+same "final refuses a claim that failed with one failed line naming it and no Reply line" "failed --claim failed"
+
 exit "$((fails > 0))"
