@@ -730,6 +730,17 @@ Then the run decides the carry from the main checkout:
 bash <skill-dir>/scripts/grounding.sh plan <root> <ticket=> <the Digest's path> <the destination>
 ```
 
+It prints `ticket=`, `ticket_hash=`, `digest=` and `digest_hash=`, the two documents the Plan is
+cut from hashed under `<root>`, `absent` for one not on disk. The session keeps those four values
+as the recorded values every later check of this run is handed, and as the brief's `Sources:`
+lines, so the record the run trusts is its own reading and never the fork's.
+
+- `verdict=carried` (exit 0): the run forks nobody, says in one line that it reused the Plan, and
+  builds from the Plan it already has.
+- `verdict=fork` (exit 1): the run forks the Planner, or writes the Plan itself on the fallback
+  below. A `removed=` line is the stale Plan the script removed from the destination, and the run
+  says in one line that it was removed.
+
 Right before it forks the Planner, the run takes the guard probe from the main checkout, piped
 into the printer of the `Guard:` line:
 
