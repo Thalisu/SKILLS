@@ -48,7 +48,7 @@ Exit 2 after the door's `resume` is a worktree on a detached HEAD with no rebase
 the run stops as blocked in one line naming the worktree and the script's reason, writes nothing,
 and leaves the worktree as it is, since no branch can be read from it to build on.
 
-- The run records the resume line for the Run report's Run section, per [reply.md](reply.md): it says
+- The run records the resume line for the Run report's Run section: it says
   the run resumed, names the worktree and its branch, and lists the commits found, one line each
   with its `Behaviour:` line, off the script's lines. The claim line is not written again. The
   Run report's Run section carries the checklist with steps 0 and 2 reading `done: resumed`.
