@@ -60,4 +60,14 @@ check_lines "gate-suites.sh adds no full suite for a Ticket that is not its feat
   "last=no" "full_unit=no" "full_e2e=no"
 rm "$issues/03-c.md"
 
+printf '# Project\n\n### Project facts\n\n- **Unit**: `bash run-tests.sh`\n' >CLAUDE.md
+run "$issues/02-b.md"
+check_lines "gate-suites.sh prints full_unit=yes on the feature's last Ticket when the project's facts carry no Post-feature gate line" 0 "$rc" \
+  "last=yes" "facts=missing" "full_unit=yes" "full_e2e=no"
+ticket 03-c.md '**Status:** ready-for-agent' '02'
+run "$issues/02-b.md"
+check_lines "gate-suites.sh prints full_unit=yes on a Ticket that is not the last when the project's facts carry no Post-feature gate line" 0 "$rc" \
+  "last=no" "facts=missing" "full_unit=yes" "full_e2e=no"
+rm "$issues/03-c.md"
+
 [ "$fails" = 0 ]

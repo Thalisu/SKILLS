@@ -8,7 +8,8 @@
 #                                         main checkout
 #
 # The facts value is the text after `- **Post-feature gate**: ` on the main checkout's CLAUDE.md,
-# up to the next `:` or the line's end, trimmed.
+# up to the next `:` or the line's end, trimmed; `missing` with no such line or no CLAUDE.md, which
+# adds the full unit suite on every Ticket.
 # Prints last=, facts=, full_unit=yes|no, full_e2e=yes|no, in that order.
 # Exit codes: 0 read · 2 not a git repository, or completion-check.sh exiting 2 (its stderr passed
 # through, nothing printed).
@@ -30,11 +31,16 @@ last="$(sed -n 's/^last=//p' <<<"$check")"
 facts="$(sed -n 's/^- \*\*Post-feature gate\*\*: //p' "$main/CLAUDE.md" 2>/dev/null | head -1)"
 facts="${facts%%:*}"
 facts="$(sed 's/^ *//; s/ *$//' <<<"$facts")"
+[ -n "$facts" ] || facts=missing
 
 full_unit=no full_e2e=no
-[ "$last" = no ] || case "$facts" in
-  "full unit suite") full_unit=yes ;;
-  "full E2E suite") full_e2e=yes ;;
-  both) full_unit=yes full_e2e=yes ;;
-esac
+if [ "$facts" = missing ]; then
+  full_unit=yes
+elif [ "$last" = yes ]; then
+  case "$facts" in
+    "full unit suite") full_unit=yes ;;
+    "full E2E suite") full_e2e=yes ;;
+    both) full_unit=yes full_e2e=yes ;;
+  esac
+fi
 printf 'last=%s\nfacts=%s\nfull_unit=%s\nfull_e2e=%s\n' "$last" "$facts" "$full_unit" "$full_e2e"
