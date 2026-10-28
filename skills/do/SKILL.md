@@ -229,7 +229,8 @@ that Playbook. The reply reference is read last by every Playbook but `setup`, w
   under `--auto`, read by its step 1, step 2, step 3, step 8 and step 13 when the run carries
   `--auto` and reaches the step's question: the `choice-taker`'s brief and return check, the three
   questions it rules, and the discard and the revert still asked of the developer.
-- [reply.md](references/reply.md): the reply every Playbook writes last, its five parts in order, and the Run report written under `--auto`.
+- [reply.md](references/reply.md): the reply every Playbook writes last and its five parts in order.
+- [run-report.md](references/run-report.md): the Run report a run writes under `--auto` alone, read only when the run is under `--auto`, before it writes the Run report, by the Reply step of the `ticket`, `bug-fix`, `refactoring`, `trivial`, `integrate` and `pr` Playbooks and by a refused or blocked run's reply: its Run section, its ten sections, where the file is written and an example.
 - [blocked-reply.md](references/blocked-reply.md): the Reply of a run that ends blocked or refused, its stops, the `Yours:` classes and its whole replies, read by the session writing the Reply of a `ticket`, `bug-fix`, `refactoring`, `trivial`, `pr` or `integrate` run when the run ends blocked or refused: at a door's refusal, at the blocked step it stopped at, or at the close's `destroy` stop.
 - [ticket-format.md](../../.agents/formats/ticket-format.md): the Ticket the `ticket` line matches, and the fields a run reads and writes.
 - [spec-format.md](../../.agents/formats/spec-format.md): the Spec the door recognises, and its `Journey:` line.
