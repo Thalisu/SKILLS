@@ -42,4 +42,16 @@ expect "the do-pr-fixer row names skills/do/references/pr-fix.md" grep -qF "skil
 expect "the do-pr-fixer row no longer names skills/do/references/pr.md" \
   bash -c '! grep -qF "skills/do/references/pr.md" <<<"$1"' _ "$row"
 
+echo "# skills/do: every pointer to pr-fix.md reads Read [pr-fix.md](pr-fix.md) when <condition>"
+# A link to the file, under any relative path, is a pointer, except SKILL.md's references-list entry
+# and the links pr-fix.md makes to itself.
+do_dir="$(cd "$here/.." && pwd -P)"
+pointers="$(grep -rnE '\]\(([^)]*/)?pr-fix\.md\)' "$do_dir" --include='*.md' --exclude-dir=tests |
+  grep -vF -e "$do_dir/references/pr-fix.md:" -e "$do_dir/SKILL.md:")"
+expect "the do skill carries at least one pointer to pr-fix.md" test -n "$pointers"
+misshaped="$(grep -vE 'Read \[pr-fix\.md\]\(pr-fix\.md\) when [^ ]' <<<"$pointers")"
+expect "no pointer to pr-fix.md has another shape" test -z "$misshaped"
+skill_links="$(grep -cE '\]\(([^)]*/)?pr-fix\.md\)' "$skill")"
+expect "SKILL.md links pr-fix.md in its references-list entry alone" test "$skill_links" = 1
+
 exit $((fails > 0))
