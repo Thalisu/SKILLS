@@ -118,4 +118,14 @@ expect "the dirty worktree is still listed" worktree_listed "$wt"
 expect "the dirty worktree keeps its uncommitted change" grep -qx 'half written' "$wt/notes.txt"
 expect "the do/share branch is still there" branch_listed do/share
 
+echo "# skills/do/references/ticket.md: step 1 undoes a diagnosis branch through diagnosis-undo.sh"
+flat="$(passage_of "$here/../references/ticket.md" "**1. Plan.**" "**2. Claim and worktree.**" | tr '\n' ' ' | tr -s ' ')"
+expect "step 1 is there to scope the check against" test -n "$flat"
+carries "step 1 calls diagnosis-undo.sh with the door's worktree= and run_branch= values" \
+  "scripts/diagnosis-undo.sh" "worktree=<the door's worktree= value>" "run_branch=<the door's run_branch= value>"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$flat"
+check_absent "step 1 runs no ancestry check, worktree remove or branch delete of its own" 0 0 \
+  "git merge-base --is-ancestor do/<slug>" "\`git worktree remove <path>\`" "\`git branch -d do/<slug>\`"
+
 exit "$fails"

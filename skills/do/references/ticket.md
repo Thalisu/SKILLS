@@ -664,27 +664,23 @@ to undo by hand. The `cause unknown, diagnosis first` branch below is the one wh
 worktree is cut and entered before the Planner is even forked, for the diagnosis to run in, and it
 keeps the same promise by undoing that cut itself. A refusal met there after the worktree exists,
 the Planner's own Sources mismatch, the destination check, a defect that will not reproduce even
-when forced or any other refusal of this step, reverts the run's instrumentation, leaves the
-worktree with a bare `cd` to the main checkout and, from there, checks first whether
-`git merge-base --is-ancestor do/<slug> <start>` holds, `<start>` the start point the worktree was
-cut from, `spec/<feature-slug>` when the door printed `spec_exists=yes` and HEAD otherwise, since a
-branch cut from the Spec branch carries every Ticket landed there, which HEAD lacks: only when it
-does, meaning the branch carries no commit of its own, does it go on to run
-`git worktree remove <path>` then
-`git branch -d do/<slug>`: the run cut both, and the door's own worktree-exists rule above would
-otherwise refuse the rerun. The Ticket stays at the status the door found it at, since the claim
-on that branch still waits for the verified Plan, and the refusal's Reply says the worktree and
-its branch were removed. The removal takes only what this run cut, since anything else is work
-the run did not create, the `destroy` class of
-[ADR 0057](../../../docs/adr/0057-a-do-run-stops-only-on-a-handover-class-its-reply-names.md): the
-remove runs without `--force` and the delete with `-d`, never `-D`. A worktree this run entered
-rather than cut, a resumed run's on a `claimed` Ticket whose worktree already existed, is left in
-place with its branch and both are named in the Reply. The ancestry check failing, a branch
-carrying a commit its start point does not hold, leaves both the worktree and the branch in place and named
-in the Reply, before either removal runs, so the diagnosis's own commit is never stranded behind a
-worktree already gone. A remove or a delete git refuses regardless, a tree still dirty for the
-one or a branch git still won't delete for the other, is left in place and named in the Reply
-with git's own reason, and is never retried with a stronger flag. The
+when forced or any other refusal of this step, takes three steps:
+
+1. It reverts the run's instrumentation.
+2. It leaves the worktree with a bare `cd` to the main checkout.
+3. From there it runs the undo, each value copied verbatim from the door's lines:
+
+   ```
+   bash <skill-dir>/scripts/diagnosis-undo.sh <the door's ticket= value> worktree=<the door's worktree= value> run_branch=<the door's run_branch= value>
+   ```
+
+The script decides what this run cut, the start point, the ancestry check and the removal, and
+prints `start=`, `ancestry=`, `worktree=` and `branch=` lines. On exit 0 the refusal's Reply says
+the worktree and its branch were removed. On exit 1 the Reply names each `kept` line with its
+reason, word for word, the `destroy` class of
+[ADR 0057](../../../docs/adr/0057-a-do-run-stops-only-on-a-handover-class-its-reply-names.md). The
+run removes nothing itself and retries nothing. Either way the Ticket stays at the status the door
+found it at. The
 brief's `Tree:`
 key is the main checkout on every other branch for the same
 reason: the worktree the build runs in does not exist yet, and the fork grounds against HEAD, which
@@ -797,8 +793,8 @@ there are `bug-fix`'s, not this checklist's. When the reproduction ran on a surf
 cannot reach, the developer driving it at the ask there, the second ask, the developer driving the
 fixed build, belongs to no step this run may read there: it is this Playbook's own, made by the
 session at step 5 once the Gate is green, as that step says. A defect that will not reproduce even when forced stops this run as blocked,
-the Ticket left at the status the door found it at and the worktree and its branch removed, as the
-refusals of this step on that branch say above.
+the Ticket left at the status the door found it at and the worktree and its branch undone by
+`diagnosis-undo.sh`, as the refusals of this step on that branch say above.
 
 No Planner can be forked on two branches: the Agent tool is withheld from the session, or the
 Agent tool lists no `do-planner`, as it does on a machine that never linked the agent `do` ships.
