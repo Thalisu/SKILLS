@@ -287,8 +287,8 @@ with the review's reason quoted and the worktree and its branch named, or the st
 `skip: do-code-review not listed` with the worktree and its branch named.
 
 **11. Verification.** Read [verification.md](verification.md) when the run has an affected flow:
-the affected flows from the main checkout with the command line printed first, the one question before a full suite or a remote
-run, which the `choice-taker` rules under `--auto`, per
+run, which the `choice-taker` rules under `--auto`: Read [bug-fix-auto.md](bug-fix-auto.md) when
+the run runs under `--auto` and reaches that question. A red flow is one more unit of the loop, handed with no **Gate** of the run's own to the
 [Run questions under `--auto`](#run-questions-under---auto) below, and a red flow as one more unit of the loop, handed with no **Gate** of the run's own to the
 fix call on the same Review, which lands it again with no second review. A defect with no user-observable surface
 has no affected flow and the step reads `skip: no affected flow` with that reason. Done when every
