@@ -405,6 +405,17 @@ done
 expect "pr-fix.md carries the never-does bullets of the round" \
   grep -qF -- "Fork a fixer for a check \`pr-classify.sh\` printed \`stale\`" "$pr_fix"
 
+echo "# pr.md and pr-fix.md: the pr Playbook carries instructions only, no ADR argument beside a rule"
+# The reason a rule of the Playbook is shaped as it is lives in docs/adr/ alone, so a pr run's window
+# carries no argument it never acts on.
+for ref in "$pr" "$pr_fix"; do
+  name="$(basename "$ref")"
+  out="$(grep -nE 'ADR [0-9]{4}|docs/adr/' "$ref" 2>/dev/null)"
+  expect "$name names no ADR and links nothing under docs/adr/" test -z "$out"
+  out="$(grep -nE '\b(because|so that)\b' "$ref" 2>/dev/null)"
+  expect "$name gives no because or so-that argument beside a rule" test -z "$out"
+done
+
 # The developer merges on this Reply: one that misses the green state, or hands the merge over as a
 # `Yours:` choice, reads as a stop, and a run that runs `gh pr merge` lands it with nobody deciding.
 echo "# pr.md / ### Reply: a green watch ends on a Reply saying every check is green and mergeable, its Next step gh pr merge <n>, never run"
@@ -1168,10 +1179,9 @@ carries_each "the answer is never read off the local branch's upstream setting" 
   "not the local" "never its" "not its" "rather than" "instead of" "regardless of" "ignores" \
   "nor off" "nor from" "nor the local" "nor its" "never by" "not by" "nor by" "never on its" \
   "not on its" "nor on its"
-carries_each "nor off a remote-tracking ref, which can be stale or missing" \
+carries_each "nor off a remote-tracking ref" \
   "refs/remotes/origin/<head>" "remote-tracking" "remote tracking" "origin/<head>" -- \
-  "stale" "out of date" "outdated" "lag" "behind the remote" "not fetched" "never fetched" \
-  "last fetch" "may not exist" "might not exist" "can be missing" "may be missing" "be missing"
+  "nor off" "never off" "not off" "nor from" "never from" "not from"
 carries_any "a head on the remote under the same name" \
   "same name" "its own name" "the name it has locally" "the same branch name" "named the same" \
   "under that name" "by that name" "by the same name"
@@ -1291,7 +1301,6 @@ step="$(passage_of "$pr_fix" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 carries_any "the session writes no fix" \
   "writes no fix" "never writes a fix" "writes no fixes" "never writes the fix" "no fix is written in the session"
-carries "per ADR 0088" "ADR 0088"
 carries_any "each red check gets one \`do-pr-fixer\` fork" \
   "one \`do-pr-fixer\`" "one do-pr-fixer" "a \`do-pr-fixer\` of its own" "a do-pr-fixer of its own"
 carries_any "in check order" "check order" "in the order printed" "order of the \`red=\` lines"
@@ -1545,8 +1554,6 @@ carries_each "from the run tree's HEAD as those picks left it" \
   "HEAD" -- \
   "left it" "leave it" "left by the picks" "moved by the picks" "the picks moved" "on top of the picks" \
   "carrying the picks" "now carries"
-carries_each "since fix-integrate.sh refuses a branch not cut from the HEAD it starts on" \
-  "fix-integrate.sh" -- "refus" "rejects" "won't take" "will not take" "takes a branch only" -- "HEAD"
 
 # A developer shares the head with others: a conflicted fix resolved by the run is a guess merged
 # into their branch, and a conflict that stops the run leaves that check with no fix at all. The Fix step
@@ -1719,10 +1726,6 @@ carries_each "it is for a check this Wave picked that an earlier Wave moved out 
   "picked" "pick"
 carries_each "taking back that check's earlier conflicted branch" \
   "conflicted" -- "branch"
-carries_each "since its aborted commit never matches the retry that superseded it" \
-  "abort" -- \
-  "never match" "does not match" "doesn't match" "not match" "matches no" "never on" "not on" -- \
-  "retry" "supersed"
 carries_each "a superseded branch taken back is never named as a commit the run could not land" \
   "never named" "not named" "never reported" "not reported" "never listed" "not listed" \
   "never counted" "not counted" "never quoted" "names no" -- \
@@ -1880,7 +1883,6 @@ carries_any "never a merge" \
 carries_any "never to another branch" \
   "never to another branch" "never to any other branch" "no other branch" "never another branch" \
   "never to a branch" "any other branch" "never to any branch but"
-carries "per ADR 0086" "ADR 0086"
 carries_each "git's own refusal of a non-fast-forward is the guard" \
   "refus" "reject" -- "non-fast-forward" "not a fast-forward" "not fast-forward" -- "guard"
 carries_each "when git refuses the push the run stops quoting git's line" \
@@ -1923,7 +1925,6 @@ carries_any "never a merge" \
   "never a merge" "never as a merge" "not a merge" "no merge" "never merges" "never merged"
 carries_any "never to any other branch" \
   "any other branch" "another branch" "no other branch" "never to a branch"
-carries "per ADR 0086" "0086"
 flat="$(bullets_opening_on <(passage_of "$reply" "## A refusal or a blocked run" "## ") "**A push.**")"
 expect "reply.md's refusal section carries the **A push.** bullet" test -n "$flat"
 carries_each "the \`pr\` round's push is the exception ADR 0086 authorises" \
@@ -2829,8 +2830,8 @@ expect "a sentence of pr.md names the \`still red:\` tail" test -n "$flat"
 carries_each "the tail names the red checks no clause names" \
   "no clause" "not named by a clause" "none of the clauses" "without a clause" "no clause of" -- \
   "red"
-flat="$(tr '\n' ' ' <"$pr_fix" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "0086" | grep -F "Yours" | tr '\n' ' ')"
-expect "a sentence of pr.md names ADR 0086 together with the \`Yours:\` line" test -n "$flat"
+flat="$(tr '\n' ' ' <"$pr_fix" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "never names a push" | tr '\n' ' ')"
+expect "a sentence of pr-fix.md says the \`Yours:\` line never names a push" test -n "$flat"
 carries_any "the line never names a push" \
   "never names a push" "names no push" "never name a push" "does not name a push" "no push" "never a push"
 carries_each "neither the run's own push nor one offered to the developer" \
@@ -3317,7 +3318,6 @@ carries_each "the session's own reading of a check's log or excerpt never earns 
   "reading" "read" "judg" -- \
   "log" "excerpt" -- \
   "never" "no check" "nor " "not on" "does not" "doesn't"
-carries_any "there is no flake class" "flake" "flaky" "transient" "intermittent" "class"
 
 # A mechanism fix (ADR 0103) must reach the head through the guard and the integration like any fix:
 # `fixed <k> by mechanism: ...` does not start with `fixed <k>:`, so a routing sentence naming only
