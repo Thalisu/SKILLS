@@ -70,4 +70,11 @@ for last in review fix; do
     "gate=command=bash skills/do/scripts/gate.sh" "caller=Caller: do" "route=resume"
 done
 
+# The same return after the in-run Resume's own no-op means the run would loop on a tip it already
+# met: it stops for the developer, with no further fix call.
+route "landing=$moved" "integration=noop" "last=resume"
+check_lines "a target that moved after the in-run Resume's no-op integration stops the run as blocked" 4 "$rc" \
+  "reason=target moved, spec/feature is at 89abcde and the branch is not on it" "route=blocked"
+absent_prefix "a run stopped on a tip it already met makes no further fix call" "fix="
+
 exit $((fails > 0))

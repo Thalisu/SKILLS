@@ -18,8 +18,13 @@
 #   landed       any               any           verify
 #   target moved rebase, reapply   any           fix
 #   target moved noop              review, fix   resume
+#   target moved noop              resume        blocked
+#   any other    any               any           blocked
 #
-# Exit codes: 0 verify · 1 fix · 3 resume · 2 usage: a missing required key, an unknown or repeated key, an integration=
+# On blocked it prints direction=reason before route: the session words the direction from the
+# quoted reason.
+#
+# Exit codes: 0 verify · 1 fix · 3 resume · 4 blocked · 2 usage: a missing required key, an unknown or repeated key, an integration=
 # or last= word outside its union, or a landing= line of neither form.
 set -uo pipefail
 
@@ -82,3 +87,7 @@ case "$reason" in
     esac
     ;;
 esac
+
+echo "direction=reason"
+echo "route=blocked"
+exit 4
