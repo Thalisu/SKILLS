@@ -472,6 +472,21 @@ until` loop
 while` loop
 EOF
 }
+# The phrasings a contract may use for the project's whole unit suite, the run a fork leaves to the
+# orchestrator that waits on it a bounded time. Read with
+# `mapfile -t whole_suite < <(whole_suite_phrasings)` and passed to paragraphs_naming and
+# subject_denies.
+whole_suite_phrasings() { # one accepted phrasing per line: the project's whole unit suite
+  cat <<'EOF'
+whole unit suite
+full unit suite
+unit suite
+whole suite
+full suite
+test suite
+unit loop
+EOF
+}
 fix_call_gates_phrasings() { # one accepted phrasing per line: the call the branch is handed to gates that tree
   cat <<'EOF'
 gates the same tree

@@ -396,7 +396,8 @@ number them from 1 in that order. Keep each reviewer's wording: you group, you n
 you never rerank. Four rules are the format's and hold whatever a reviewer said. A Finding at
 Rung 1 or 2, or one marked `unproven`, sits in `Consider` at most. A Finding in `Act on` carries a
 `Fix:` line that is a behaviour to prove and its target, so a caller turns it into one unit of work
-off the return alone; one whose `Fix:` names neither drops to `Consider`. A Finding that carries a
+off the return alone, and its target is a test file, an existing one or the path a new one goes to;
+one whose `Fix:` names no test file as its target drops to `Consider`. A Finding that carries a
 risk class keeps its `Risk:` line in every Bucket, so a `Consider` a caller sets aside is never set
 aside in silence. A Security Finding never lands in `Noted`: one that came back there
 goes to `Consider`, which is what its evidence takes, so nothing on that Axis is set aside without

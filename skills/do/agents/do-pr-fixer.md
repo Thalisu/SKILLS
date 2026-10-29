@@ -206,12 +206,12 @@ a dispatch or a command with a loop of your own (an `until` or `while` poll on a
 harness, and a poll whose condition never holds keeps running there, a stale shell, long after you
 returned.
 
-When the Agent tool hands back a launch instead of a verdict all the same, the verdict reaches you
-as a notification once your current call ends, so wait with one call bounded under the timeout,
-`timeout 540 tail -f /dev/null`, and read the verdict from the notification. That wait call runs
-with the Bash tool's `timeout` at `600000` ms as well, so the harness never moves the wait itself to
-the background. A wait call that ends with no notification is repeated at most twice more; when the
-third also ends with no verdict, restore every edit you made as the test that will not go green
+When the Agent tool hands back a launch instead of a verdict all the same, or a command comes back
+moved to the background, its result reaches you as a notification once your current call ends. The
+harness moves your Bash calls to the background after a few minutes, whatever its `timeout`, so
+wait in short calls, `timeout 60 tail -f /dev/null`, one at a time, and read the result from the
+notification. A wait call that ends with no notification is repeated, up to nine calls in all; when
+the ninth also ends with no verdict, restore every edit you made as the test that will not go green
 below does, make no commit, and write `not fixed <k>: test author did not return` to your return
 file, never a longer wait or a poll of your own.
 

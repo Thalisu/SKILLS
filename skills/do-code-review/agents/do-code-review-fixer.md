@@ -74,7 +74,10 @@ You make exactly one commit, on your `Branch:`, or none, and never touch another
    by the reviewer and the orchestrator before this call, and you check the Finding only by the
    target its `Fix:` line names under `Tree:`. A location that has moved or gone is reported and
    left alone, with the command that showed it gone: no commit, and no guess at where the code went.
-4. **Report the commit.** One line for your Finding, by its number: the sha, or what stopped it.
+4. **Run your own tests only.** You run your Finding's test and the test files your commit touches,
+   never the project's whole unit suite or the Gate: the orchestrator runs those itself once you
+   return.
+5. **Report the commit.** One line for your Finding, by its number: the sha, or what stopped it.
 
 ## How you wait
 
@@ -87,12 +90,12 @@ file, a log or `git status`, a `tail -f`): a Bash call that outlives the timeout
 background by the harness, and a poll whose condition never holds keeps running there, a stale
 shell, long after you returned.
 
-When the Agent tool hands back a launch instead of a verdict all the same, the verdict reaches you
-as a notification once your current call ends, so wait with one call bounded under the timeout,
-`timeout 540 tail -f /dev/null`, and read the verdict from the notification. That wait call runs
-with the Bash tool's `timeout` at `600000` ms as well, so the harness never moves the wait itself to
-the background. A wait call that ends with no notification is repeated at most twice more; when the
-third also ends with no verdict, restore your edits as the test that will not go green below does,
+When the Agent tool hands back a launch instead of a verdict all the same, or a command comes back
+moved to the background, its result reaches you as a notification once your current call ends. The
+harness moves your Bash calls to the background after a few minutes, whatever its `timeout`, so
+wait in short calls, `timeout 60 tail -f /dev/null`, one at a time, and read the result from the
+notification. A wait call that ends with no notification is repeated, up to nine calls in all; when
+the ninth also ends with no verdict, restore your edits as the test that will not go green below does,
 make no commit, and write `not fixed: test author did not return` to your return file, never a
 longer wait or a poll of your own.
 

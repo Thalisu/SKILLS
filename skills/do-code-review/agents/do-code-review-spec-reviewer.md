@@ -140,7 +140,9 @@ The Bucket follows the evidence, never the severity:
 | `Cleared` | a gap you suspected and then refuted by evidence, with `Refuted by:` in place of `Fix:`, so the reader can overrule you |
 
 Every `Fix:` is a behaviour to prove plus its target, in the words a test author takes: the
-expected behaviour and the file, function or test it lands in. The same spec line appears once.
+expected behaviour and the file, function or test it lands in. In `Act on` the target is a test
+file, an existing one or the path a new one goes to, and a Finding whose fix no test can prove goes
+to `Consider`. The same spec line appears once.
 
 ## The return
 

@@ -54,6 +54,24 @@ landing is the orchestrator's.
    is the one file rule 3 lets you touch beyond the row's own, and the promotion and every call
    site go in the attempt's one commit, since a promotion split across commits leaves a tree where
    a test imports an asset that is not there yet. Deleting one copy breaks every test that used it.
+6. **Run what the red block names.** You run the failing tests and checks your red block printed,
+   the duplication scan when the red is its rows, and the test files your commit touches and the
+   Fixers' commits touched, never the project's whole unit suite or the Gate: the orchestrator runs
+   those itself once you return.
+
+## How you wait
+
+Run every command with the Bash tool's `timeout` at its maximum, `600000` ms. You never wait on a command with a loop of your own (an `until` or `while` poll on a
+file, a log or `git status`, a `tail -f`, a `sleep`).
+
+When a command comes back moved to the background, its result reaches you as a notification once
+your current call ends. The harness moves your Bash calls to the background after a few minutes,
+whatever its `timeout`, so wait in short calls, `timeout 60 tail -f /dev/null`, one at a time, and
+read the result from the notification. A wait call that ends with no notification is repeated, up
+to nine calls in all; when the ninth also ends with no result, restore your edits with
+`git -C <Tree> restore` over the paths you touched and remove any file you added, make no commit,
+and write `not fixed: <the command> did not return` to your return file, naming the command, never
+a longer wait or a poll of your own.
 
 ## The return file
 

@@ -314,12 +314,12 @@ test authors of [build-loop.md](build-loop.md), and a test or a suite runs with 
 loop of its own that has no bound (an `until` or `while` poll on a file, a log or `git status`, a
 `tail -f`): a Bash call that outlives the timeout is moved to the background by the harness, and a
 poll whose condition never holds keeps running there, a stale shell, long after the Stretch
-returned. When the Agent tool hands back a launch instead of a verdict all the same, the verdict
-reaches the Builder as a notification once its current call ends, so it waits with one call bounded
-under the timeout, `timeout 540 tail -f /dev/null`, and reads the verdict from the notification.
-That wait call runs with the Bash tool's `timeout` at `600000` ms as well, so the harness never
-moves the wait itself to the background. A wait call that ends with no notification is repeated at most
-twice more; when the third also ends with no verdict, the Stretch discards the uncommitted work of
+returned. When the Agent tool hands back a launch instead of a verdict all the same, or a command
+comes back moved to the background, its result reaches the Builder as a notification once its
+current call ends. The harness moves the Builder's Bash calls to the background after a few
+minutes, whatever its `timeout`, so it waits in short calls, `timeout 60 tail -f /dev/null`, one at
+a time, and reads the result from the notification. A wait call that ends with no notification is
+repeated, up to nine calls in all; when the ninth also ends with no verdict, the Stretch discards the uncommitted work of
 the behaviour in progress, which the next Stretch builds again from the branch per
 `## Where it picks up`, and returns `stopped`, in the shape `## The return` fixes, its `stopped:`
 line naming the dispatch that never returned and saying that nothing is uncommitted, never a

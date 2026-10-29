@@ -144,7 +144,8 @@ or `data loss`, whichever the exploit reaches.
 Walking the exploit is Rung 3: the input, the state, the path to the breach, in writing. Running it
 is Rung 4: a proof script that drives the exact surface, calls the exact handler or query with the
 attacker's value, and shows what comes back. The gate for `Act on` is the same on this Axis as on
-every other: Rung 3 or above, with the check named in `Fix:`. Nothing at Rung 1 or 2 sits in
+every other: Rung 3 or above, with the check named in `Fix:`, a test file, an existing one or the
+path a new one goes to. Nothing at Rung 1 or 2 sits in
 `Act on`, however bad it looks; climb it first or leave it in `Consider`.
 
 A Security Finding never lands in `Noted`. It is `Act on`, `Consider` or `Cleared`, and a `Cleared`

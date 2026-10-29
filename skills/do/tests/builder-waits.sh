@@ -52,19 +52,24 @@ carries_each "it ties the ban to the Bash tool's timeout moving the call to the 
 # The paragraph also names `600000` for a test or a suite, so the wait call's own timeout is proven
 # over the sentences carrying that number, one of which has to be about the wait.
 echo "# builder.md / ## The time budget: the fallback wait for a backgrounded agent is itself in the foreground and has a next step"
-wait_para="$(paragraph_with "$builder" "timeout 540 tail -f /dev/null" | tr -s ' ')"
+wait_para="$(paragraph_with "$builder" "timeout 60 tail -f /dev/null" | tr -s ' ')"
 flat="$wait_para"
-expect "builder.md has a paragraph giving the fallback wait \`timeout 540 tail -f /dev/null\`" test -n "$flat"
-flat="$(awk '{ n = split($0, s, /\. /); for (i = 1; i <= n; i++) if (index(s[i], "600000")) print s[i] }' <<<"$wait_para")"
-carries_each "the wait call runs with the Bash tool's timeout set to 600000 ms, above the wait's own timeout 540" \
-  "timeout 540" "tail -f /dev/null" "wait call" "the wait" "waits with" "wait itself" -- \
-  "timeout"
+expect "builder.md has a paragraph giving the fallback wait \`timeout 60 tail -f /dev/null\`" test -n "$flat"
+carries_each "it says the harness moves a Bash call to the background after a few minutes, whatever its timeout" \
+  "whatever its \`timeout\`" "whatever its timeout" "regardless of its timeout" -- \
+  "to the background"
+carries_each "a command the harness moved to the background is waited on the same way as a launched agent" \
+  "launch" -- \
+  "command" -- \
+  "moved to the background"
+expect "the wait paragraph never claims a long Bash timeout keeps the wait in the foreground" \
+  bash -c '! grep -qF "never moves the wait" <<<"$1"' _ "$wait_para"
 flat="$wait_para"
 # `stopped` is the only verdict of `## The return` that ends a stretch short of `built` over anything
 # but a Design fork: any other first line is a return the build step cannot route.
-carries_each "a wait call that ends with no verdict is repeated a bounded number of times, then the Stretch returns stopped naming the dispatch, with nothing uncommitted" \
+carries_each "a wait call that ends with no verdict is repeated up to nine calls in all, then the Stretch returns stopped naming the dispatch, with nothing uncommitted" \
   "no verdict" "without a verdict" "no notification" "without a notification" -- \
-  "twice" "at most" "up to" "a bounded number" "once more" "no more than" -- \
+  "nine" -- \
   "returns \`stopped\`" -- \
   "naming the dispatch" "names the dispatch" "naming that dispatch" "names that dispatch" \
   "naming the agent" "names the agent" "naming the dispatched" "names the dispatched" -- \

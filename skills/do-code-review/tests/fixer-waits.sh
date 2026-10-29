@@ -46,19 +46,24 @@ carries_each "it ties the ban to the Bash tool's timeout moving the call to the 
   "to the background" "into the background" "backgrounds it" "backgrounded"
 
 echo "# do-code-review-fixer.md: the fallback wait for a backgrounded test author is bounded and ends on the Fixer's own stop line"
-wait_para="$(paragraph_with "$body" "timeout 540 tail -f /dev/null" | tr -s ' ')"
+wait_para="$(paragraph_with "$body" "timeout 60 tail -f /dev/null" | tr -s ' ')"
 flat="$wait_para"
-expect "the agent body has a paragraph giving the fallback wait \`timeout 540 tail -f /dev/null\`" test -n "$flat"
-flat="$(awk '{ n = split($0, s, /\. /); for (i = 1; i <= n; i++) if (index(s[i], "600000")) print s[i] }' <<<"$wait_para")"
-carries_each "the wait call runs with the Bash tool's timeout set to 600000 ms, above the wait's own timeout 540" \
-  "timeout 540" "tail -f /dev/null" "wait call" "the wait" "wait with" "waits with" "wait itself" -- \
-  "timeout"
+expect "the agent body has a paragraph giving the fallback wait \`timeout 60 tail -f /dev/null\`" test -n "$flat"
+carries_each "it says the harness moves a Bash call to the background after a few minutes, whatever its timeout" \
+  "whatever its \`timeout\`" "whatever its timeout" "regardless of its timeout" -- \
+  "to the background"
+carries_each "a command the harness moved to the background is waited on the same way as a launched agent" \
+  "launch" -- \
+  "command" -- \
+  "moved to the background"
+expect "the wait paragraph never claims a long Bash timeout keeps the wait in the foreground" \
+  bash -c '! grep -qF "never moves the wait" <<<"$1"' _ "$wait_para"
 flat="$wait_para"
 # The Fixer's lines carry no `<k>`: `not fixed:` is the line of `## Two ends with no commit` that
 # the orchestrator reads as a Finding left alone, so any other end is a return it cannot route.
-carries_each "a wait that ends with no notification is repeated at most twice more, then the Fixer restores its edits, makes no commit and writes not fixed: to its return file" \
+carries_each "a wait that ends with no notification is repeated up to nine calls in all, then the Fixer restores its edits, makes no commit and writes not fixed: to its return file" \
   "no verdict" "without a verdict" "no notification" "without a notification" -- \
-  "twice" "two more" -- \
+  "nine" -- \
   "restore" "Restore" -- \
   "no commit" "without a commit" "not commit" "never commit" -- \
   "not fixed:" -- \
@@ -67,6 +72,24 @@ flat="$(awk '{ n = split($0, s, /\. /); for (i = 1; i <= n; i++) if (index(s[i],
 carries_any "the not fixed line names the test author dispatch that never returned" \
   "test author" "unit-test-author" "author dispatch" "naming the dispatch" "names the dispatch" \
   "naming that dispatch" "names that dispatch" "naming the agent" "names the agent"
+
+# The orchestrator waits on the return file a bounded time and runs the Gate itself once the Fixer
+# returns: a Fixer that ran the whole unit loop first outlived that wait, and its commit was dropped.
+mapfile -t whole_suite < <(whole_suite_phrasings)
+echo "# do-code-review-fixer.md: the Fixer runs its own Finding's test and the test files its commit touches, never the whole unit suite or the Gate"
+flat="$(paragraphs_naming "${whole_suite[@]}")"
+expect "the agent body has a passage on the project's whole unit suite" test -n "$flat"
+subject_denies "it forbids the Fixer running the whole unit suite or the Gate itself" "You|you|Fixer" "${whole_suite[@]}" "Gate"
+affirms "it has the Fixer run its own Finding's test" \
+  "run" "Run" -- \
+  "your Finding's test" "the Finding's test" "your own test" "its own test" "your test"
+carries_each "it lets the Fixer run the test files its commit touches as well" \
+  "test file" "tests" -- \
+  "your commit touches" "your commit touched" "your commit changes" "your fix touches" "you touched" "you touch" "your diff touches"
+carries_each "it leaves the whole suite and the Gate to the orchestrator, which runs them once the Fixer returns" \
+  "orchestrator" -- \
+  "Gate" -- \
+  "return"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

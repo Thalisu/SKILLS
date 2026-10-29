@@ -127,7 +127,9 @@ Fix: <the behaviour to prove>, in <the target: a file, a function, a test>
 - `Mark: too big for a Fixer` is present only under `Consider`, when a debt item's fix is not small
   by structure. It is that whole fixed line before `Fix:`, so a reader finds it by the line and a
   fix run reading `Fix:` never folds it into the target.
-- `Fix:` is the behaviour to prove and its target, in the words a test author takes. In `Cleared`
+- `Fix:` is the behaviour to prove and its target, in the words a test author takes. In `Act on`
+  the target is the check: a test file, an existing one or the path a new one goes to, which the fix
+  run re-runs to verify the fix. A Finding whose fix no test can prove sits in `Consider`. In `Cleared`
   the line is `Refuted by:` instead, with the evidence that refuted the claim, so the reader can
   overrule it.
 - Every Finding of a Debt review carries one more line, `Source:`, after its `Fix:` (or
