@@ -83,7 +83,7 @@ the test author it dispatched while that author runs.
 
 ## The protected branch
 
-The rule is the one `test-triage` uses: `main` or `master` is protected when `develop`,
+`main` or `master` is protected when `develop`,
 `development`, `staging` or `release*` exists locally or on a remote; `production` or `prod` is
 protected when any of those or `main` or `master` exists; a default branch that is the only branch
 is the working branch. Nothing lands on a protected branch. A Playbook checks the developer's branch
@@ -171,7 +171,7 @@ session, or it lists no `do-reader`.
 
 The door calls the Agent tool with `subagent_type: do-reader`, the agent `do` ships in
 [do-reader.md](../agents/do-reader.md), on the model its definition names, with the brief
-[digest.md](digest.md) fixes and nothing else, that file's own list and never a second one here. It
+[digest.md](digest.md) fixes and nothing else. It
 writes nothing and returns the Digest's text, every section but `## Sources`. No other part of
 either document reaches the session.
 
@@ -242,7 +242,7 @@ Makefile, a justfile, `pyproject`), never from memory of another repository, and
 nothing to run reads `skip: <reason>`. The rest run from one script, each check a key and the
 command line it stands for, with one `--infra` pattern per known infra failure the facts name:
 `bash <skill-dir>/scripts/gate.sh [--infra <pattern>]... <key>=<command>...`. It prints its
-`command=` line first, which the developer reruns for the same answer. A green check is one
+`command=` line first. A green check is one
 `<key>=green` line. A red one is `<key>=red exit=<n> log=<file>` with its failing block under it,
 capped at the last twenty lines, and the full output in the file that line names. The `command=`
 line is recorded for the Run report's Run section as its gate line, and each check's line is quoted
@@ -331,7 +331,7 @@ before it started>`, the worktree and its branch left in place and named, the Ti
 
 **A rebase that stopped.** Every stop runs the conflict loop (Read
 [conflict-loop.md](conflict-loop.md) when the rebase stops), from the class the script reads through the states git
-refuses, and never a copy of it here. The loop ends the step in one of the two states it names: the
+refuses. The loop ends the step in one of the two states it names: the
 rebase carried to its end, or the run stopped as blocked with the rebase left open.
 
 The fixed point the review is called with is read once the step is done, whichever state it
@@ -353,9 +353,7 @@ and in each case the integration line is recorded for the Run report's Run secti
 ## The landing on the Spec branch
 
 Run by a `ticket` run whose Ticket has a Spec branch, after a green gate and the integration onto
-that branch, in place of the review. The run's own **Gate** is the Ticket's check, and the Spec is
-reviewed once, on its Spec branch, after its last Ticket lands. `do-code-review` stays the only
-lander of the developer's branch: this step moves the Spec branch and no other ref, and it touches
+that branch, in place of the review. This step moves the Spec branch and no other ref, and it touches
 no checkout. The Spec branch is the one of the repository the run built in: on a Ticket run from its
 Build repository, the main checkout handed to the script is the Build repository's, and the Home
 repository, which holds the Ticket, has no ref moved.
@@ -415,11 +413,9 @@ landing record then read `verdict=land`, once its own Ticket has landed on the S
 `resolved` and its own worktree is gone. Every Ticket of the Spec is on the Spec branch, and this
 section is where that branch reaches the developer's branch: rebased onto the branch it was cut
 from, reviewed whole, landed by the review, then removed. It is the one place a run of a Spec
-changes the developer's branch.
-
-The section restates neither the integration nor the review. It walks both as they are written
-above and below, and states only what differs here: the landing record, the claim, the tree, the
-target, the ledger, the spec source and the release.
+changes the developer's branch. It walks the integration and the review as they are written above
+and below, with what differs here: the landing record, the claim, the tree, the target, the ledger,
+the spec source and the release.
 
 **The landing record.** A feature across repositories lands one repository at a time, each through a
 Final integration of its own, run by a session in that repository, a provider before what consumes
@@ -563,12 +559,10 @@ in `ticket`, so the Review lands beside it; the branch alone in `bug-fix` and `r
 fixed point of the branch under review (the merge base the integration reads once it is done, which
 is the commit the integration rebased onto when it replayed), the developer's branch as the landing
 target, and the Gate, the `command=` line the gate printed. The call carries one argument of its own
-besides those, the review token, and it is what ties the Review the review writes to the review step
-that ran. Before the call the run mints an unguessable token,
+besides those, the review token. Before the call the run mints an unguessable token,
 `bash <skill-dir>/scripts/review-token.sh new <slug>`, which prints it and stores it under the
 clone's git common dir, `--git-common-dir`, at `do/review-token/<slug>`, the path `resume-state.sh`
-reads it back from. No shell line of this file or of the build step that revokes the token spells
-the store's path. It is minted here and nowhere earlier, after the Builder has returned, and it is
+reads it back from. It is minted here and nowhere earlier, after the Builder has returned, and it is
 never a key of the Builder's brief, per [builder.md](builder.md). The token goes over after the Gate
 and before the Loss ledger:
 
@@ -619,19 +613,8 @@ held Rulings block, last of all, when the run holds one.
 
 ### What the review does
 
-What the review does with the call, and the run does not: it writes the Review, forks one Fixer per
-`Act on` Finding by Wave, the Fixers of one Wave at once, each in a worktree of its own turning its
-Finding into one commit under the project's Testing Policy, picks those commits onto the reviewed
-branch in Finding order, re-runs each Finding's check, the duplication scan, the Diff tests and the
-Gate, with a Gate fixer on a dirty or a red one, and, when the Review is Green, lands the reviewed
-branch on the developer's branch by fast-forward under these landing rules: the fast-forward
-serialized with every other run landing on the repository; a protected branch refused; a developer's
-branch that moved while the review ran retried once, by a rebase whose every hunk the review's copy
-of the conflict class calls `mechanical`, resolved by the union in base order, and the Gate run
-again before the fast-forward; any `contested` hunk aborted, or the target moved again while that
-Gate ran, and returned as not landed on a moved target, with the target and the conflicting files; a
-failed fast-forward left in place; nothing pushed. The review asks nobody anything on those paths: a
-hunk a person must judge comes back to this run in its return.
+What the review does with the call, the run never does itself: the review writes the Review, fixes,
+gates and lands on its own, and a hunk a person must judge comes back to this run in its return.
 
 ### Reading the return
 

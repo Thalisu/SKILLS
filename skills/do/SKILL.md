@@ -11,7 +11,7 @@ hooks:
     - matcher: EnterWorktree
       hooks:
         - type: command
-          command: "printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"EnterWorktree isolates the session, and a do run needs two trees: the door of do-code-review is bash <script>, the landing is git against the main checkout, and an isolated session refuses both. Create the worktree and enter it the way the worktree step of mechanics.md says: git worktree add .claude/worktrees/do-<slug> -b do/<slug>, then a bare cd into it.\"}}'"
+          command: "printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"A do run never enters a worktree with EnterWorktree. Create the worktree and enter it the way the worktree step of mechanics.md says: git worktree add .claude/worktrees/do-<slug> -b do/<slug>, then a bare cd into it.\"}}'"
 ---
 
 # Do
@@ -90,8 +90,7 @@ into `prod`, which the run opens or finds already open and follows, where `integ
 or merge `dev` into `prod` itself.
 </example>
 <example>
-`#12`: `ticket`, not `pr`. A bare number with no word naming a pull request is an issue number, as
-it always was.
+`#12`: `ticket`, not `pr`. A bare number with no word naming a pull request is an issue number.
 </example>
 <example>
 `the total shows 9.99 instead of 10.00 after a discount`: `bug-fix`, not `trivial`. A one-line

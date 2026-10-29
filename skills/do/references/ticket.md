@@ -46,8 +46,7 @@ Spec has no such line, no `spec.md` sits there, or the Ticket is in no `issues/`
 on every stop. Every path the door prints is relative to the main checkout when `root=` is the main
 checkout and absolute otherwise, so each one resolves under `( cd <root> && ... )` either way.
 `<root>` in the steps below is that `root=` line and nothing else: the run never derives a root
-from a path, and never composes an absolute path the door did not print. The developer reruns that
-line and gets the same answer. The bullets below are what
+from a path, and never composes an absolute path the door did not print. The bullets below are what
 the script checks and what each verdict does; on a tracker the session reads the same facts the way
 the tracker file describes. Before anything is written:
 
@@ -354,16 +353,13 @@ exit: exit 1 lists that line under Pending debt too. The probe, `harness-hooks.s
 before the run's first fork of either agent, the Planner here or the Builder at step 3, and a resume
 takes it again before its own first fork. It is never
 taken on a run that forks neither agent. The verdict
-says which of the two mechanisms guards the fork's writes. `guard=pattern-and-header` is a harness
-that runs the `PreToolUse` hooks the agent's own definition declares, so the pattern guard binds
-the fork and the `## Sources` check below runs beside it. `guard=header-only` is a harness that runs
-no hook, Codex among them, or a Claude Code whose settings turn hooks off, the file the
-`disabled_by=` line names: the `## Sources` check is then the whole guard. The run never stops on
+says which of the two mechanisms guards the fork's writes: under `guard=pattern-and-header` the
+`## Sources` check below runs beside the fork's pattern guard, and under `guard=header-only` the
+`## Sources` check is the whole guard. The run never stops on
 either verdict and asks nothing, and the check runs the same way under both.
 
 The fork is the `do-planner` agent `do` ships in [do-planner.md](../agents/do-planner.md), called
-through the Agent tool with `subagent_type: do-planner` and the brief [plan.md](plan.md) fixes,
-that file's own list and never a second one here. A held Ruling that carries a `Now reads:` pair
+through the Agent tool with `subagent_type: do-planner` and the brief [plan.md](plan.md) fixes. A held Ruling that carries a `Now reads:` pair
 reaches the fork
 through the brief's `Criteria:` key, whose text is the `Now reads:` text and never the text the
 Ticket issue still carries: Read [forks.md](forks.md) when a held Ruling carries that pair. The
@@ -401,7 +397,7 @@ Agent tool lists no `do-planner`, as it does on a machine that never linked the 
 On either branch the session grounds the Ticket and writes the Plan itself, at the same path and in
 the format [plan.md](plan.md) fixes, its `## Sources` lines from the four values `grounding.sh plan`
 printed, taking
-[do-planner.md](../agents/do-planner.md) as the recipe rather than a second copy of it here. It
+[do-planner.md](../agents/do-planner.md) as the recipe. It
 says in one line which of the two holds: the Agent tool withheld, or `do-planner` not listed, the
 agent this machine has not linked, which one run of the skills repository's
 `scripts/link-skills.sh` links before the next `/do`. The run neither stops nor asks for the tool
@@ -533,9 +529,7 @@ Then the Spec branch, on every start and start-over and after the adoption, neve
 its local upstream, the branch the Spec integrates into from then on. The branch is the main
 checkout's own whatever repository holds the Ticket: on a Ticket run from its Build repository the
 script is handed the Ticket's absolute location in the Home repository, takes the feature's slug
-from it, and cuts in the Build repository, from the branch that repository's session stands on. So
-a feature across repositories has one Spec branch per Build repository, each holding the Tickets
-built there, and a repository none of whose Tickets has run has none. `action=reused` is any later
+from it, and cuts in the Build repository, from the branch that repository's session stands on. `action=reused` is any later
 run, or the loser of two first runs at once: the branch
 and its upstream are left as they were, and `upstream=` is the recorded one, never this run's
 checkout. `action=refused` (exit 1) stops the run as blocked with the Ticket `claimed`, naming the
@@ -580,8 +574,7 @@ the Builder, once, the way step 1 says.
 Then fork the Builder, per [builder.md](builder.md): call the Agent tool with
 `subagent_type: do-builder`, the agent `do` ships in [do-builder.md](../agents/do-builder.md), and
 the brief that file fixes, filled from the Plan's path step 1 returned and the worktree and the
-branch step 2 created. The keys are in [builder.md](builder.md) and are never copied here, the way
-the Plan step's keys are never copied here.
+branch step 2 created.
 
 As soon as the Builder returns, before any of the checks below run and before any of their routes
 is taken, revoke the token again, the same call step 3 opened with:
@@ -604,8 +597,7 @@ drops the return and records the fallback line for the Run report's Run section.
 Read [resume.md](resume.md) when a Builder's return fails either check: the run picks the stretch up from what `resume-state.sh` just printed, the Resume section's own path.
 
 Before the route below is taken, the run re-checks the grounding, the `## Sources` check again
-over what a fork holding a shell in the worktree could have rewritten, over the same records step 1
-checked: the four values the run recorded, the Ticket's hash as the claim adopted it, and the destination step 1 named.
+over the same records step 1 checked: the four values the run recorded, the Ticket's hash as the claim adopted it, and the destination step 1 named.
 
 ```sh
 bash <skill-dir>/scripts/grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=> <the destination>
@@ -744,8 +736,7 @@ blocked with the review's reason quoted and the worktree and its branch named, o
 `skip: do-code-review not listed` with the worktree and its branch named.
 
 **8. Verification.** On a Ticket of a Spec the step reads
-`skip: landed on the Spec branch, which the main checkout does not hold`: the flows run from the
-main checkout, and nothing of this Ticket is there until the Spec branch itself lands. On a Ticket
+`skip: landed on the Spec branch, which the main checkout does not hold`. On a Ticket
 with no Spec, Read [verification.md](verification.md) when the run has an affected flow: the
 affected flows from the main checkout through `scripts/flows.sh`, its command line printed first, the one question
 before a full suite or
