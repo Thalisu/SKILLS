@@ -23,8 +23,7 @@ Two ways in, and no other:
 | `Loop: global` | global-authors.md's `BLOCKED` route: the global unit test author came back `BLOCKED` naming a run command the project map lacks | that behaviour and every one remaining |
 
 On the `BLOCKED` route the loop line keeps reading `Loop: global`, and the run dispatches the unit
-test author no more: the map does not change during the run, so a second dispatch would meet the
-same `BLOCKED`.
+test author no more.
 
 What `Loop: fallback` means depends on the Playbook:
 
@@ -41,8 +40,7 @@ route.
 ## The rule
 
 Make the behaviour executable before changing production code: a focused test that fails before
-the change and passes after it. A test that was never seen red proves nothing about the change,
-since it may pass for a reason that has nothing to do with it.
+the change and passes after it.
 
 The feature case and the bug case follow the same rule. A new behaviour gets its failing test
 first, and a defect gets the test that reproduces it before the fix. Both hold where a cheap path
@@ -64,8 +62,7 @@ fixture churn.
 
 The commands come from the repository's own scripts (`package.json` scripts, a Makefile, a
 justfile, `pyproject`) and the runner they name, the way the gate in
-[mechanics.md](mechanics.md) reads them. Read them off the repository each run: a command recalled
-from another repository runs the wrong runner or none, and reads as a red the code did not cause.
+[mechanics.md](mechanics.md) reads them. Read them off the repository each run.
 The single-file command is the one the commit body carries.
 
 ## The steps, per behaviour
@@ -77,8 +74,7 @@ The single-file command is the one the commit body carries.
    instead of building a test path from scratch to satisfy the loop.
 3. Write the failing test first: the smallest focused test that would catch the missing behaviour
    or the bug, in the caller's words. Take the expectation from the Ticket, its Spec and the
-   behaviour line. An expectation read off the implementation repeats whatever the implementation
-   does, the bug included.
+   behaviour line. Never read the expectation off the implementation.
 4. Run it before any production change and read what it shows:
 
    | The first run | What it means | What the run does |
@@ -90,8 +86,8 @@ The single-file command is the one the commit body carries.
 
 5. Write the smallest production change that satisfies the intended behaviour and preserves the
    neighbouring contracts: the least logic that makes the behaviour hold for every valid input,
-   never the least code that satisfies the assertion. A constant or a branch that recognizes the
-   test's own inputs is the test rewritten as code.
+   never the least code that satisfies the assertion. Never write a constant or a branch that
+   recognizes the test's own inputs.
 6. Rerun the test and read green. Then refactor on green, with the suite re-run after each step.
 7. Run the nearby validation, typecheck, lint and the formatter as the loop's own steps say, and
    commit the test and the implementation together, per the record below.
@@ -107,9 +103,7 @@ The red step is never skipped in silence. In order:
 3. Run the check before the change and after it, where the check allows it.
 4. Record the reason and the check, per the record below.
 
-Prefer no new test over a bad one. A bad test costs more than a missing one, since it reads as
-coverage, goes red on changes that break nothing and stays green on the bug. A test is bad when
-it:
+Prefer no new test over a bad one. A test is bad when it:
 
 - mostly tests mocks;
 - encodes implementation details;
@@ -120,12 +114,10 @@ it:
 ## Guardrails
 
 - Change a test only when it is wrong about the intended behaviour, never to match what the
-  implementation does: a test bent to fit the code stops proving the behaviour.
+  implementation does.
 - Weaken an existing assertion only when the expected behaviour changed, and state the reason in
-  the commit body. An assertion loosened without one is a guarantee dropped where nobody reads it.
-- Keep the test on the behaviour, with no broad fixture churn and no unrelated coverage: the
-  commit is one behaviour's checkpoint, and whatever else rides in it is trusted by the resume and
-  read by the review as part of that behaviour.
+  the commit body.
+- Keep the test on the behaviour, with no broad fixture churn and no unrelated coverage.
 - Make a flaky reproduction deterministic where possible, and name the signal being locked down,
   so a later red points at that signal and not at the timing.
 - When a bug exposes a broader class of failures, land the focused regression path first, then
@@ -133,9 +125,8 @@ it:
 
 ## What the run records
 
-The run reports evidence, not the outcome, and each line below is what a later reader has in
-place of having watched the run: the Pending debt line in the message, the rest in the Run report
-under `--auto`.
+The run reports evidence, not the outcome: the Pending debt line in the message, the rest in the
+Run report under `--auto`.
 
 | Where | What it carries |
 |---|---|
@@ -155,21 +146,8 @@ A check stood in for a test: the only path to this code is the end-to-end suite,
 which needs a seeded database.
 ```
 
-## Attribution and changes from upstream
+## Attribution
 
 Adapted from the `tdd` skill of [pstack](https://github.com/cursor/plugins/tree/main/pstack) by
 Lauren Tan, MIT (see [PSTACK-LICENSE](../../../vendor/PSTACK-LICENSE)), upstream commit
-`7314f723a487ec406b6369fe5865ba034cfed166`, with the frontmatter stripped and these changes:
-
-- The frontmatter is stripped. Upstream's door, a skill used only when the user asks for TDD or the
-  bug has an obvious cheap test target, is replaced by the loop line: this file is read through
-  the two ways in above, never on request.
-- Upstream is written for a bug fix. The feature case follows the same rule here: the failing test
-  first where a cheap path exists, else the closest executable check with the reason stated.
-- The workflow is folded into the build loop of `build-loop.md`: the same steps, the loop's
-  verdicts, one commit per behaviour, and the Run report's Evidence section in place of upstream's
-  "Final Response".
-- The commands come from the repository's own scripts, as the gate reads them.
-- The text is laid out for the run that reads it mid-loop: the ways in and the run's records as
-  tables, each guardrail with its reason, and upstream's rules on an impractical test in one
-  section.
+`7314f723a487ec406b6369fe5865ba034cfed166`.

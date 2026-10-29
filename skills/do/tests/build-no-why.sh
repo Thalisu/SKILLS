@@ -37,4 +37,30 @@ absent "build-loop.md keeps no why for the Behaviour: line" "so that a resume re
 absent "build-loop.md keeps no why for a foreground dispatch" "an author left in the background comes back as a launch"
 absent "build-loop.md keeps no why for counting runs instead of tokens" "a forked agent cannot read its own consumption"
 
+echo "# tdd-fallback.md: instructions only, the pstack notice kept and no list of changes from upstream"
+tdd_fallback="$refs/tdd-fallback.md"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$tdd_fallback" | tr -s ' ')"
+absent "tdd-fallback.md argues from no ADR" "docs/adr/"
+absent "tdd-fallback.md names no ADR as a rule's reason" "per [ADR"
+absent "tdd-fallback.md names no plain ADR as a rule's reason" "per ADR"
+absent "tdd-fallback.md keeps no why for no second dispatch on the BLOCKED route" "so a second dispatch would meet the same"
+absent "tdd-fallback.md keeps no why for the failing test first" "A test that was never seen red proves nothing"
+absent "tdd-fallback.md keeps no why for reading the commands each run" "a command recalled from another repository runs the wrong runner"
+absent "tdd-fallback.md keeps no why for the expectation coming from the Ticket" "An expectation read off the implementation repeats whatever"
+absent "tdd-fallback.md keeps no why for no constant recognizing the test's inputs" "is the test rewritten as code"
+absent "tdd-fallback.md keeps no why for preferring no new test over a bad one" "A bad test costs more than a missing one"
+absent "tdd-fallback.md keeps no why for changing a test only when it is wrong" "a test bent to fit the code stops proving the behaviour"
+absent "tdd-fallback.md keeps no why for weakening an assertion only with a reason" "An assertion loosened without one is a guarantee dropped"
+absent "tdd-fallback.md keeps no why for keeping the test on the behaviour" "whatever else rides in it is trusted by the resume"
+absent "tdd-fallback.md keeps no why for what the run records" "in place of having watched the run"
+absent "tdd-fallback.md lists no changes from upstream" "these changes:"
+absent "tdd-fallback.md keeps no history of upstream's door" "Upstream's door"
+absent "tdd-fallback.md keeps no history of upstream's bug-fix framing" "Upstream is written for a bug fix"
+absent "tdd-fallback.md keeps no history of the guardrails' reasons" "each guardrail with its reason"
+has "tdd-fallback.md keeps the pstack MIT license notice" "$tdd_fallback" "Lauren Tan" "MIT" \
+  "[PSTACK-LICENSE](../../../vendor/PSTACK-LICENSE)" \
+  "https://github.com/cursor/plugins/tree/main/pstack" \
+  "7314f723a487ec406b6369fe5865ba034cfed166"
+
 exit $((fails > 0))
