@@ -22,7 +22,7 @@ body_of "$agent" >"$body"
 mapfile -t loop_terms < <(own_loop_phrasings)
 wait_cmd="timeout 60 tail -f /dev/null"
 
-echo "# do-code-review-gate-fixer.md: a command moved to the background is waited on in short calls, bounded at nine"
+echo "# do-code-review-gate-fixer.md: a command moved to the background is waited on in short calls, until the result arrives or the budget runs out"
 wait_para="$(paragraph_with "$body" "$wait_cmd" | tr -s ' ')"
 flat="$wait_para"
 expect "the agent body has a paragraph giving the wait \`$wait_cmd\`" test -n "$flat"
@@ -36,9 +36,10 @@ expect "the wait paragraph never claims a long Bash timeout keeps the wait in th
   bash -c '! grep -qF "never moves the wait" <<<"$1"' _ "$wait_para"
 carries_any "the wait calls run one at a time" \
   "one at a time" "one after the other" "one after another" "in sequence"
-carries_each "the wait is repeated up to nine calls in all" \
-  "nine" -- \
-  "in all" "at most" "up to" "no more than"
+carries_each "a wait call that ends with no notification is repeated until the notification arrives or the 50-minute budget runs out" \
+  "no verdict" "without a verdict" "no result" "without a result" "no notification" "without a notification" -- \
+  "until" -- \
+  "budget" "50 minutes"
 
 # A notification reaches the fork only once its current tool call ends, which is why each wait call
 # is short: one long call holds the notification back for as long as it runs.
@@ -49,21 +50,6 @@ carries_each "the notification arrives once the fork's current call ends" \
   "command" -- \
   "notification" -- \
   "call ends" "call returns" "call finishes" "call is over" "between calls" "call has ended"
-
-# `not fixed:` is the line the orchestrator reads as an attempt that turned nothing green, and the
-# Gate fixer's contract is one commit per attempt or none: any other end is a return it cannot route.
-echo "# do-code-review-gate-fixer.md: when the ninth wait ends with no result, the attempt ends with no commit and a not fixed: line"
-flat="$wait_para"
-carries_each "after the ninth call with no result the fork restores its edits, makes no commit and writes not fixed: to its return file" \
-  "no result" "without a result" "no notification" "without a notification" "has not returned" "did not return" "not returned" -- \
-  "nine" -- \
-  "restore" "Restore" -- \
-  "no commit" "without a commit" "not commit" "never commit" -- \
-  "not fixed:" -- \
-  "return file" "Return file"
-flat="$(awk '{ n = split($0, s, /\. /); for (i = 1; i <= n; i++) if (index(s[i], "not fixed:")) print s[i] }' <<<"$wait_para")"
-carries_any "the not fixed line names the command that did not return" \
-  "naming the command" "names the command" "naming that command" "names that command" "the command that" "command"
 
 # The sanctioned wait is itself a `tail -f`, so it is masked before the ban is looked for: the line
 # telling the fork to run it never answers for the ban on a loop or poll of its own.
@@ -95,6 +81,12 @@ carries_each "it leaves the whole suite and the Gate to the orchestrator, which 
   "orchestrator" -- \
   "Gate" -- \
   "return"
+
+# The orchestrator waits six `returns.sh 540` windows, 54 minutes, on the Gate fixer's return file
+# and ends the attempts when it never lands. The Gate fixer's wait calls repeat until the
+# notification arrives, so with no clock of its own it runs past that and the attempt goes unrouted.
+echo "# do-code-review-gate-fixer.md: the Gate fixer keeps a 50-minute wall-clock budget from its first command and stops on not fixed: out of time"
+wall_clock_budget "the Gate fixer" "not fixed: out of time"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

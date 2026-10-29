@@ -5,8 +5,8 @@
 #
 #   <paths on stdin, NUL-delimited> | last-wins.sh <ledger>
 #
-# <ledger> is an absolute `.md` path under the main checkout's .scratch/, which ledger.sh holds the
-# format of. The paths are the conflicted files the union block has already written, handed on stdin
+# <ledger> is an absolute `.md` path under the main checkout's .scratch/ or the Home repository's,
+# which ledger.sh holds the format and the path rule of. The paths are the conflicted files the union block has already written, handed on stdin
 # and never as arguments: a path is a name a side chose and never reaches a command line.
 #
 # The script prints `kept <file> <key path>` for each definition it dropped, `deduped <file> <key

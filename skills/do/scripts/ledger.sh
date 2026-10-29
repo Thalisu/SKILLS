@@ -58,8 +58,9 @@
 # A fence is one backtick longer than the longest run of backticks in the side it holds, and never
 # shorter than three, so no line of a side can close it.
 #
-# <ledger> must be an absolute `.md` path that resolves under the main checkout's `.scratch/`, and a
-# regular file when it exists; anything else is refused, `ledger refused <reason>` on stderr, with
+# <ledger> must be an absolute `.md` path that resolves under the main checkout's `.scratch/`, or under
+# the `.scratch/` at the root of another main checkout (the Home repository of a Ticket built in its Build
+# repository, whose ledger sits beside the Spec there), and a regular file when it exists; anything else is refused, `ledger refused <reason>` on stderr, with
 # nothing written.
 #
 # Exit codes: 0 written, or listed · 2 usage, the ledger refused, or no entry for the id.
@@ -135,8 +136,16 @@ common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" ||
 root="$(cd "$common/.." && pwd -P)" || refused "no main checkout"
 case "$ledger" in /*.md) ;; *) refused "not an absolute .md path" ;; esac
 command -v realpath >/dev/null 2>&1 || refused "realpath is not on PATH"
-case "$(realpath -m -- "$ledger")" in
+resolved="$(realpath -m -- "$ledger")"
+case "$resolved" in
   "$root/.scratch/"*) ;;
+  */.scratch/*)
+    home="${resolved%%/.scratch/*}"
+    home_common="$(git -C "$home" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" &&
+      [ "$(cd "$home_common/.." && pwd -P)" = "$home" ] &&
+      [ "$(git -C "$home" rev-parse --path-format=absolute --show-toplevel 2>/dev/null)" = "$home" ] ||
+      refused "not under $root/.scratch/ nor under a main checkout's own .scratch/"
+    ;;
   *) refused "not under $root/.scratch/" ;;
 esac
 if [ -L "$ledger" ] || { [ -e "$ledger" ] && [ ! -f "$ledger" ]; }; then refused "not a regular file"; fi

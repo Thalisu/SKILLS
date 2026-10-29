@@ -882,4 +882,27 @@ expect "the refused multi-line applied reason leaves the ledger byte-identical t
 expect "the refused multi-line applied reason forges no entry heading" \
   test "$(grep -c '^## ' "$mledger")" = 1
 
+# A Ticket built in its Build repository keeps its Loss ledger beside the Spec, in the Home
+# repository's scratch, so the run in the Build repository's tree reaches a ledger under another
+# checkout's `.scratch/`. That scratch is accepted; a `.scratch/` that is no checkout's own is not.
+fresh ledger-home
+mkdir -p .scratch
+homeledger="$PWD/.scratch/spec.build.ledger.md"
+fresh ledger-build
+rc=0
+out="$(bash "$ledgersh" pending "$homeledger" 2>"$tmp/home.err")" || rc=$?
+expect "a ledger under the Home repository's .scratch/ is accepted from the Build repository (got $rc: $(cat "$tmp/home.err"))" \
+  test "$rc" = 0
+mkdir -p "$tmp/plain/.scratch"
+rc=0
+out="$(bash "$ledgersh" pending "$tmp/plain/.scratch/run.ledger.md" 2>"$tmp/plain.err")" || rc=$?
+expect "a ledger under a .scratch/ outside any checkout is refused with exit 2 (got $rc)" test "$rc" = 2
+mkdir -p "$tmp/ledger-home/sub/.scratch"
+rc=0
+out="$(bash "$ledgersh" pending "$tmp/ledger-home/sub/.scratch/run.ledger.md" 2>"$tmp/sub.err")" || rc=$?
+expect "a ledger under a .scratch/ below a checkout's root is refused with exit 2 (got $rc)" test "$rc" = 2
+rc=0
+out="$(bash "$ledgersh" pending "$tmp/ledger-home/notes/run.ledger.md" 2>"$tmp/notes.err")" || rc=$?
+expect "a ledger in another checkout outside its .scratch/ is refused with exit 2 (got $rc)" test "$rc" = 2
+
 exit $((fails > 0))

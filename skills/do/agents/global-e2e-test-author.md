@@ -87,6 +87,7 @@ E2E runs against the real local stack, and a stack that is down looks exactly li
 3. All checks pass → run the flow. The target is green: E2E is proven after the feature exists. A red flow is a product bug or a flow bug: say which you believe and why, with the assertion left as written. A dispatched agent corrects once and no more (see "The fix ceiling"); an inline writer owns the product and the stack and fixes until the flow stands.
 4. Report the command and the relevant output verbatim, as the runner printed them.
 5. Format every file you wrote or edited with the project formatter/linter (see "Project map").
+6. A command that comes back moved to the background reaches you as a notification once your current call ends: the harness moves a Bash call to the background after a few minutes, whatever its `timeout`. Wait in short calls, `timeout 60 tail -f /dev/null`, one at a time, never with a loop or a poll of your own, and read the result from the notification. After nine wait calls with no notification, report that command as not returned, naming it, in place of its output, instead of waiting longer.
 
 ### Forbidden
 

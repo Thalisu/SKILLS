@@ -4,7 +4,8 @@
 #
 #   contested.sh <ledger>    the stop resolved and staged, the Incoming side of each contested hunk
 #                            written to the Loss ledger at <ledger>, an absolute path under the main
-#                            checkout's .scratch/, which ledger.sh holds the format of
+#                            checkout's .scratch/ or the Home repository's, which ledger.sh holds the
+#                            format and the path rule of
 #
 # Each contested hunk leaves one entry keyed by its hunk id, written before any file of the stop, so
 # a refused ledger leaves the stop as git left it and a rerun rewrites the same entries. A file taken

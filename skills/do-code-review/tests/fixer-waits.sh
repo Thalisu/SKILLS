@@ -59,19 +59,10 @@ carries_each "a command the harness moved to the background is waited on the sam
 expect "the wait paragraph never claims a long Bash timeout keeps the wait in the foreground" \
   bash -c '! grep -qF "never moves the wait" <<<"$1"' _ "$wait_para"
 flat="$wait_para"
-# The Fixer's lines carry no `<k>`: `not fixed:` is the line of `## Two ends with no commit` that
-# the orchestrator reads as a Finding left alone, so any other end is a return it cannot route.
-carries_each "a wait that ends with no notification is repeated up to nine calls in all, then the Fixer restores its edits, makes no commit and writes not fixed: to its return file" \
-  "no verdict" "without a verdict" "no notification" "without a notification" -- \
-  "nine" -- \
-  "restore" "Restore" -- \
-  "no commit" "without a commit" "not commit" "never commit" -- \
-  "not fixed:" -- \
-  "return file" "Return file"
-flat="$(awk '{ n = split($0, s, /\. /); for (i = 1; i <= n; i++) if (index(s[i], "not fixed:")) print s[i] }' <<<"$wait_para")"
-carries_any "the not fixed line names the test author dispatch that never returned" \
-  "test author" "unit-test-author" "author dispatch" "naming the dispatch" "names the dispatch" \
-  "naming that dispatch" "names that dispatch" "naming the agent" "names the agent"
+carries_each "a wait call that ends with no notification is repeated until the notification arrives or the 50-minute budget runs out" \
+  "no verdict" "without a verdict" "no result" "without a result" "no notification" "without a notification" -- \
+  "until" -- \
+  "budget" "50 minutes"
 
 # The orchestrator waits on the return file a bounded time and runs the Gate itself once the Fixer
 # returns: a Fixer that ran the whole unit loop first outlived that wait, and its commit was dropped.
@@ -90,6 +81,12 @@ carries_each "it leaves the whole suite and the Gate to the orchestrator, which 
   "orchestrator" -- \
   "Gate" -- \
   "return"
+
+# The orchestrator waits six `returns.sh 540` windows, 54 minutes, on the return file and discards a
+# Fixer whose file lands later: a Fixer with no clock of its own runs past that, its commit is never
+# picked and the Review never lands. The Fixer has no stack, and its line carries no `<k>`.
+echo "# do-code-review-fixer.md: the Fixer keeps a 50-minute wall-clock budget from its first command and stops on not fixed: out of time"
+wall_clock_budget "the Fixer" "not fixed: out of time"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

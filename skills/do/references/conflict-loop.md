@@ -187,7 +187,8 @@ record while it runs:
 
 The worktree reaches the ledger by that absolute path and never copies it, and every stop of the
 same rebase passes the same path. The script refuses a path that does not resolve under the main
-checkout's `.scratch/`, with nothing written.
+checkout's `.scratch/`, or under the `.scratch/` at the root of another main checkout, the Home
+repository's on a Ticket run from its Build repository, with nothing written.
 
 What the script prints and the code it exits with say what the run does next. On exit 2, 3 or 4 the
 run stops as blocked, with the blocker lines the top of this section fixes and the reason named

@@ -487,6 +487,30 @@ test suite
 unit loop
 EOF
 }
+# A fork its caller waits on a bounded time ends on a clock of its own: 50 minutes from its first
+# command, read with `date +%s` and read again before any call that could outlast it, since a wait
+# call repeats until its notification arrives and only the budget bounds it. The paragraph naming
+# the budget, the one carrying "out of time" first, is left in $flat for the caller's own cases.
+wall_clock_budget() { # $1 who keeps the budget (the fork, the Fixer), $2 the line it writes once out of time; $body set by the caller
+  local terms=("50 minutes" "50-minute" "fifty minutes" "fifty-minute" "Fifty minutes") paras
+  paras="$(paragraphs_naming "${terms[@]}")"
+  flat="$(grep -F "out of time" <<<"$paras" | head -n1)"
+  [ -n "$flat" ] || flat="$(head -n1 <<<"$paras")"
+  expect "the agent body has a paragraph naming $1's 50-minute budget" test -n "$flat"
+  carries_each "the budget is 50 minutes, counted from the first command and read with date +%s" \
+    "${terms[@]}" -- \
+    "first command" "first Bash call" "first shell call" "first call" -- \
+    "date +%s"
+  carries_each "the budget is checked before a command or a wait call that could run past it" \
+    "before any command" "before a command" "before each command" "before every command" \
+    "before running a command" "before you run" "before any call" "before each call" "before a call" -- \
+    "wait call" "a wait" "any wait" "each wait" "the wait"
+  carries_each "out of time, $1 restores its edits, makes no commit and writes $2 to its return file" \
+    "restore" "Restore" -- \
+    "no commit" "never a commit" "never commit" "without a commit" "without committing" "not commit" -- \
+    "$2" -- \
+    "return file" "Return file"
+}
 fix_call_gates_phrasings() { # one accepted phrasing per line: the call the branch is handed to gates that tree
   cat <<'EOF'
 gates the same tree

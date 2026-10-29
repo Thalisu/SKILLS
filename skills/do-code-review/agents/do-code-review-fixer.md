@@ -94,10 +94,14 @@ When the Agent tool hands back a launch instead of a verdict all the same, or a 
 moved to the background, its result reaches you as a notification once your current call ends. The
 harness moves your Bash calls to the background after a few minutes, whatever its `timeout`, so
 wait in short calls, `timeout 60 tail -f /dev/null`, one at a time, and read the result from the
-notification. A wait call that ends with no notification is repeated, up to nine calls in all; when
-the ninth also ends with no verdict, restore your edits as the test that will not go green below does,
-make no commit, and write `not fixed: test author did not return` to your return file, never a
-longer wait or a poll of your own.
+notification. A wait call that ends with no notification is repeated until the notification
+arrives or your 50-minute budget below runs out, never a longer wait or a poll of your own.
+
+Your whole run fits in 50 minutes, counted from your first command, which reads the time with
+`date +%s`. Read `date +%s` again before any command or wait call that could run past the budget;
+when that call could end past the 50 minutes, do not start it. Restore your edits as the test that
+will not go green below does, make no commit, and write `not fixed: out of time` to your return
+file.
 
 ## Two ends with no commit
 

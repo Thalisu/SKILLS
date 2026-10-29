@@ -79,6 +79,7 @@ Every file a promotion touches is edited in place with a targeted edit: the move
 - Run your new/edited file and confirm it is red **for the reason the caller declared**. Red from a typo, a wrong import path, or a mis-mocked module is *your* bug; fix and rerun. Only red matching the declared reason counts. A dispatched agent corrects once and no more (see "The fix ceiling"); an inline writer owns the production code and fixes until the test stands.
 - Run the **full** unit suite whenever you created, extended, changed, or promoted a shared asset.
 - Report the command and the relevant output verbatim, as the runner printed them.
+- A command that comes back moved to the background reaches you as a notification once your current call ends: the harness moves a Bash call to the background after a few minutes, whatever its `timeout`. Wait in short calls, `timeout 60 tail -f /dev/null`, one at a time, never with a loop or a poll of your own, and read the result from the notification. After nine wait calls with no notification, report that command as not returned, naming it, in place of its output, instead of waiting longer.
 - Format every file you wrote or edited with the project formatter (see "Project map").
 
 ### Forbidden
