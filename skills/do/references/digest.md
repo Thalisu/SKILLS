@@ -2,12 +2,9 @@
 
 The slice of a Ticket's Spec and journey a `do` run needs, read out of both by the reader of
 [mechanics.md](mechanics.md) and returned quoted, with the location of every quote. It is what the
-run derives its behaviours from once neither document enters the session, per
-[ADR 0024](../../../docs/adr/0024-the-do-run-reads-a-quoted-digest-of-its-spec-and-journey.md).
+run derives its behaviours from once neither document enters the session.
 
-The Digest quotes and never summarises. A paraphrase would become the spec of record without ever
-having been the developer's words, and the developer checks the slice by opening the cited line
-and reading it against the quote, which only a character-for-character copy survives.
+The Digest quotes and never summarises.
 
 ## The brief
 
@@ -23,9 +20,7 @@ it with these four things and nothing else:
 
 The brief names no path to write and no hash to compute. The reader reads and searches and writes
 nothing: its tool list holds `Read`, `Glob` and `Grep`, with no tool that writes a file, changes
-one or runs a command. Both documents may carry text a stranger wrote, since a Spec on a remote
-tracker is an issue anyone who can comment on it appends to. So what the reader may touch is fixed
-by the tool list the harness enforces, never by a brief the stranger's text can argue with.
+one or runs a command.
 
 The reader returns the Digest's text, every section but `## Sources`, and nothing else.
 
@@ -65,9 +60,6 @@ journey: <absolute path> <hash>
   decides whether to reuse the Digest from that comparison alone and reads neither document again.
   A document still absent is a match. Only a document that appeared, vanished or changed re-forks
   the reader, so a Ticket whose Spec names no journey reuses its Digest like every other Ticket.
-- It is a hash and not a modification time because `git checkout`, a rebase and `git worktree add`
-  all rewrite the times of files whose bytes did not change, and a Digest is not stale because git
-  touched its Spec.
 
 ### `## Journey Path`
 
@@ -80,12 +72,9 @@ Pick the Path by the first of these that matches:
 2. the Path whose `Story:` numbers cover the Ticket's criteria.
 
 When more than one Path matches at the same step, take the one that comes first in the journey.
-The Digest carries one Path, and the developer who reads the cited heading sees which one it was,
-so a draw is settled by the document's own order and never by a question nobody is there to answer.
 
 When no Path matches at either step, the section quotes none and says so with the `absent:` line
-of [What is absent](#what-is-absent). The nearest Path is not the Ticket's: quoted here, it would
-hand the run steps and failure branches the Ticket was never cut from. `## Stories` and
+of [What is absent](#what-is-absent). Never quote the nearest Path in its place. `## Stories` and
 `## Observable criteria` are then cut the way they are with no journey.
 
 ### `## Stories`
@@ -117,9 +106,6 @@ The numbers of the Ticket's criteria whose change a user can observe, one per li
 - When the Digest quotes neither a Path nor a story, there is nothing to decide from, and the
   section holds the line `none: no Path and no story to read`.
 
-It stays a list of numbers because it survives into a run that reuses the Digest and forks nobody.
-A sentence about the criteria would be the paraphrase the rest of the Digest exists to keep out.
-
 ## A quote block
 
 One location line, then the quoted lines as a blockquote:
@@ -137,14 +123,10 @@ One location line, then the quoted lines as a blockquote:
   empty line of the document becomes a bare `>`.
 - A quote that is shortened marks the cut with an ellipsis and never closes the gap.
 
-The developer opens the cited line to check the slice instead of trusting it. That check is why
-the Digest is quoted, why the line number is the document's own, and why a cut has to show.
-
 ## Its edges
 
 The Digest's edges are the headings the two formats already fix, never a line range only the
-reader saw. The developer checks the slice by reading the same headings, and a document whose
-lines moved since the last run still cuts in the same place.
+reader saw.
 
 | What the run needs | The heading the format fixes it under |
 |---|---|
@@ -268,7 +250,7 @@ Ticket's slug is the key, the Review's own rule, so two runs on two Tickets of t
 never reach for the same file. A Ticket that is not a local file has no file to sit beside: it
 keys the Digest by the issue's reference under `.scratch/digests/` in the main checkout.
 
-The path is the Home repository's absolute one, since a run inside a worktree has no scratch of its
-own, per [scratch.md](../../../.agents/scratch.md). That file also carries the ignore: the run
-appends the `.scratch/` line, in the Home repository's `.gitignore`, before the write, whenever the rule is not already coming from the
-project's own `.gitignore`, so the Digest never turns up in a teammate's `git status`.
+The path is the Home repository's absolute one, per [scratch.md](../../../.agents/scratch.md). That
+file also carries the ignore: the run appends the `.scratch/` line, in the Home repository's
+`.gitignore`, before the write, whenever the rule is not already coming from the project's own
+`.gitignore`, so the Digest never turns up in a teammate's `git status`.

@@ -63,4 +63,22 @@ has "tdd-fallback.md keeps the pstack MIT license notice" "$tdd_fallback" "Laure
   "https://github.com/cursor/plugins/tree/main/pstack" \
   "7314f723a487ec406b6369fe5865ba034cfed166"
 
+echo "# digest.md: instructions only, no ADR argument and no why beside a rule"
+digest="$refs/digest.md"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$digest" | tr -s ' ')"
+absent "digest.md argues from no ADR" "docs/adr/"
+absent "digest.md names no ADR as a rule's reason" "per [ADR"
+absent "digest.md names no plain ADR as a rule's reason" "per ADR"
+absent "digest.md keeps no why for quoting and never summarising" "A paraphrase would become the spec of record"
+absent "digest.md keeps no why for the reader's tool list" "since a Spec on a remote tracker is an issue anyone"
+absent "digest.md keeps no why for the tool list fixing what the reader may touch" "never by a brief the stranger's text can argue with"
+absent "digest.md keeps no rejected alternative to recording a hash in Sources" "It is a hash and not a modification time because"
+absent "digest.md keeps no why for settling a draw between Paths by order" "never by a question nobody is there to answer"
+absent "digest.md keeps no why for quoting no nearest Path" "quoted here, it would hand the run steps"
+absent "digest.md keeps no why for Observable criteria as numbers" "It stays a list of numbers because"
+absent "digest.md keeps no why for the quote block's rules" "That check is why the Digest is quoted"
+absent "digest.md keeps no why for edges being the format's headings" "a document whose lines moved since the last run still cuts in the same place"
+absent "digest.md keeps no why for the Home repository's absolute path" "since a run inside a worktree has no scratch of its own"
+
 exit $((fails > 0))
