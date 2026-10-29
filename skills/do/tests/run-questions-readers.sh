@@ -66,8 +66,11 @@ echo "# run-questions.md and SKILL.md's entry name its readers and the condition
 readers=("Resume" -- "verification" -- "the claim" -- "the close" -- "\`Rulings\`")
 condition=("--auto" -- "\`ticket\` run" -- "choice-taker")
 flat="$(awk 'BEGIN { RS = "" } !/^#/ { gsub(/\n/, " "); print; exit }' "$questions" 2>/dev/null | tr -s ' ')"
-carries_each "the opening names the Resume, the verification, the claim, the close and the reply's Rulings" \
+carries_each "the opening names the Resume, the verification, the claim, the close and the run report's Rulings" \
   "${readers[@]}"
+carries "the opening sends the \`Rulings\` reader to run-report.md, which holds that section" "run-report.md"
+out="$flat"
+absent "the opening sends no reader to reply.md, which has no \`Rulings\` section" "reply.md"
 carries_each "the opening names the condition: a \`ticket\` run under --auto handing a question to the choice-taker" \
   "${condition[@]}"
 carries "the opening says a run without the flag never reads it" "without"

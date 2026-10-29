@@ -4,7 +4,7 @@ Read by a step of a `ticket` run only under `--auto`, when the step meets a ques
 that it hands to the `choice-taker`, ruled or still asked: the Resume of resume.md and
 its resumed integration, before a discard and at an open rebase; the verification, before a full
 suite or a remote run; the claim and the close of [mechanics.md](mechanics.md), before a write to a
-remote tracker; and the `Rulings` section of [reply.md](reply.md), which lists a run question's
+remote tracker; and the `Rulings` section of [run-report.md](run-report.md), which lists a run question's
 Ruling. A run without the flag asks every one of these questions as its step says and never reads
 this file.
 
