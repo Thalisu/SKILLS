@@ -572,9 +572,7 @@ recorded for the Run report's Run section.
 
 **3. Build.** Before the Builder is forked, revoke the run's review token:
 `bash <skill-dir>/scripts/review-token.sh revoke <the slug>`. It runs on every run, a first run
-that stored no token included. That token is what a
-marker beside the Ticket has to carry for a later run to honour the Review beside it and skip its
-own review, per the review in [mechanics.md](mechanics.md).
+that stored no token included.
 
 When the door printed a Spec branch, the same step revokes the token of the Spec's Final
 integration too, before the Builder is forked, again on every run: `bash

@@ -155,14 +155,11 @@ carries_each "the token is revoked on every run, a run that stored none included
   "no token" "nothing stored" "nothing to revoke" "first run" "none stored" "never stored" \
   "has none" "stored none"
 
-# Why the step cannot skip it: the value is what a forged marker beside a Review must carry for the
-# next run's `marked()` to spare it a review, so a live token during the build buys an unreviewed
-# branch that lands.
-carries_each "the step says what a live token would buy the fork: a marker the next run honours" \
-  "marker" \
-  -- \
-  "skip" "spare" "second review" "another review" "unreviewed" "without a review" \
-  "never reviewed" "past its review" "trusts" "vouch" "honours" "honors"
+# The order is the guarantee: the step's text carries the revoke ahead of the fork it guards.
+revoke_at="$(grep -n -m1 'review-token.sh revoke <the slug>' <<<"$build" | cut -d: -f1)"
+fork_at="$(grep -n -m1 'subagent_type: do-builder' <<<"$build" | cut -d: -f1)"
+expect "the build step writes the revoke before the do-builder fork" \
+  test -n "$revoke_at" -a -n "$fork_at" -a "${revoke_at:-0}" -lt "${fork_at:-0}"
 
 # The store's path is the script's own, and `resume-state.sh` reads the file back from it: a step
 # that resolved `--git-common-dir` itself would be a second spelling of that path to keep in step

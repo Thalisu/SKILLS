@@ -69,6 +69,7 @@ absent "ticket.md keeps no why for setting the upstream" "without the upstream t
 absent "ticket.md keeps no why for not working around with a second slug" "that failure is not one to work around with a second slug"
 absent "ticket.md keeps no why for not asking whether one is there" "so the step never asks whether one is there"
 absent "ticket.md keeps no why for storing the token out of the worktree" "Storing the token out of the worktree is not the guarantee on its own"
+absent "ticket.md keeps no why for revoking the run's review token" "has to carry for a later run to honour the Review"
 absent "ticket.md keeps no why for how that Review counts" "leaves that Review counting otherwise"
 absent "ticket.md keeps no why for the revoke window" "the revoke below closing the one window over the Builder's return"
 absent "ticket.md keeps no why for the case the revoke closes" "is the one case this closes that the original revoke"
