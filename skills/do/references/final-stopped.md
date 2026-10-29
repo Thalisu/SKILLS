@@ -103,9 +103,8 @@ of this project's facts and the Review at the `review_file=` path the claim prin
      Under `--auto` the `(abort / continue)` question is still asked of the developer, with the
      `choice-taker`'s return above it as that bullet says. Read
      [run-questions.md](run-questions.md) when the run is under `--auto`, for that question.
-     A `review=`
-     line naming a Review means the rebase came after the review, so the branch lands through the
-     fix call once it finishes. Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
+     On a `review=`
+     line naming a Review, the branch lands through the fix call once the rebase finishes. Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
    - `verdict=ask`, exit 1: uncommitted work in the tree with no rebase open.
      Read [resume.md](resume.md) when final-state.sh prints verdict=ask: the run asks before
      discarding it, as its `verdict=ask` bullet says, naming the tree and the Spec branch. A
