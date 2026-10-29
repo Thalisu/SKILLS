@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # mechanics-no-why.sh: the shared mechanics every worktree Playbook loads (mechanics.md), and the
-# references cut from it (not-landed.md, verification.md, second-run.md), carry instructions only.
+# references cut from it (not-landed.md, verification.md, second-run.md, final-stopped.md), carry
+# instructions only.
 # The why of a rule lives in the ADRs alone (docs/adr/0113), so no ADR argument, no principle given
 # as a reason, no history and no rejected alternative is paid for on every run. One section per
 # reference.
@@ -13,6 +14,7 @@ mechanics="$refs/mechanics.md"
 not_landed="$here/../references/not-landed.md"
 verification="$refs/verification.md"
 second_run="$refs/second-run.md"
+final_stopped="$refs/final-stopped.md"
 fails=0
 
 echo "# mechanics.md: instructions only, no ADR argument and no why beside a rule"
@@ -114,5 +116,21 @@ absent "second-run.md names no ADR as the history of a removed reading" "ADR 003
 absent "second-run.md keeps no why for stopping on an unusable return" "since the session writes only from a return it checked"
 absent "second-run.md keeps no history of a removed reading" "the reading of the tree and the scratch stopped it"
 absent "second-run.md keeps no why for serving a left-behind Digest" "so it is served on"
+
+echo "# final-stopped.md: instructions only, no ADR argument and no why beside a rule"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$final_stopped" | tr -s ' ')"
+absent "final-stopped.md argues from no ADR" "docs/adr/"
+absent "final-stopped.md names no ADR as a rule's reason" "per [ADR"
+absent "final-stopped.md names no plain ADR as a rule's reason" "per ADR"
+absent "final-stopped.md keeps no why for keeping what a later run resumes from" "since they are what a later run resumes from"
+absent "final-stopped.md keeps no why for the claim keeping a first run out" "so the claim still keeps a first run out"
+absent "final-stopped.md keeps no why for leaving a partial landing to the developer" "since what landed was reviewed and is already the developer's to push"
+absent "final-stopped.md keeps no why for reporting a partial landing" "So that a partial landing is never silent"
+absent "final-stopped.md keeps no why for a Final integration that never started" "since its Final integration never started"
+absent "final-stopped.md keeps no why for one resume walking it" "so two resumes never both walk it"
+absent "final-stopped.md keeps no why for the script not telling the cases apart" "and the script cannot tell which"
+absent "final-stopped.md keeps no why for a rebase after the review" "means the rebase came after the review, so"
+absent "final-stopped.md keeps no why for the review having read the Spec branch" "so the review already read the Spec branch"
 
 exit $((fails > 0))

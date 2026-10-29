@@ -12,25 +12,23 @@ run none of them sends here never opens it.
 A rebase question nobody answered, a red gate, a Review that did not land, or a stop of the
 review's own (Read [not-landed.md](not-landed.md) when the review's `route=` line reads anything
 but `route=verify`): the run stops as blocked and makes no `release` call. The tree, the Spec
-branch and the claim file all stay in place, since they are what a later run resumes from, and the
-run's own Ticket stays `resolved`. Before its Reply, at every stop the run controls, a first run's
+branch and the claim file all stay in place, and the run's own Ticket stays `resolved`. Before its Reply, at every stop the run controls, a first run's
 or a resume's, it yields the claim, so the `/do` that resumes can take it over:
 
 ```
 bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path> | tee <state>/yield
 ```
 
-The yield marks the claim as given up and leaves the claim file as it was written, so the claim
-still keeps a first run out while a resume can take it over. A run that died yields
+The yield marks the claim as given up and leaves the claim file as it was written: a first run
+still reads it taken, and a resume can take it over. A run that died yields
 nothing, and its claim reads `taken` to every resume until the developer yields it by hand.
 Read [blocked-reply.md](blocked-reply.md) when the Final integration stops, for the Reply of the stop.
 
 A stop touches this repository's landing and no other's. A repository of the feature that landed
-before it stays landed: the run moves no ref there, reverts nothing and removes nothing, since
-what landed was reviewed and is already the developer's to push. So that a partial
-landing is never silent, the run reads the landing record once more after the yield, the same
-`landing-order.sh` call saved over `<state>/order`, on a first run and on a resume alike, and the
-Reply's lines are printed from that read.
+before it stays landed: the run moves no ref there, reverts nothing and removes nothing. The run reads
+the landing record once more after the yield, the same `landing-order.sh` call saved over
+`<state>/order`, on a first run and on a resume alike, and the Reply's lines are printed from that
+read.
 
 A resume that stops again yields the claim it holds before its Reply, as every stop of the Final
 integration does, so the next `/do` can take it over. Its Reply's lines are printed by the
@@ -50,7 +48,7 @@ they are neither ticked nor skipped, and the Run report's Run section carries st
 The same entry is the landing command of a feature across repositories: a `do` on a `resolved`
 Ticket built in the session's repository, typed there once every repository it consumes from has
 landed.
-Nothing stopped in that repository, since its Final integration never started, and the steps are
+Nothing stopped in that repository, and the steps are
 the same: the claim is fresh, the state reads `verdict=restart` with `worktree=absent`, and from
 there the run is a first Final integration of this repository and of no other, with the **Gate**
 of this project's facts and the Review at the `review_file=` path the claim prints.
@@ -75,13 +73,12 @@ of this project's facts and the Review at the `review_file=` path the claim prin
    `reply-lines.sh repositories` from the same two files. Read [run-report.md](run-report.md) when
    the run stops on `route=out-of-order`, for that message, item 30 of its Run section.
 2. **The claim.** `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path> | tee <state>/claim`, before
-   anything is read from the tree, so two resumes never both walk it.
+   anything is read from the tree.
    - `claim=claimed` with `takeover=yes`: the run that stopped yielded its claim and this run holds
      it now. Of two resumes at once exactly one reads `claimed`. The `previous_ticket=`, `previous_claimed_at=` and `yielded_at=` lines are recorded
      for the Run report. `takeover=no` means no claim file was there, and the run holds a fresh one.
-   - `claim=taken`, exit 1: a claim nobody yielded. Its holder is either still integrating or died
-     without yielding, and the script cannot tell which, so the run stops in one line and writes
-     nothing. Read [blocked-reply.md](blocked-reply.md) when a resume's claim reads
+   - `claim=taken`, exit 1: a claim nobody yielded, whose holder is still integrating or died
+     without yielding. The run stops in one line and writes nothing. Read [blocked-reply.md](blocked-reply.md) when a resume's claim reads
      `claim=taken`, for the Reply that quotes the claim's `yield_command=` line. The run composes no
      command of its own for it and never yields another holder's claim itself.
    - `claim=failed`, exit 3: the run stops as blocked with the `reason=` line quoted.
