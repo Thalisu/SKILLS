@@ -415,6 +415,8 @@ for ref in "$pr" "$pr_fix"; do
   expect "$name names no ADR and links nothing under docs/adr/" test -z "$out"
   out="$(grep -nE '\b(because|so that)\b' "$ref" 2>/dev/null)"
   expect "$name gives no because or so-that argument beside a rule" test -z "$out"
+  out="$(grep -nE '(^|[^<])\bsince\b([^>=]|$)' "$ref" 2>/dev/null)"
+  expect "$name gives no since clause beside a rule" test -z "$out"
 done
 
 # The developer merges on this Reply: one that misses the green state, or hands the merge over as a
