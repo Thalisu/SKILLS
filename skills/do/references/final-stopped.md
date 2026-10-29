@@ -112,8 +112,7 @@ of this project's facts and the Review at the `review_file=` path the claim prin
      run. Under `--auto` the question is still asked of the developer, with the `choice-taker`'s
      return above it as that bullet says, and nothing is discarded on that return. Read
      [run-questions.md](run-questions.md) when the run is under `--auto`, for that question.
-   - `verdict=land`, exit 4: the Review beside the Spec counts, so the review already read the
-     Spec branch. The run integrates with no **Gate** of its own and lands through the fix call on
+   - `verdict=land`, exit 4: the Review beside the Spec counts. The run integrates with no **Gate** of its own and lands through the fix call on
      that Review, as the review in [mechanics.md](mechanics.md) says for a branch the review
      already read, never a second review of the Spec. Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
    - Exit 2: the tree is on a detached HEAD or on another branch with no rebase open. The run stops
