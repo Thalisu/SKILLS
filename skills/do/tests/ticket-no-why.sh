@@ -10,6 +10,7 @@ refs="$here/../references"
 ticket="$refs/ticket.md"
 resume="$refs/resume.md"
 final_stopped="$refs/final-stopped.md"
+stand_in="$refs/stand-in.md"
 fails=0
 
 echo "# ticket.md: instructions only, no ADR argument and no why beside a rule"
@@ -115,5 +116,13 @@ absent "final-stopped.md keeps no why for a partial landing never being silent" 
 absent "final-stopped.md keeps no why for the next /do taking the stop over" "as every stop of the Final integration does, so the next \`/do\` can take it over"
 absent "final-stopped.md keeps no why for a Final integration that never started" "since its Final integration never started"
 absent "final-stopped.md keeps no why for what the script cannot tell" "and the script cannot tell which"
+
+echo "# stand-in.md: instructions only, no ADR argument and no why beside a rule"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$stand_in" | tr -s ' ')"
+absent "stand-in.md argues from no ADR" "docs/adr/"
+absent "stand-in.md names no ADR as a rule's reason" "per [ADR"
+absent "stand-in.md names no plain ADR as a rule's reason" "ADR 0"
+absent "stand-in.md keeps no why for the fallback adding no second line" "that one line already said the session did the Builder's work too"
 
 exit $((fails > 0))
