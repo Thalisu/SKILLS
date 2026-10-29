@@ -265,9 +265,7 @@ whose verdict the next step needs is dispatched in the foreground, per `## The I
 build loop's test authors (Read [build-loop.md](build-loop.md) when one is dispatched), and a test or a suite runs with the Bash tool's
 `timeout` at its maximum, `600000` ms. The Builder never waits on a dispatch or a command with a
 loop of its own that has no bound (an `until` or `while` poll on a file, a log or `git status`, a
-`tail -f`): a Bash call that outlives the timeout is moved to the background by the harness, and a
-poll whose condition never holds keeps running there, a stale shell, long after the Stretch
-returned. When the Agent tool hands back a launch instead of a verdict all the same, or a command
+`tail -f`). When the Agent tool hands back a launch instead of a verdict all the same, or a command
 comes back moved to the background, its result reaches the Builder as a notification once its
 current call ends. The harness moves the Builder's Bash calls to the background after a few
 minutes, whatever its `timeout`, so it waits in short calls, `timeout 60 tail -f /dev/null`, one at
