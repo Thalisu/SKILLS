@@ -8,6 +8,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 refs="$here/../references"
 ticket="$refs/ticket.md"
+resume="$refs/resume.md"
 fails=0
 
 echo "# ticket.md: instructions only, no ADR argument and no why beside a rule"
@@ -73,5 +74,34 @@ absent "ticket.md keeps no why for reading the work before the gate" "so this is
 absent "ticket.md keeps no why for what depends on the integration" "since everything the run has left, from the integration on, depends on it"
 absent "ticket.md keeps no why for never calling a defect fixed unobserved" "since a defect nobody has observed fixed is never called fixed"
 absent "ticket.md keeps no why for the tracked file check" "the run changed a file git tracks"
+
+echo "# resume.md: instructions only, no ADR argument and no why beside a rule"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$resume" | tr -s ' ')"
+absent "resume.md argues from no ADR" "docs/adr/"
+absent "resume.md names no ADR as a rule's reason" "per [ADR"
+absent "resume.md names no plain ADR as a rule's reason" "ADR 0"
+absent "resume.md keeps no history of the time before Spec branches" "before Spec branches existed"
+absent "resume.md keeps no history of a run finishing on the old flow" "finishes on the old flow"
+absent "resume.md keeps no why for the key read in both places" "the same key read in both places"
+absent "resume.md keeps no why for the file tied to no review" "so nothing ties the file to a review"
+absent "resume.md keeps no why for sparing a second review" "since only a finished review of this branch spares a second one"
+absent "resume.md keeps no why for a branch nothing can be built on" "since no branch can be read from it to build on"
+absent "resume.md keeps no why for asking first" 'since the script prints `ask` first'
+absent "resume.md keeps no why for judging the fork once" "since judging the fork a second time could read it the other way"
+absent "resume.md keeps no why for a stopped run discarding nothing" "since a stopped run discards none"
+absent "resume.md keeps no history of the criterion tickets moved" '`tickets` moved a criterion out of it, so its hash changed'
+absent "resume.md keeps no why for one review per run" "the review runs once per run"
+absent "resume.md keeps no why for the irreversible discard" "since the discard is the one irreversible act on this path"
+absent "resume.md keeps no why for not landing an unanswered stage" "was staged with nobody's answer recorded, so it is not the run's to land"
+absent "resume.md keeps no history of a failed fast-forward" "could not land by fast-forward"
+absent "resume.md keeps no why for another run landing first" "as it does when another run landed while this one was cut short"
+absent "resume.md keeps no why for landing again" "since it lands again nothing the branch no longer holds"
+absent "resume.md keeps no why for not aborting" "which an abort would throw away"
+absent "resume.md keeps no why for what cannot be undone" "which cannot be undone once landed"
+absent "resume.md keeps no why for the question naming every one" "the landing takes it with no second review, so the question names every one of them"
+absent "resume.md keeps no rejected alternative of the continue or stop question" 'unlike the `(continue / stop)` question'
+absent "resume.md keeps no rejected alternative of an added mechanism" "No mechanism is added for either"
+absent "resume.md keeps no why for a Digest with no Journey Path" "whose Digest would come back with no Journey Path"
 
 exit $((fails > 0))
