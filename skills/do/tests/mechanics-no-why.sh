@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# mechanics-no-why.sh: the shared mechanics every worktree Playbook loads, and the references cut
-# from them, carry instructions only. The why of a rule lives in the ADRs alone (docs/adr/0113), so
-# no ADR argument, no principle given as a reason, no history and no rejected alternative is paid
-# for on every run. One section per reference.
+# mechanics-no-why.sh: the shared mechanics every worktree Playbook loads (mechanics.md), and the
+# references cut from it (not-landed.md), carry instructions only. The why of a rule lives in the
+# ADRs alone (docs/adr/0113), so no ADR argument, no principle given as a reason, no history and no
+# rejected alternative is paid for on every run. One section per reference.
 # Run: bash skills/do/tests/mechanics-no-why.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 refs="$here/../references"
 mechanics="$refs/mechanics.md"
+not_landed="$here/../references/not-landed.md"
 fails=0
 
 echo "# mechanics.md: instructions only, no ADR argument and no why beside a rule"
@@ -70,5 +71,21 @@ absent "mechanics.md keeps no why for removing the worktree and branch" "so the 
 absent "mechanics.md keeps no why for posting the Ruling on the Spec issue" "so the next Ticket's reader finds it where a local Spec keeps it"
 absent "mechanics.md keeps no why for the branch delete" "so the delete is safe"
 absent "mechanics.md keeps no why for never forcing what git refused" "What git refused on is not the run's to throw away"
+
+echo "# not-landed.md: instructions only, no ADR argument and no why beside a rule"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$not_landed" | tr -s ' ')"
+absent "not-landed.md argues from no ADR" "docs/adr/"
+absent "not-landed.md names no ADR as a rule's reason" "per [ADR"
+absent "not-landed.md names no plain ADR as a rule's reason" "per ADR"
+absent "not-landed.md keeps no why for a human being present" "only so that a human is present"
+absent "not-landed.md keeps no why for a commit made after the review" "since no reviewer reads a commit made after the review"
+absent "not-landed.md keeps no why for not paying for the suite on every lap" "would pay for the suite twice on every lap"
+absent "not-landed.md keeps no why for the reversible path" "since everything that path needs is a reversible action"
+absent "not-landed.md keeps no history of the review reading the branch" "The review read the branch once"
+absent "not-landed.md keeps no why for not running a second suite here" "so a second one here would pay for the suite twice"
+absent "not-landed.md keeps no why for another run's printed line" "since the session that printed it was another run's"
+absent "not-landed.md keeps no why for a fix call with no command= line" "which is what a fix call handed no \`command=\` line does"
+absent "not-landed.md keeps no why for code committed after the review" "since what the run committed after the review is code no reviewer read"
 
 exit $((fails > 0))
