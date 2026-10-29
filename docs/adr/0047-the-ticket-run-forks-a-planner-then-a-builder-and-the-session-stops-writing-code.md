@@ -29,3 +29,35 @@ read. Total tokens rise by each fork's own baseline, about 32k, against a sessio
 longer grows with the criteria; ADR 0016 keeps the session's peak as the band a Ticket is sized by,
 and the band is now read against the planner's window as well. With the Agent tool withheld, or
 with neither agent listed, the session does that work itself, as it already does for the reader.
+
+Amended: per ADR 0113, the reasons `plan.md` and `builder.md` gave beside their rules live here. The
+Planner and the Builder are dispatched with their brief's keys and nothing else, since each opens
+what it needs itself. `Criteria:`, `Rulings:` and `Built:` are quoted between tags that carry one
+random id, since a Ticket or a Spec on a remote tracker holds whatever anyone who can comment on the
+issue appended and `Built:` lines are read off commit bodies; the Builder's own `Bash` hook narrows
+its shell for the same reason. The keys are written in `builder.md` and `plan.md` alone, since a
+list copied into two files drifts and a key moved in one of them is a fork dispatched without it,
+and the Builder's brief is the same on every re-fork but `Rulings:`, since a key that differed would
+be a second record of the position beside the branch, and the two would drift. The Builder picks up
+off the `Behaviour:` lines on the branch rather than off a run-state file somebody has to keep in
+step with the commits. A returned `behaviour:` line carries the Plan's line verbatim, and a Plan's
+item keeps the criterion's own words, since the session and `resume-tick.sh tick` match the two
+texts exactly and a reworded item reads as unbuilt and is built and paid for twice. The fork report
+carries both sides, the losing criterion and where the build stopped, since the session forks the
+`choice-taker` against a Spec the Builder never read; neither that report nor a
+work-for-another-repository line says whether the Spec lists a repository, since the fork opens no
+Spec. The return carries no diff, test output, file contents, branch or worktree line, since the
+session named both in the brief and nothing downstream would catch a Builder that pasted its build
+back: the run still builds, gates and lands, and only the window the fork exists to keep empty is
+lost. The Plan's `## Map` is never handed to the review, since each reviewer builds its own map
+after the diff and a map of the tree as it was would read the work under review as code already
+there (ADR 0025). The Plan's six headings are exact, since the session and the Builder find each
+section by its heading, and the Sketch sits wholly inside its section, since the build is held to
+that section alone. A behaviour is never read off the implementation, since the test written from it
+stays green when the code is wrong, and an item that traces to no criterion and no quote is one the
+fork invented. A Plan's name ends in `.plan.md`, since the Planner's own `PreToolUse` hook matches a
+write against that suffix; a stale Plan is removed before the Planner is forked again, since that
+hook refuses a write over a Plan already there; and a Plan is replaced whole and never edited, since
+the fork that writes it holds one path and there is no second writer to merge with. The Plan's path
+is the Home repository's, since a run inside a worktree has no scratch of its own
+(`.agents/scratch.md`).

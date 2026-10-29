@@ -28,3 +28,13 @@ behaviour that outlasts the budget alone is finished, and that miss is accepted.
 budget ends closes at least one behaviour, so a build cannot loop on it. A session whose cache
 lives five minutes gains nothing from the budget and pays the re-forks; the budget stays fixed
 until such a session is measured.
+
+Amended: per ADR 0113, the reasons `builder.md`, `time-budget.md` and `impeccable.md` gave beside
+the time budget live here. The budget command is named through the installed skill and never by a
+path in the repository being built, since that repository holds the skill only when it is this one,
+and the Builder's `Bash` hook lets it through because the path is built by the shell and never
+typed. An Implementer's return is never a moment to ask, since it comes back inside a cycle, before
+the behaviour is formatted and committed. A `stop` read after the Plan's last behaviour, with no
+flow left to author, returns `built`, since that verdict is already true, while a `do-impeccable`
+Stretch's never does, since its flows and its detector scan are still ahead. Each Stretch the budget
+ends carries at least one new commit, since the budget is asked only after one.

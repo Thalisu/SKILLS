@@ -34,3 +34,20 @@ list `digest.md` holds and no second one, since a copy drifts from the brief the
 document that changes while the reader reads it shows nothing in that run, since the door hashed it
 before the fork and the next run's comparison finds it moved. A re-forked reader whose return is not
 a usable Digest stops the door, since the session writes only from a return it checked.
+
+Amended: per ADR 0113, the reasons `digest.md` gave beside its rules live here. The Digest quotes
+character for character, since the developer checks the slice by opening the cited line and reading
+it against the quote, and a paraphrase would become the spec of record without ever having been the
+developer's words; the same check is why each line number is the document's own and why a cut has to
+show. A draw between two Paths is settled by the document's own order, since the developer reading
+the cited heading sees which one was taken and nobody is there to answer a question. The nearest
+Path is never quoted in the Ticket's place, since it would hand the run steps and failure branches
+the Ticket was never cut from. `## Observable criteria` stays a list of criterion numbers, since it
+survives into a run that reuses the Digest and forks nobody, and a sentence about the criteria would
+be a paraphrase. A quote block is cut at the document's headings, so the developer checks the slice
+by reading the same headings and a document whose lines moved still cuts in the same place. A source
+is recorded by its hash and never by its modification time, since `git checkout`, a rebase and `git
+worktree add` rewrite the times of files whose bytes did not change. What the reader may touch is
+fixed by the tool list the harness enforces and never by its brief, since both documents may carry a
+stranger's text, which can argue with a brief (ADR 0032). The Digest's path is the Home
+repository's, since a run inside a worktree has no scratch of its own (`.agents/scratch.md`).

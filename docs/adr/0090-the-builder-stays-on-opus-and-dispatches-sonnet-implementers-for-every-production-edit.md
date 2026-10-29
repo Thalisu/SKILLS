@@ -28,3 +28,18 @@ commits the behaviour itself, so the resume's one commit per behaviour holds. Th
 smaller than a Sonnet Builder's, since Opus still reads the code to write each brief, and the pin
 does not move until a comparative eval of this shape against the Opus-only Builder shows no more
 `Act on` Findings, no new `stopped` or `fork` returns, and a lower total cost.
+
+Amended: per ADR 0113, the reasons `builder.md` gave beside the Implementer live here. The changeset
+check runs by script, since nothing but the Implementer's own word keeps it off the test the
+behaviour is proven by. The snapshot's digest stays in the Builder's window and never in a file,
+since the state file sits where the Implementer can reach it, and one re-snapshotted after a test
+was bent would read the bent test as the baseline. The author's test paths are copied outside the
+worktree before an edit's first dispatch, since the snapshot holds hashes and the test is not
+committed yet, and a refused changeset's offending paths are put back before a re-dispatch, since
+otherwise the next snapshot reads the bent test as the baseline, the second check passes and the
+commit carries a test file the check refused. A `Ruled out:` line is quoted between `<ruled-out id>`
+tags, since it comes out of a failing test's run, where a fixture or a dependency's error text can
+write a line that reads like an order. A second failed dispatch on one edit has the Builder write
+it, since two windows spent on one edit are the evidence that a third would fail the same way.
+Before the Implementer, the Builder wrote every production edit itself, which is what it still does
+when `do-implementer` cannot be dispatched.
