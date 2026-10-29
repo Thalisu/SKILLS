@@ -7,8 +7,7 @@ Door, the Plan step, the build step, the close and the Reply. A run whose door p
 never opens it.
 
 The fork that builds one Front-end ticket of a Spec reading `Front-end: impeccable`, in the worktree
-the session cut, per
-[ADR 0078](../../../docs/adr/0078-an-impeccable-front-end-ticket-forks-no-planner-and-do-impeccable-stands-in-for-the-builder.md).
+the session cut.
 It is the `do-impeccable` agent `do` ships in [do-impeccable.md](../agents/do-impeccable.md), forked
 by the build step of [ticket.md](ticket.md) in the Builder's place and by nobody else, one layer
 below the session. No Planner runs ahead of it and no Plan exists: the Ticket's acceptance criteria
@@ -25,26 +24,20 @@ committed.
 A Front-end ticket of a Spec reading `Front-end: impeccable` (`kind=front-end` with
 `front_end=impeccable`) that every other stop of the Door of [ticket.md](ticket.md) let through is
 stopped when the session lists no impeccable skill: its own skill listing names neither
-`impeccable` nor a skill under `impeccable:`. The script cannot print this fact, since the listing
-is the session's and never a file's: a skill installed on disk that this session did not load is
-not listed, and impeccable could not run in it. The stop comes before the claim and before any
+`impeccable` nor a skill under `impeccable:`. The stop comes before the claim and before any
 worktree, in one message naming the Ticket, the Spec's line and the skill the session does not
 list. Nothing is written, nothing is claimed and nothing is cut: the Ticket keeps the `status=` the
-door printed. Who builds the screen is the developer's call, so the message carries
+door printed. The message carries
 `Yours: direction:` with the two choices, per [reply.md](reply.md): install impeccable, reload the
 coding tool and run `/do <ticket>` again, or change the Spec's line to `Front-end: builder` and run
-it again. The run never falls back to the Builder on its own: the Spec's line is the developer's
-choice of who builds the screen, and a screen built by `do-builder` under `Front-end: impeccable`
-is one nobody chose.
+it again. The run never falls back to the Builder on its own.
 
 ## The Plan step
 
 One Ticket skips step 1 of [ticket.md](ticket.md) whole: a Front-end ticket of a Spec reading
-`Front-end: impeccable`, the door's `kind=front-end` with `front_end=impeccable`, per
-[ADR 0078](../../../docs/adr/0078-an-impeccable-front-end-ticket-forks-no-planner-and-do-impeccable-stands-in-for-the-builder.md).
+`Front-end: impeccable`, the door's `kind=front-end` with `front_end=impeccable`.
 It forks no Planner and writes no Plan, on a first run and on a resume alike, and the session does
-not ground it in the Planner's place either: impeccable builds from the Ticket's acceptance
-criteria and reads no Plan, so a Plan here is a fork paid for and never opened. The step reads
+not ground it in the Planner's place either. The step reads
 `skip: an impeccable Front-end ticket forks no Planner` on the checklist, names no destination and
 runs none of that step's checks, and the run goes on to step 2 with the Ticket's and the Digest's
 hashes the door recorded. Every later passage that rewrites or checks the Plan's `## Sources` lines
@@ -57,42 +50,34 @@ the Planner and build from its Plan.
 
 At step 3 of [ticket.md](ticket.md), a Front-end ticket of a Spec reading `Front-end: impeccable`,
 the door's `kind=front-end` with `front_end=impeccable`, is built by another fork in the Builder's
-place, per
-[ADR 0078](../../../docs/adr/0078-an-impeccable-front-end-ticket-forks-no-planner-and-do-impeccable-stands-in-for-the-builder.md):
-call the Agent tool with `subagent_type: do-impeccable`, the agent `do` ships in
+place: call the Agent tool with `subagent_type: do-impeccable`, the agent `do` ships in
 [do-impeccable.md](../agents/do-impeccable.md), from inside the worktree and the branch step 2
 created, cut as for any Ticket. Its brief carries the Ticket, the worktree root, the loop line
 and the Project map and nothing else, the four keys `## The brief` below fixes.
 
 The brief of `do-impeccable` has no key for where the return goes: the return is the fork's final
-message, as the Builder's is, so no return file is written anywhere, the main checkout least of
-all. It carries no rule either: what the fork loads, where it may write, how it commits and what
-it returns are standing rules, and they live in the agent's definition, where a brief the session
-composed on one run cannot drop one. Everything step 3 does around the Builder's fork it does
-around this one, the two revokes before it, the guard probe and the revoke as soon as it returns,
-since `do-impeccable` holds a shell in the worktree as the Builder does. When the Agent tool is
+message, as the Builder's is, and no return file is written anywhere. It carries no rule
+either: what the fork loads, where it may write, how it commits and what it returns live in the
+agent's definition. Everything step 3 does around the Builder's fork it does
+around this one, the two revokes before it, the guard probe and the revoke as soon as it returns.
+When the Agent tool is
 withheld or lists no `do-impeccable`, the run stops as blocked in one line saying which of the two
 holds, with the worktree and its branch named and `scripts/link-skills.sh` as the run that links
 the agent before the next `/do`.
 
 Around the fork of `do-impeccable`, and around that fork alone, the run reads the main checkout
-twice by script: the fork's write guard matches text, and a builder that ignored its worktree
-leaves files in the developer's checkout that no commit carries. Before the fork,
+twice by script. Before the fork,
 `bash <skill-dir>/scripts/main-untouched.sh snapshot <the main checkout> <the state file>` records
-the checkout's uncommitted state, with its git hooks and its git config, which every worktree
-shares and no `git status` reports. A file git ignores is outside what it reads. The state file is
+the checkout's uncommitted state, with its git hooks and its git config. A file git ignores is outside what it reads. The state file is
 `<the main checkout's git common dir>/do/main-state/<the slug>.state`, the path
 `git -C <the main checkout> rev-parse --path-format=absolute --git-path do/main-state/<the slug>.state`
-prints, under the slug step 2 cut the worktree with: no `git status` reports it, so it
-needs no `.scratch/` ignore line, which a Ticket run from its Build repository under
-`Loop: policy` never writes there, and it stays out of the Ticket's `issues/` folder, per
-[ADR 0110](../../../docs/adr/0110-the-main-checkouts-snapshot-is-kept-in-the-git-common-dir-not-the-scratch.md).
+prints, under the slug step 2 cut the worktree with. It is written neither under
+`.scratch/` nor in the Ticket's `issues/` folder.
 After the fork returns, right after the revoke step 3 takes as soon as the fork returns and before
 any check or route of the return,
 `bash <skill-dir>/scripts/main-untouched.sh check <the main checkout> <the state file>` compares
 the checkout with that record, so the check always runs before step 4 and before the Gate. Every fork gets a snapshot of its own: a re-fork after a `fork` or a
-cleared `stopped`, and a resumed run that forks again, snapshots again first, since the developer
-may have worked in the checkout between the two forks.
+cleared `stopped`, and a resumed run that forks again, snapshots again first.
 
 Either call exiting 2 prints no verdict, and no verdict is never an untouched checkout. A snapshot
 that exits 2 stops the run as blocked before the fork, with nothing forked, the Ticket still
@@ -108,8 +93,7 @@ or the git config among them as an absolute path, and carries one `Yours: direct
 two choices, to move the files into the worktree by hand and run `/do` on the Ticket again, or to
 discard them and run `/do` again, in the blocked shape.
 Read [blocked-reply.md](blocked-reply.md) when the run stops on a changed main checkout. The run removes
-nothing, in the main checkout or anywhere else: which of those files belong to the screen is the
-developer's to say. The worktree and its commits stay in place for the resume, and the Ticket still
+nothing, in the main checkout or anywhere else. The worktree and its commits stay in place for the resume, and the Ticket still
 reads `claimed`.
 
 The return of `do-impeccable` is the lines and the one terminal verdict a Builder returns, so
@@ -121,8 +105,8 @@ behaviours, and a criterion it could not build comes back as `stopped` or `fork`
 `built`, and takes that route. With no Plan, the re-check before the route is the call with no
 destination, `grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=>`, routed
 the same way. A re-fork after a `fork` or a cleared
-`stopped` hands it the same four-key brief. A spent time budget is cleared for it as for a Builder,
-since it asks the same command after each criterion's commit: the next Stretch is a new Agent call
+`stopped` hands it the same four-key brief. A spent time budget is cleared for it as for a Builder:
+the next Stretch is a new Agent call
 with `subagent_type: do-impeccable` and that same brief, never a Builder or a Planner in its place,
 and the run never ends as blocked over it.
 
@@ -141,8 +125,7 @@ the Completion check's `next=` line names.
 The fallback of step 3, the session running the loop when no Builder can be forked, never reaches a
 Front-end ticket of a Spec reading `Front-end: impeccable`. The Door stopped it when the session
 lists no impeccable skill, and the build step never falls back to the Builder for it on its own,
-neither by forking `do-builder` nor by the session running the loop in its place: the Spec's line
-names who builds the screen, and only the developer changes it.
+neither by forking `do-builder` nor by the session running the loop in its place.
 
 ## The close
 
@@ -157,8 +140,7 @@ The Reply [reply.md](reply.md) fixes reads differently in these parts on a run t
 
 - **Plan line.** The message's `Plan:` line reads `Plan: none, <reason>`, its reason a fork of
   `do-impeccable`, which builds from the Ticket's acceptance criteria. The Run section carries no
-  Plan line at all: no Planner ran and no Plan was written, so there is neither a location nor a
-  Planner's fallback to name. Its `Guard:` line still rides, on the fork of `do-impeccable`.
+  Plan line at all. Its `Guard:` line still rides, on the fork of `do-impeccable`.
 - **Behaviours list.** A run that forked `do-impeccable` built from no Plan: its list is the
   Ticket's acceptance criteria, never a Plan's `## Behaviours` section, each criterion verbatim with
   the commit beside it, off the `behaviour:` lines the fork returned.
@@ -171,7 +153,7 @@ The Reply [reply.md](reply.md) fixes reads differently in these parts on a run t
   place of the `scan:` line, because the impeccable skill has no detector for the project's platform
   or the detector crashed, that line is copied unchanged, with its reason.
 - **Pending debt.** Each `finding:` line the fork returned is listed under Pending debt, one line
-  per finding, so a finding counted under Evidence is always named. Findings that remain are debt
+  per finding. Findings that remain are debt
   and never a stop: the Ticket still lands and reads `resolved` all the same.
 
 ### A main checkout that changed
@@ -207,9 +189,9 @@ for this Ticket. The fork reads them to pick the author of each flow.
 
 The keys are written here and in no second place, the rule [builder.md](builder.md) holds for the
 Builder's own. The brief has no key for where the return goes: the return is the fork's final
-message, so nothing is written for it, in the worktree or outside it. It carries no rule either.
-What the fork loads, where it may write, how it commits and what it returns are the same on every
-run, so they live in the definition, where a brief composed on one run cannot drop one of them.
+message, and nothing is written for it, in the worktree or outside it. It carries no rule either:
+what the fork loads, where it may write, how it commits and what it returns live in the
+definition.
 
 The brief is the same on the first fork and on every re-fork. Nothing in it says where to pick up:
 a fork dispatched again reads the `Behaviour:` lines off the branch and carries on from the first
@@ -227,8 +209,7 @@ does a Builder's, per the build step of [ticket.md](ticket.md). Three things rea
 - A `behaviour:` line carries a criterion of the Ticket, verbatim, where a Builder's carries a
   behaviour of the Plan. It is the sentence the commit carries after `Behaviour:`, so the pairs
   `resume-state.sh` prints match it the same way.
-- A `build:` line names `impeccable` where a Builder's names a test author's verdict, since no test
-  is written ahead of the screen.
+- A `build:` line names `impeccable` where a Builder's names a test author's verdict.
 - A criterion the fork could not build comes back as `stopped`, or as `fork` when two shapes
   disagree, and never under `built`.
 
@@ -238,8 +219,7 @@ The fork's Stretch runs on the Builder's time budget, per `## Asking the time bu
 moment: never inside a criterion, after a flow's commit or after the scan. On `stretch=stop` it
 returns `stopped` in the Builder's shape, its `stopped:` line naming the spent time budget in the
 Builder's own words and saying that nothing is uncommitted. Where a Builder's `stop` after its last
-behaviour can already be `built`, this fork's never is, since the flows and the scan are still
-ahead: it returns `stopped`, and the next Stretch finds a commit beside every criterion and goes on
+behaviour can already be `built`, this fork's never is: it returns `stopped`, and the next Stretch finds a commit beside every criterion and goes on
 to them.
 
 On `built`, one `flow:` line per criterion follows the pairs, in the shape [builder.md](builder.md)
@@ -268,6 +248,5 @@ project, or the detector crashed, the fork returns one `no scan:` line in place 
 with its reason and no `finding:` line, still under `built`. The session copies the `no scan:` line
 into the Run report's Evidence.
 
-The definition carries this shape itself, since the fork never opens this file and reads
-[builder.md](builder.md) for its flows alone: a change to the lines the Builder returns is made in
+The definition carries this shape itself: a change to the lines the Builder returns is made in
 [do-impeccable.md](../agents/do-impeccable.md) in the same change.
