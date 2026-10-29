@@ -198,10 +198,6 @@ Sketch lines; in
     call in the order the watch printed them, each `verdict=pending` and then the `verdict=green`
     with its `checks=<n>`. They are the Run report's, never a part of the message.
 
-The lines record what the steps decided; they gate nothing. The order constraints on actions stay
-with the steps that carry them (the door script before any write, the worktree before the first
-edit), and a landing on a protected branch is refused by the review whatever the Run section says.
-
 ## Sections
 
 Ten sections, in this order, each one present in every Run report. Three of them are also parts
@@ -249,8 +245,7 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
      posted on once the close's yes posted it, and otherwise with its whole Spec line and its
      `Criterion:` and `Now reads:` lines, for the developer to carry to the issues. That unposted
      Ruling is also listed under Pending debt, in the message and so in the Debt file, with or
-     without `--auto`. A Ruling an earlier session held and never posted is not held again: a resume meets
-     the fork again, and the earlier run's section of the Debt file still names it.
+     without `--auto`. A Ruling an earlier session held and never posted is not held again.
    - **A Ruling on a run question.** A Ruling the `choice-taker` made under `--auto` on a
      question about the run itself (Read [run-questions.md](run-questions.md) when a `ticket` run
      under `--auto` holds one), or, outside the

@@ -79,7 +79,7 @@ rm -rf "$stages"
 ```
 
 The union keeps both sides, the developer's branch (stage 2) above the replayed commit's (stage 3).
-The `--diff3` stays, keeping the lines both sides' additions share. Git writes the result and the
+Git writes the result and the
 session never edits a marker.
 
 The second block reads every union back, as the next state says, and marks the files resolved only

@@ -5,8 +5,7 @@ impeccable setup is missing from the project. Its steps are the developer's to r
 This Playbook proves each step by the setup check, shows the developer the first one still missing
 and ends its turn there, until every step reads done and the Ticket is resolved.
 
-The setup is committed on the developer's own branch before the Spec branch is cut, so the run
-works in the main checkout and creates no worktree. The run forks no Planner (`do-planner`) and no
+The run works in the main checkout and creates no worktree. It forks no Planner (`do-planner`) and no
 Builder (`do-builder`), dispatches no test author and calls no review (`do-code-review`).
 
 This file links no other reference. It states its own claim, its own close and its own messages.

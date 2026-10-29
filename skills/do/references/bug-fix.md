@@ -12,7 +12,8 @@ A case no step names is decided against these three, by whichever it risks:
 - a fix aimed at a guessed cause rather than at the mechanism;
 - debug lines left in the developer's tracked files, or a design decision taken inside the fix.
 
-Those shared parts are in [mechanics.md](mechanics.md), linked from the steps that use them. Read
+The parts this Playbook shares with the `ticket` and `refactoring` Playbooks are in
+[mechanics.md](mechanics.md), linked from the steps that use them. Read
 [conflict-loop.md](conflict-loop.md) when the integration stops, for the conflict loop every stop
 runs. Read [build-loop.md](build-loop.md) when a step builds, for the loop and its test authors. The reply is written by [reply.md](reply.md): five parts,
 and every line a step records for the Run report reaches a file under `--auto` alone. There is no
