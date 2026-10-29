@@ -2286,10 +2286,10 @@ carries_any "that round line carries the sha of each commit kept there" "<kept s
 # The developer whose pull request needs more than one round to close relies on a red watch after a
 # pushed round starting the next round: a run that stops there ends one fix short of green, leaving
 # them to /do the pull request again for what one more round would have closed. The round count is
-# what bounds the loop, so the piece is keyed on it, and a redone round counts once since a round
-# counts by the push it ends in. What happens at three is a separate guarantee, not read here. Step
-# 4's own rule, that a later round numbers and groups its checks from its own watch's `red=` lines,
-# is read off the sentences of the Fix step naming a round and `red=`.
+# what bounds the loop, so the piece is keyed on it, and a redone round counts once. What happens
+# at three is a separate guarantee, not read here. Step 4's own rule, that a later round numbers and
+# groups its checks from its own watch's `red=` lines, is read off the sentences of the Fix step
+# naming a round and `red=`.
 echo "# pr.md / ### Watch: verdict=red after a pushed round goes on to the Fix step for a next round over the checks still red, while fewer than three rounds have pushed"
 watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_with "fewer than three" "under three" "less than three" "Fewer than three" "Under three" \
@@ -2311,9 +2311,8 @@ carries_any "the checks still red" "still red" "remain red" "remaining red" "lef
 carries_each "a redone round counts once" \
   "redone" "redo" -- \
   "counts once" "count once" "counted once" "counts as one" "counts as a single" "one round" "a single round"
-carries_any "since a round counts by the push it ends in" \
-  "push it ends in" "push that ends it" "push it ends on" "by its push" "by the push" "ends in a push" \
-  "ends in one push"
+carries_each "the cap counts only the rounds whose round lines read \`pushed to <head>\`" \
+  "cap" "three" -- "pushed to <head>"
 step="$(passage_of "$pr_fix" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | awk 'index($0, "round") && index($0, "red=")' | tr '\n' ' ')"
 expect "a sentence of step $fix_n names a round and its \`red=\` lines" test -n "$flat"
@@ -2358,9 +2357,8 @@ carries_any "and nothing more is pushed" \
 carries_each "a redone round counts once" \
   "redone" "redo" -- \
   "counts once" "count once" "counted once" "counts as one" "counts as a single" "one round" "a single round"
-carries_any "since a round counts by the push it ends in" \
-  "push it ends in" "push that ends it" "push it ends on" "by its push" "by the push" "ends in a push" \
-  "ends in one push"
+carries_each "the cap counts only the rounds whose round lines read \`pushed to <head>\`" \
+  "cap" "three" -- "pushed to <head>"
 out="$(sed 's/^[[:space:]]*//' <<<"$watch" | grep -E '^`?Yours: direction:' | grep -F '/do the pull request again' |
   grep -F -e '<the checks still red>' -e '<the red checks>' -e '<the checks still failing>' -e '<the failing checks>')"
 expect "the step shows the stop as a whole line opening \`Yours: direction:\` with the checks still red and \`/do the pull request again\`" \

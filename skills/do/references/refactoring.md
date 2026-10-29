@@ -321,7 +321,7 @@ Steps 5 and 6 run the pin after every change: the suite and the typecheck, with 
 quoted, and the harness where this step wrote one. The pin is green when the suite and the
 typecheck are green and the harness prints what it printed on the old code.
 
-The target-interface test is the one red those steps tolerate, since it fails by design, for the
+The target-interface test is the one red those steps tolerate, for the
 reason this step declared, until step 6 reaches it. The single-file command from the project's
 facts, run on that test's file, is what separates it from a real red, and a suite whose only
 failing file is that one counts as green. A red anywhere else, or a second failing file, is a real

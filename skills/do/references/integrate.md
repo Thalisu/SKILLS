@@ -39,7 +39,7 @@ integration line, in that order.
 Three early ends at step 1 cut that message short, each with nothing integrated: a request missing
 its operation or its branch, a door refusal, and an operation already in progress. Those and the
 Reply are the only places the turn ends: a stop of the conflict loop, however many there are, is
-resolved and continued in the same turn, since the loop asks the developer nothing.
+resolved and continued in the same turn.
 
 `<skill-dir>` below is the folder that holds this file's `references/`: `${CLAUDE_SKILL_DIR}` in
 Claude Code, the `do` folder under the harness's skills directory elsewhere.
@@ -165,7 +165,7 @@ report carries written under `--auto` alone:
 - the next step, the stdout of `scripts/next-step.sh` copied whole: `outcome=integrated` piped
   with `op=` and `upstream=yes|no` (whether the branch has an upstream), or, on a blocked stop,
   `outcome=integrate-blocked` piped with `integrate-door.sh`'s output. On the no-op there is no
-  undo and no push, since nothing moved.
+  undo and no push.
 
 Nothing is landed, nothing is pushed, no review is called, and the Run report's Skipped section
 lists no Gate, land, push or review step: the check that did not run is carried under Pending debt

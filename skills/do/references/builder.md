@@ -48,8 +48,8 @@ The keys are written here and in no second place: neither the build step of [tic
 nor [do-builder.md](../agents/do-builder.md) carries a copy of the list. It is the rule
 [plan.md](plan.md) already holds for the Planner's own keys.
 
-The brief carries no behaviours list, no position to resume from and no hash, because each one
-already has a home the fork reads for itself:
+The brief carries no behaviours list, no position to resume from and no hash.
+The fork reads each one for itself:
 
 - The behaviours are the Plan's, which the fork opens.
 - The position is the branch's, which the fork reads off the commits.

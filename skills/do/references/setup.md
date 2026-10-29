@@ -82,7 +82,7 @@ Its exit code decides what comes next:
 - `1`: a step reads missing, the lines still printed. The run writes the message.
 - `2`, or no script at that path: the check could not run. It printed one line on stderr and
   nothing on stdout. The run stops there, on one message carrying the check's own error line, its
-  stderr line or the path the script was not found at. No step is shown, since none was proven. The Ticket stays
+  stderr line or the path the script was not found at. No step is shown. The Ticket stays
   `claimed`, so a later `/do` on it resumes and runs the check again:
 
   ```
