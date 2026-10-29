@@ -62,11 +62,7 @@ echo "# skills/do: every pointer to trivial-escape.md reads Read [trivial-escape
 # A link to the file under any relative path is a pointer, except SKILL.md's references-list entry
 # and a link the file makes to itself.
 do_dir="$(cd "$here/.." && pwd -P)"
-pointers="$(grep -rnE '\]\(([^)]*/)?trivial-escape\.md\)' "$do_dir" --include='*.md' --exclude-dir=tests |
-  grep -vF -e "$do_dir/references/trivial-escape.md:" -e "$do_dir/SKILL.md:")"
-expect "the do skill carries at least one pointer to trivial-escape.md" test -n "$pointers"
-misshaped="$(grep -vE 'Read \[trivial-escape\.md\]\(trivial-escape\.md\) when [^ ]' <<<"$pointers")"
-expect "no pointer to trivial-escape.md has another shape" test -z "$misshaped"
+pointers_shaped "no pointer to trivial-escape.md has another shape" "$do_dir" trivial-escape.md 1
 expect "SKILL.md links trivial-escape.md in its references-list entry alone" \
   test "$(grep -cE '\]\(([^)]*/)?trivial-escape\.md\)' "$skill")" = 1
 

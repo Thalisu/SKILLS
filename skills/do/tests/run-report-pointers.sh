@@ -13,22 +13,7 @@ fails=0
 
 echo "# every link to run-report.md reads Read [run-report.md](run-report.md) when <condition>"
 
-links=0
-bad=""
-while IFS= read -r file; do
-  [ "$file" = "$skill_dir/SKILL.md" ] && continue
-  flat="$(tr '\n' ' ' <"$file" | tr -s ' ')"
-  n="$(grep -oF '](run-report.md' <<<"$flat" | wc -l)"
-  shaped="$(grep -oF 'Read [run-report.md](run-report.md) when ' <<<"$flat" | wc -l)"
-  links=$((links + n))
-  [ "$n" = "$shaped" ] || bad="$bad ${file#"$skill_dir"/} ($n links, $shaped in the Read-when shape)"
-done < <(grep -rlF 'run-report.md' "$skill_dir/references" "$skill_dir/agents" "$skill_dir/SKILL.md")
-expect "the do skill links run-report.md from its steps" test "$links" -gt 0
-if [ -z "$bad" ]; then
-  ok "every link to run-report.md is in the Read-when shape"
-else
-  fail "every link to run-report.md is in the Read-when shape (not:$bad)"
-fi
+pointers_shaped "every link to run-report.md is in the Read-when shape" "$skill_dir" run-report.md 10
 
 echo "# no step cites reply.md for a Run report rule that moved to run-report.md"
 

@@ -112,11 +112,7 @@ for spec in "refactoring-design-fork.md|step 4|step 6|two shapes" \
   carries "SKILL.md's entry for $file names its readers and the condition that sends them" "$a" "$b" "$c"
   links="$(grep -cE "\]\(([^)]*/)?$pattern\)" "$skill")"
   expect "SKILL.md links $file in its references-list entry alone" test "$links" = 1
-  pointers="$(grep -rnE "\]\(([^)]*/)?$pattern\)" "$do_dir" --include='*.md' --exclude-dir=tests |
-    grep -vF -e "$do_dir/references/$file:" -e "$do_dir/SKILL.md:")"
-  expect "the do skill carries at least one pointer to $file" test -n "$pointers"
-  misshaped="$(grep -vE "Read \[$pattern\]\($pattern\) when [^ ]" <<<"$pointers")"
-  expect "every pointer to $file reads Read [$file]($file) when <condition>" test -z "$misshaped"
+  pointers_shaped "every pointer to $file reads Read [$file]($file) when <condition>" "$do_dir" "$file" 1
 done
 flat="$(bullets_opening_on "$skill" "[refactoring.md](references/refactoring.md)" | tr -s ' ')"
 expect "SKILL.md's entry for refactoring.md still describes the Playbook" test -n "$flat"

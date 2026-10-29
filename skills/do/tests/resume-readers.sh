@@ -68,12 +68,10 @@ echo "# skills/do: every pointer to resume.md reads Read [resume.md](resume.md) 
 # A link to the file, under any relative path, is a pointer, except SKILL.md's references-list entry
 # and the links resume.md makes to itself. bug-fix.md and refactoring.md keep Resume sections of
 # their own, which no pointer here is about.
-pointers="$(grep -rnE '\]\(([^)]*/)?resume\.md\)' "$do_dir" --include='*.md' --exclude-dir=tests |
-  grep -vF -e "$do_dir/references/resume.md:" -e "$do_dir/SKILL.md:")"
+pointers="$(pointers_to "$do_dir" resume.md)"
 expect "the do skill carries at least one pointer to resume.md outside ticket.md" \
-  test -n "$(grep -vF "$ticket:" <<<"$pointers")"
-misshaped="$(grep -vE "$pointer_shape" <<<"$pointers")"
-expect "no pointer to resume.md has another shape" test -z "$misshaped"
+  test -n "$(grep -v '^ticket\.md: ' <<<"$pointers")"
+pointers_shaped "no pointer to resume.md has another shape" "$do_dir" resume.md 1
 stale="$(grep -rnE 'Resume (step |section |line )?(of|in|there)|the Resume (section|above|step)|Resume section' \
   "$do_dir/references" "$do_dir/scripts" "$do_dir/SKILL.md" |
   grep -vF -e "$do_dir/references/bug-fix.md:" -e "$do_dir/references/refactoring.md:" \
