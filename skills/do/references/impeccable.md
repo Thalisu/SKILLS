@@ -23,11 +23,11 @@ committed.
 
 A Front-end ticket of a Spec reading `Front-end: impeccable` (`kind=front-end` with
 `front_end=impeccable`) that every other stop of the Door of [ticket.md](ticket.md) let through is
-stopped when the session lists no impeccable skill: its own skill listing names neither
-`impeccable` nor a skill under `impeccable:`. The stop comes before the claim and before any
-worktree, in one message naming the Ticket, the Spec's line and the skill the session does not
-list. Nothing is written, nothing is claimed and nothing is cut: the Ticket keeps the `status=` the
-door printed. The message carries
+stopped when the session lists no impeccable skill: its own skill listing names neither `impeccable`
+nor a skill under `impeccable:`. A skill installed on disk that this session did not load is not
+listed. The stop comes before the claim and before any worktree, in one message naming the Ticket,
+the Spec's line and the skill the session does not list. Nothing is written, nothing is claimed and
+nothing is cut: the Ticket keeps the `status=` the door printed. The message carries
 `Yours: direction:` with the two choices, per [reply.md](reply.md): install impeccable, reload the
 coding tool and run `/do <ticket>` again, or change the Spec's line to `Front-end: builder` and run
 it again. The run never falls back to the Builder on its own.
@@ -141,17 +141,16 @@ The Reply [reply.md](reply.md) fixes reads differently in these parts on a run t
 - **Plan line.** The message's `Plan:` line reads `Plan: none, <reason>`, its reason a fork of
   `do-impeccable`, which builds from the Ticket's acceptance criteria. The Run section carries no
   Plan line at all. Its `Guard:` line still rides, on the fork of `do-impeccable`.
-- **Behaviours list.** A run that forked `do-impeccable` built from no Plan: its list is the
-  Ticket's acceptance criteria, never a Plan's `## Behaviours` section, each criterion verbatim with
-  the commit beside it, off the `behaviour:` lines the fork returned.
+- **Behaviours list.** On a run that forked `do-impeccable`, the list is the Ticket's acceptance
+  criteria, never a Plan's `## Behaviours` section, each criterion verbatim with the commit beside
+  it, off the `behaviour:` lines the fork returned.
 - **The proof of an impeccable screen**, under Evidence, on a run that forked `do-impeccable`: the
   `flow:` lines the fork returned and, beside the flows, its `scan:` line, which is the detector
   scan's command line and the count of findings that remain, all copied unchanged. When its return
   carried the `fallback:` line reading `no end-to-end command in the project` in place of the
   `flow:` lines, one line stands here instead of them, saying that no flow covered the screen and
   that the detector scan and the Gate are its proof. When its return carried the `no scan:` line in
-  place of the `scan:` line, because the impeccable skill has no detector for the project's platform
-  or the detector crashed, that line is copied unchanged, with its reason.
+  place of the `scan:` line, that line is copied unchanged, with its reason.
 - **Pending debt.** Each `finding:` line the fork returned is listed under Pending debt, one line
   per finding. Findings that remain are debt
   and never a stop: the Ticket still lands and reads `resolved` all the same.
@@ -187,11 +186,10 @@ Project map: <the absolute path `project-map.sh` printed> | none
 of [ticket.md](ticket.md) recorded, and the map its Plan step derived, which that step still takes
 for this Ticket. The fork reads them to pick the author of each flow.
 
-The keys are written here and in no second place, the rule [builder.md](builder.md) holds for the
-Builder's own. The brief has no key for where the return goes: the return is the fork's final
-message, and nothing is written for it, in the worktree or outside it. It carries no rule either:
-what the fork loads, where it may write, how it commits and what it returns live in the
-definition.
+The keys are written here and in no second place. The brief has no key for where the return goes:
+the return is the fork's final message, and nothing is written for it, in the worktree or outside
+it. It carries no rule either: what the fork loads, where it may write, how it commits and what it
+returns live in the definition.
 
 The brief is the same on the first fork and on every re-fork. Nothing in it says where to pick up:
 a fork dispatched again reads the `Behaviour:` lines off the branch and carries on from the first
