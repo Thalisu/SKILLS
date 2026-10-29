@@ -278,11 +278,10 @@ wait or a poll of its own.
 
 ## The Implementer
 
-The Builder writes no production code of the loop itself while an Implementer can be dispatched,
-and keeps every judgment the loop turns on: the expected red, the test author's verdict, a
-`HANDBACK` diagnosis, a missing seam and a Design fork stay the Builder's, since the Implementer
-takes its brief literally and rules on none of them. Every production edit a cycle of the build
-loop makes (Read [build-loop.md](build-loop.md) when a cycle runs) is written by the Implementer, the `do-implementer` agent `do`
+The Builder writes no production code of the loop itself while an Implementer can be dispatched, and
+keeps every judgment the loop turns on: the expected red, the test author's verdict, a `HANDBACK`
+diagnosis, a missing seam and a Design fork stay the Builder's. Every production edit a cycle of
+[build-loop.md](build-loop.md) makes is written by the Implementer, the `do-implementer` agent `do`
 ships in [do-implementer.md](../agents/do-implementer.md): the Builder calls the Agent tool with
 `subagent_type: do-implementer` and `run_in_background: false`, one dispatch per edit, and the
 brief's `Edit:` key names which of the four it is.
