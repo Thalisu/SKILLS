@@ -11,7 +11,7 @@ opens it.
 - The Stretch returns `stopped`, in the shape `## The return` of [builder.md](builder.md) fixes,
   its `stopped:` line naming the spent time budget and saying that nothing is uncommitted.
 - A `stop` read after the Plan's last behaviour, with no flow left to author, returns `built`
-  instead, since that verdict is already true.
+  instead.
 - The command is asked only on a commit, so a behaviour in progress when the budget runs out is
   finished and committed first: the Stretch never returns with uncommitted work, and never commits
   half a behaviour to meet a clock. The next Stretch needs nothing from this one but the branch, per
@@ -38,7 +38,7 @@ stopped: time budget spent after the second behaviour's commit, nothing uncommit
 
 A spent time budget is a reason the session clears, and it has nothing to clear but the fork
 itself: the session forks the next Stretch at once, with the brief of the first, the same brief, no
-key added and no file written, so it takes a turn before its prompt cache expires. That Stretch
+key added and no file written. That Stretch
 finds its position off the `Behaviour:` lines on the branch, per `## Where it picks up` of
 [builder.md](builder.md). A spent time budget is never a reason to end the run as blocked, and each
-such return carries at least one new commit, since the budget is asked only after one.
+such return carries at least one new commit.

@@ -37,5 +37,4 @@ The session also authors the flows itself, in the same window, the way the Build
 a `none` the reader marked as read from neither a Path nor a story: a criterion the section names
 with no flow authored stops the step with that reason, the way it would stop the Builder's own fork.
 
-On a run whose Plan step recorded `Planner/Builder: none`, this fallback adds no second line: that
-one line already said the session did the Builder's work too.
+On a run whose Plan step recorded `Planner/Builder: none`, this fallback adds no second line.

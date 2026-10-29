@@ -165,4 +165,44 @@ absent "impeccable.md keeps no why for the build: line naming impeccable" "since
 absent "impeccable.md keeps no why for a stop never being built" "since the flows and the scan are still ahead"
 absent "impeccable.md keeps no why for the definition carrying the shape" "since the fork never opens this file and reads"
 
+echo "# flows.md: instructions only, no ADR argument, no history and no why beside a rule"
+flows_ref="$refs/flows.md"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$flows_ref" | tr -s ' ')"
+absent "flows.md argues from no ADR" "docs/adr/"
+absent "flows.md names no ADR as a rule's reason" "per [ADR"
+absent "flows.md names no plain ADR as a rule's reason" "per ADR"
+absent "flows.md keeps no why for counting the runs" "since a forked author's report reaches no hook"
+absent "flows.md keeps no why for going through the Ticket's criteria" "has nothing behind it"
+
+echo "# time-budget.md: instructions only, no ADR argument, no history and no why beside a rule"
+time_budget_ref="$refs/time-budget.md"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$time_budget_ref" | tr -s ' ')"
+absent "time-budget.md argues from no ADR" "docs/adr/"
+absent "time-budget.md names no ADR as a rule's reason" "per [ADR"
+absent "time-budget.md names no plain ADR as a rule's reason" "per ADR"
+absent "time-budget.md keeps no why for a stop after the last behaviour returning built" "since that verdict is already true"
+absent "time-budget.md keeps no why for forking the next Stretch at once" "so it takes a turn before its prompt cache expires"
+absent "time-budget.md keeps no why for each return carrying a new commit" "since the budget is asked only after one"
+
+echo "# global-authors.md: instructions only, no ADR argument, no history and no why beside a rule"
+global_authors_ref="$refs/global-authors.md"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$global_authors_ref" | tr -s ' ')"
+absent "global-authors.md argues from no ADR" "docs/adr/"
+absent "global-authors.md names no ADR as a rule's reason" "per [ADR"
+absent "global-authors.md names no plain ADR as a rule's reason" "per ADR"
+absent "global-authors.md keeps no why for reading the map from its file" "so no dispatch derives the map again"
+absent "global-authors.md keeps no why for a BLOCKED on a missing map slot" "so a second dispatch would meet the same \`BLOCKED\`"
+
+echo "# stand-in.md: instructions only, no ADR argument, no history and no why beside a rule"
+stand_in_ref="$refs/stand-in.md"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$stand_in_ref" | tr -s ' ')"
+absent "stand-in.md argues from no ADR" "docs/adr/"
+absent "stand-in.md names no ADR as a rule's reason" "per [ADR"
+absent "stand-in.md names no plain ADR as a rule's reason" "per ADR"
+absent "stand-in.md keeps no why for adding no second line" "that one line already said the session did the Builder's work too"
+
 exit $((fails > 0))

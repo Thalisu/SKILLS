@@ -24,9 +24,8 @@ it quoted when the Digest carries no Path.
 - A criterion the section leaves out gets no flow, and its `flow:` line states why none is needed.
 - A section reading `none` closes the flows with `no criterion a user can observe` on a `fallback:`
   line, naming the section it read that from.
-- A `none` the reader marked as read from neither a Path nor a story has nothing behind it. The
-  fork goes through the Ticket's criteria one by one instead, each with its flow or the reason it
-  needs none.
+- On a `none` the reader marked as read from neither a Path nor a story, the fork goes through the
+  Ticket's criteria one by one instead, each with its flow or the reason it needs none.
 
 ## Who authors it
 
@@ -47,8 +46,7 @@ The brief's `Loop:` key decides.
 The report's `Run` section is read before its verdict. An author runs its flow at most twice in one
 dispatch, so a report naming a third run broke the fix ceiling, whatever verdict it carried,
 `GREEN` included. It is refused whole and the criterion is dispatched again naming the runs the
-fork counted, since a forked author's report reaches no hook and the count is the caller's or
-nobody's.
+fork counted.
 
 Then the verdict routes:
 
