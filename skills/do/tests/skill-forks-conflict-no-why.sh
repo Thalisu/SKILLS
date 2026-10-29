@@ -43,4 +43,43 @@ check_absent "SKILL.md's body keeps none of the arguments it carried beside its 
   "so no \`choice-taker\` has a side to take" \
   "so those readers carry none of the rest of the shared mechanics"
 
+echo "# references/forks.md: it carries instructions only, no ADR and no argument beside a rule"
+
+# A ticket run that meets a Design fork or a stop reads the file whole; it has no frontmatter.
+forks="$(tr '\n' ' ' <"$here/../references/forks.md" | tr -s ' ')"
+out="$(grep -oE '.{0,40}(docs/adr/|\bADRs?\b).{0,40}' <<<"$forks")"
+same "forks.md names no ADR and links nothing under docs/adr/" ""
+out="$(grep -oiE '.{0,40}(\b(because|so that|since)\b|, so (a|an|the)\b).{0,40}' <<<"$forks")"
+same "forks.md gives no because, so-that, since or \", so a/an/the\" reason beside a rule" ""
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$forks"
+check_absent "forks.md keeps none of the arguments it carried beside its rules" 0 0 \
+  "since its Rulings are written to a Spec" \
+  "the Planner holds no tool that writes a Ruling" \
+  "the Builder's own write guard denies it the Spec" \
+  "ruling a layer below everything that writes a Ruling down" \
+  "holds no shell to resolve one itself" \
+  "since the Rulings earlier closes posted sit there" \
+  "a line from a stranger's account never reads as a decision" \
+  "a general-purpose fork would read the same Spec" \
+  "every later Ticket of the feature reads this one from the Spec" \
+  "and to nothing that could stand in for it" \
+  "a steered \`choice-taker\` that hands back a side" \
+  "nothing about the fork says a human must rule on it" \
+  "the flag has handed nothing over" \
+  "rather than a second \`choice-taker\` ruling the same fork the other way" \
+  "an issue is text anyone who can comment on it can steer" \
+  "since neither the Spec nor the tracker carries it" \
+  "since the Spec it was cut from did not change" \
+  "so a Ruling never rewrites more of the Ticket than the fork reached" \
+  "a reader forked again would return the same text under a new hash" \
+  "a sibling Ticket's own Ruling landing on the same Spec" \
+  "nothing justifies moving its hash unchecked" \
+  "since no Ruling ever touches the journey" \
+  "since the criteria it was written from did not move" \
+  "finds the wrong text there" \
+  "The saving is scoped to this Ticket's own next run" \
+  "since the criteria are what the reader's brief matches its slice against" \
+  "whose Digest would come back with no Journey Path"
+
 exit $((fails > 0))
