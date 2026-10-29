@@ -75,7 +75,7 @@ else
   fail "ticket.md's Reply step links forks.md"
 fi
 expect "run-report.md's Rulings section links forks.md" \
-  grep -qF "the forks in [forks.md](forks.md)" "$here/../references/run-report.md"
+  grep -qF "Read [forks.md](forks.md) when " "$here/../references/run-report.md"
 
 # bug-fix.md's step 6, Fix, is the step that builds the fix and can meet a Design fork between two
 # shapes: it links its own Playbook's Design fork reference, since forks.md is the ticket Playbook's

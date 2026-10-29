@@ -14,8 +14,9 @@ ticket="$do_dir/references/ticket.md"
 mechanics="$do_dir/references/mechanics.md"
 resume="$do_dir/references/resume.md"
 verification="$do_dir/references/verification.md"
-reply="$do_dir/references/reply.md"
 blocked_reply="$do_dir/references/blocked-reply.md"
+final_stopped="$do_dir/references/final-stopped.md"
+run_report="$do_dir/references/run-report.md"
 fails=0
 pointer="Read [run-questions.md](run-questions.md) when "
 
@@ -42,21 +43,19 @@ at "resume.md's Resume, on a rebase resolved with no conflicted file" "$resume" 
   "continue: continue the rebase, committing what is staged"
 at "resume.md's Resume, on a rebase whose target moved" "$resume" \
   "\`abort: drop this rebase and rebase once onto <tip>\`"
-at "ticket.md's resumed integration, on its open rebase" "$ticket" \
+at "final-stopped.md's resumed integration, on its open rebase" "$final_stopped" \
   "on \`moved=ask\`, each question in the words of that bullet"
-at "ticket.md's resumed integration, before a discard" "$ticket" \
+at "final-stopped.md's resumed integration, before a discard" "$final_stopped" \
   "yes discards it and the run goes on as \`verdict=restart\` with the tree present"
 at "ticket.md's verification, before a full suite or a remote run" "$ticket" \
   "through \`scripts/flows.sh\`, its command line printed first"
 at "ticket.md's close, before a write to a Ticket issue" "$ticket" "**9. Close.**"
 at "mechanics.md's claim, before assigning an issue" "$mechanics" "issue is assigned on their yes alone"
-at "mechanics.md's resume, on its open rebase and before a discard" "$mechanics" \
-  "\`land\` at the fix call on the Review already written"
 at "verification.md's verification, before a full suite or a remote run" "$verification" \
   "\`yes: run <the command line>\`"
 at "mechanics.md's close, before a write to a remote tracker" "$mechanics" \
   "under the same \`Yours: outward:\` line, with the \`choice-taker\`'s return"
-at "reply.md's Rulings, on a run question's Ruling" "$reply" "**A Ruling on a run question.**"
+at "run-report.md's Rulings, on a run question's Ruling" "$run_report" "**A Ruling on a run question.**"
 at "blocked-reply.md's handover, before a write to a remote tracker" "$blocked_reply" "**A write to a remote tracker.**"
 
 echo "# every pointer to run-questions.md reads \`Read [run-questions.md](run-questions.md) when <condition>\`"
