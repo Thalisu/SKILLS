@@ -510,7 +510,9 @@ Review's location. The Gate, the review token, the Loss ledger when the rebase w
 held Rulings go over as the review says. The token is minted under the slug of the tree,
 `spec-<feature-slug>`, the value `final-state.sh` prints as `token_slug=`, and never under a
 Ticket's slug. The review fixes its `Act on` Findings and, when the Review is Green, lands the Spec
-branch on the developer's branch by fast-forward. The return is read as the review says. Read
+branch on the developer's branch by fast-forward. The return is routed through `review-route.sh` as the review says, with
+`branch=<spec_branch>` and `worktree=<tree>` read off the claim in place of the template's
+`do/<slug>` branch and worktree. Read
 [not-landed.md](not-landed.md) when the return's `route=` line reads anything but `route=verify`: a
 moved target is answered there, in the same run.
 
