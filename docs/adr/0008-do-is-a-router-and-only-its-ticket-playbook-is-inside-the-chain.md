@@ -15,3 +15,12 @@ clause of ADR 0003; the rest of ADR 0003 stands.
   with the routing question answered by the human at the prompt instead of by the skill.
 - Every playbook inlined in `SKILL.md`: each call loads every playbook, and the router grows with
   each one added.
+
+Amended: per ADR 0113, the reasons `mechanics.md` gave for its own shape live here. The worktree
+Playbooks link the section of the shared mechanics a step needs and never copy it, so a fix to a
+mechanic is made once. A part a step reads on its own is a file beside it, so a step that reaches
+for it carries none of the rest. The run is unattended: the developer reads it afterwards, through
+the Reply, and nobody watches a step while it runs, so the costly errors are the ones that land
+before anyone looks, and every rule of the mechanics guards against one of three: work reaching the
+developer's branch unread or red, the run touching work that is not its own, and a stop that leaves
+nothing to act on.

@@ -39,3 +39,8 @@ the unchecked tree as Pending debt instead, whenever any stop resolved a hunk, m
 contested, since the union's text reaches the branch as unchecked as a reapply commit does. No
 eval yet covers a contested hunk or a reapply in `integrate`; that gap is open debt, closed by a
 case under `skills/do/evals/` whose stop carries a contested hunk.
+
+Amended: per ADR 0113, the reasons `mechanics.md` and `not-landed.md` gave beside the Loss ledger
+live here. A `not landed: target moved` is answered in the same run, so the developer never types
+the request again only so that a human is present. The ledger's location goes to the review as an
+argument, so the review reads what a `contested` hunk set aside.

@@ -14,3 +14,9 @@ decides from scratch.
 - The `choice-taker` rules on every question, the four classes included: the flag would discard
   uncommitted work, or publish an issue nobody read before it went out.
 - A line drawn per skill: five lines drift apart, where ADR 0036 already drew the one `do` keeps.
+
+Amended: per ADR 0113, the reasons `verification.md` gave beside its one question live here. A full
+suite or a remote run of the verification waits for the developer's yes, per
+`never-block-on-the-human`, since its cost is the one thing only the developer can weigh. Under
+`--auto` the developer handed that weighing over, so the question is a run question the
+`choice-taker` rules.

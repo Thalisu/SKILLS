@@ -16,3 +16,7 @@ longer does.
   the developer is never pointed at, for three kinds of line.
 - **A line of their own beside the five parts**: the message grows a part for one Playbook step,
   the growth ADR 0091 undid.
+
+Amended: per ADR 0113, the reason `mechanics.md` gave beside the `Risk:` line lives here: it is
+flagged to the developer as a line of the Pending debt with or without `--auto`, since a risk class
+is never dismissed silently.

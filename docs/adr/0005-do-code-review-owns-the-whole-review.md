@@ -16,3 +16,9 @@ the bundled one on every machine that installs this repo.
   formats, and the bug half not portable to Codex or to a teammate without the same harness.
 - Naming it `code-review` as the research brief reserved: it would shadow the bundled skill wherever
   this repo is installed.
+
+Amended: per ADR 0113, the reasons `mechanics.md` gave beside the review's return live here. The run
+reads the outcome off the return and never opens the Review file, since the return carries no Review
+text, only the outcome, so the Review's Findings never reach the session's window. The run never
+reads, edits, deletes or writes the Review, on the first call's return and on every fix call's, since
+the Review is the review's to write and its record that a Finding existed is the developer's to read.

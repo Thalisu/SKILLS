@@ -23,3 +23,13 @@ that lands; only a rebase after the review, on a resumed run, lands hunks no rev
 run knows the review already ran from the `review=` line of `resume-state.sh`, never from the
 session's reading of the thread. This supersedes the "one more per red E2E flow" rule of ADR 0015
 and narrows the Consequence of ADR 0027 to the first run.
+
+Amended: per ADR 0113, the reasons `not-landed.md` and `verification.md` gave beside their rules live
+here. The review read the branch once, and nothing the run commits after it is read by a reviewer
+again, so on the integration after a `not landed: target moved` the reapply check is the only
+reading a reapplied block's text gets, and the fix call forks no Fixer and no Gate fixer over code
+no reviewer read. The verification runs from the main checkout after the landing, per
+`prove-it-works`, since the work is on the developer's branch then and Project facts may say the E2E
+stack serves the primary checkout; the worktree stays, since it is where a red flow is fixed. The
+flows script prints its `command=` line first, so the verification is a line a reviewer reruns
+rather than the run's account of it.

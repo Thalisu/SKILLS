@@ -17,3 +17,9 @@ getting it wrong is a run stopped on a second deviation of the same shape.
 - Reading nothing and letting the shape step discover the subsystem for itself: the discover batch
   returns signatures but not the seams, and a shape named without them is the wrong-sketch path the
   build already stops on.
+
+Amended: per ADR 0113, the reason `mechanics.md` gave for keeping the Plan's `## Map` out of the
+review call lives here. The Map is the subsystem as it stood before the diff, cut by the Planner
+while the branch was still empty, and each reviewer builds its own map of the tree the diff left
+behind: a reviewer handed the pre-diff one would read the work under review as code that was
+already there, and clear a change it never looked at.

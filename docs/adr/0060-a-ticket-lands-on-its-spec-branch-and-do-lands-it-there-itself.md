@@ -14,3 +14,14 @@ thing that reads a diff before it reaches the developer.
 - A `land` mode in `do-code-review` with no reviewers, keeping one lander for every branch: the
   mode ADR 0033 already refused as `fix` under a second name, and one fork per Ticket spent on a
   fast-forward.
+
+Amended: per ADR 0113, the reasons `mechanics.md` gave beside the Spec branch live here. A `ticket`
+run's worktree starts from the Spec branch, so a Ticket builds on every Ticket that landed before
+it, and records it with `--track`, so the close's delete measures the branch against the Spec
+branch it landed on. The first run of a Spec is refused while the main checkout is on a protected
+branch or on no branch, since that run would cut the Spec branch off the protected branch and record
+it as the branch the whole Spec lands on. The landing is a fast-forward of the Spec branch's ref
+alone, since the Spec branch is checked out nowhere. A worktree that has it checked out stops the
+landing, since a ref moved under a checkout would leave that worktree's index showing the landing as
+a reversal, and the run does not switch that checkout itself, since what it holds is the
+developer's.

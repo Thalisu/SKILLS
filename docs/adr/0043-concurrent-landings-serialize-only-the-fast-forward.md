@@ -20,3 +20,8 @@ system frees it when the process ends and no dead session leaves it behind. Reba
 This is the one lock file in the chain. ADR 0020's "never a lock file" governs names allocated in
 the scratch, not the developer's branch. A lock held by the developer's own git command is waited
 on briefly inside the same call before the fast-forward counts as failed.
+
+Amended: per ADR 0113, the reason `mechanics.md` gave beside the landing on the Spec branch lives
+here. That landing holds the lock the review's landing holds, from its first read to the end of the
+ref update, so of two Tickets of one Spec landing at once exactly one passes and the other reads
+`moved` with the Spec branch untouched.

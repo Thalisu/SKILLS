@@ -30,3 +30,12 @@ request on to another Playbook, door or skill carries no `Yours:` line, since it
 handed over under `outward`, since building it is a write to a repository the run was not opened
 in, and a push a blocked Reply hands over is named under `outward`, since a push is a write outside
 the repository the run never makes itself.
+
+Amended: per ADR 0113, the reasons `mechanics.md` and `not-landed.md` gave beside their stops live
+here. After a `not landed: target moved` the run takes its own Resume path in the same run and does
+not stop, since everything that path needs is a reversible action inside the run's own artifacts,
+and it reads nothing of that path again, since it already holds every behaviour committed and the
+Review its own review wrote. The run removes the worktree and the branch it created, and the
+branch's delete is safe once it landed, since git measures it against the branch's upstream. A
+remove or a delete git refused is never retried with `--force` or `-D`, since what git refused on is
+not the run's to throw away, so the Reply hands it over under `destroy`.

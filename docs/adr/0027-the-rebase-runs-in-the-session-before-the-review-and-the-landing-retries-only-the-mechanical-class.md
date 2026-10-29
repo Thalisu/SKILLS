@@ -30,3 +30,21 @@ bytes.
 [ADR 0033](0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md)
 narrows this to a first run: a rebase a resumed run resolves after the review is held to the Gate
 and lands through `fix`, and is never reviewed a second time.
+
+Amended: per ADR 0113, the reasons `mechanics.md` gave beside the integration's rules live here. The
+rebase runs after a green gate and before the review, so the diff the reviewers read is the diff
+that lands. A protected developer's branch does not stop it, since a rebase onto a branch writes
+nothing to it and the step lands nothing; the landing stays the review's, which refuses a protected
+target. The commit the branch is on is recorded before the rebase starts, since the command that
+undoes the rebase is not the same once the rebase has finished, and the recorded commit is what that
+command names. Every command that can meet a conflict runs with conflict-resolution reuse off, since
+the setting is the developer's own and may be on: a resolution recorded at one stop would be
+replayed into the next stop of the same shape, the class would be read from what the cache put back
+instead of from what git left, and the run's own resolutions would land in a cache that outlives it.
+The ledger's location is fixed before the rebase starts, so a resumed run is never handed it back.
+The gate that was green before a replay is stale, since the run's commits now sit on code the branch
+had not seen, and the review's fixed point is the commit the branch was rebased onto, since the
+commit the worktree was created from is behind the developer's own commits and a review given it
+would read their work as part of the diff under review. A red gate after a replay stops the run and
+never goes back to the build loop, since the replay brought in code the developer's branch carries,
+and a run that loops on it edits their work.

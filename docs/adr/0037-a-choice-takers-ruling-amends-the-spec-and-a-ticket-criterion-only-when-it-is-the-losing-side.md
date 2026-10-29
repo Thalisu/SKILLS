@@ -19,3 +19,13 @@ reverses a ruling by editing that line and running `/do` again.
 On a remote tracker the Spec is an issue and every write to it waits for the developer's yes. The
 run goes on with the ruling in the Ticket's Evidence and the reply, and the ruling rides the
 close's yes as a comment on the Spec issue, which the reader reads; a no leaves it in the reply.
+
+Amended: per ADR 0113, the reasons `mechanics.md` gave beside the held Rulings live here. A run that
+holds a Ruling sends the held Rulings to the review as one block of text, so the review holds the
+build to the Ruling and to a rewritten criterion the Ticket issue does not carry yet. The block is
+the last argument of the call, since every line after its first is a Ruling, so a single-line
+argument never sits behind it, and the review token goes before the Loss ledger so the block never
+swallows it. The fix call carries no block, since the Review it fixes was already held to the
+rewritten text. On a remote tracker each held Ruling is posted verbatim under an
+`## Implementation Decisions` heading on the Spec issue, so the next Ticket's reader finds it where
+a local Spec keeps it.

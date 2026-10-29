@@ -37,3 +37,10 @@ reply.
 ADR 0015 supersedes the Consequences above: the review's own Fixer corrects the `Act on` Findings
 for every caller, `do` calls the review once per landing, and a call that returns without landing
 stops the run. The landing rules stand.
+
+Amended: per ADR 0113, the reasons `mechanics.md` gave beside the protected branch and the review's
+landing live here. The warning a Playbook records on a protected developer's branch guards nothing:
+the review refuses the landing on a protected branch whatever the run wrote, so a warning the
+developer never read cannot let the work land where the rule forbids it. The review asks nobody
+anything on its landing paths, since it is a fork with nobody to ask, so a hunk a person must judge
+comes back to the run in its return.

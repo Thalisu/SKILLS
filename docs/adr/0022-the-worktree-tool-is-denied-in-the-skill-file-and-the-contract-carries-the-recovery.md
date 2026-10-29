@@ -32,3 +32,18 @@ backtick stays out so the rule survives a rewrite of that quoting; `contract.sh`
 and reads the decision back to hold that. The field is Claude Code's, and a harness that does not
 read it is left with the contract alone, which is why the recovery is written as a step a run takes
 and not as a note a reader keeps.
+
+Amended: per ADR 0113, the reasons `mechanics.md` gave beside its worktree rules live here. A session
+that sits in a linked worktree when the run starts is most likely one the harness's worktree tool
+isolated. The run never enters its own worktree through that tool: it isolates the session, and an
+isolated session refuses git against the main checkout, which the Ticket, the landing, the flows and
+the worktree's removal all need; the skill file denies the tool so the run meets it as a refusal
+rather than as a rule to remember. The run enters with `cd` in a shell call of its own, since the
+harness keeps the working directory across calls. The worktree's done check is the backstop for the
+probe of its first step: a session already isolated when the run started refuses that call, for the
+redirect or for the shape, and the refusal is the state and not the command. By then the run made a
+worktree from the isolated tree and not from the developer's HEAD, so it removes it and starts over.
+Catching that state at the first step costs nothing, at the done check one worktree, and at the
+landing the build. The review's door is a script and the guard of an isolated session refuses to run
+one, so a review return saying the session is isolated reviewed nothing and wrote nothing, and the
+run leaves the isolation and calls it again.

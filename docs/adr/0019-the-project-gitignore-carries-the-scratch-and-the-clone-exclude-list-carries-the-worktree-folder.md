@@ -12,3 +12,9 @@ versioned" is a convention the whole team is held to, which only a committed lin
 A skill about to write into `.scratch/` in a project carrying no such line appends it and says so
 in one line. `do-code-review` is the exception: its reviewer writes the Review and nothing else, so
 it reports the missing line in its return instead of adding it.
+
+Amended: per ADR 0113, the reasons `mechanics.md` gave beside the worktree's folder live here. The
+run's worktrees sit under `.claude/worktrees/`, the harness's worktrees folder, so they sit beside
+the harness's own, one exclude line covers them all, and a resume knows where to look. That line
+goes to `.git/info/exclude` and never to the project's `.gitignore`, since the ignore file is the
+project's and the exclude list is this clone's.

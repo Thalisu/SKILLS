@@ -24,3 +24,12 @@ the same `/do`.
 Every stop the run controls (a rebase question unanswered, a review that did not land, `not landed:
 target moved`) yields before the Reply. The run that reaches the Final integration from its own
 Completion check is unchanged: `taken` ends it with the Spec being integrated by another run.
+
+Amended: per ADR 0113, the reasons `mechanics.md` and `final-stopped.md` gave beside the claim live
+here. The claim is made by creating its file, per ADR 0020, so two runs that both read the Spec
+complete never both integrate it, and a first claim reads `takeover=no` since no claim file was
+there. A stop leaves the tree, the Spec branch and the claim file in place, since they are what a
+later run resumes from, and the yield leaves the claim file as it was written, so the claim still
+keeps a first run out while a resume can take it over. A resume claims before it reads anything from
+the tree, so two resumes never both walk it, and a claim nobody yielded stops it, since its holder
+is either still integrating or died without yielding and the script cannot tell which.

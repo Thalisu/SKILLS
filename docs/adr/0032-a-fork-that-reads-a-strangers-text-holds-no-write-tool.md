@@ -29,3 +29,12 @@ where the reader used to write it. A session whose Agent tool does not list the 
 documents and writes the Digest itself, as it does when the Agent tool is withheld, and never falls
 back to a general fork, which would carry the write tools back. `sketch` reads the Digest's quotes
 with `Write` and `Bash` under the same exposure, and takes the same rule in a Ticket of its own.
+
+Amended: per ADR 0113, the reasons `mechanics.md` and `second-run.md` gave beside the reader's window
+live here. Nothing reads the tree or the scratch across the reader's window: such a reading cannot
+tell who wrote a file, runs on two features share the scratch, so another run's write in that window
+would stop this one, while the reader holds no tool that writes and leaves nothing for it to catch.
+A Digest a run left behind when that reading, removed by this ADR, stopped it is judged by the
+digest check alone, which never asks who wrote the file, so it is served on `verdict=reuse` like any
+other, whether it sits beside the Ticket the stopped run was on or beside a sibling Ticket the stop's
+own line named.

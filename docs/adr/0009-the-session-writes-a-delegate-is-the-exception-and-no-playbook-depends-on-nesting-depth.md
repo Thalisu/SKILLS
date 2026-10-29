@@ -22,3 +22,10 @@ changed between Claude Code versions, and Codex has no confirmed equivalent.
 - Raising the depth limit repo-wide so playbooks may nest freely: a harness setting leaking into a
   contract every teammate and harness must honour, and one that changed between Claude Code
   versions.
+
+Amended: per ADR 0113, the principles `mechanics.md` named as the reasons of its delegate and
+worktree rules live here. A delegate takes bulk mechanical work only after a script was considered,
+per `build-the-lever`, and exploration is forked when its output would flood the thread, per
+`guard-the-context-window`. One writer at a time works in the worktree, the session or the test
+author it dispatched, per `separate-before-serializing-shared-state`. In a `ticket` run the Builder
+writes the production code, per ADR 0047.

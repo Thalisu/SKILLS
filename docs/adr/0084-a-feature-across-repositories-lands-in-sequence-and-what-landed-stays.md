@@ -15,3 +15,16 @@ nobody calls yet, and the landing is local, so the partial state is cheap to und
   that the chain does not have.
 - Each repository landing as soon as its own **Tickets** are `resolved`: a repository reaches the
   developer's branch while the rest of the feature may still change what it needs.
+
+Amended: per ADR 0113, the reasons `mechanics.md` and `final-stopped.md` gave beside the landing
+record live here. Each repository's state is read from its own refs at the moment of the call, so no
+file says a repository landed and no run remembers it. The record is read again after the release,
+and after the yield at a stop, and the Reply's lines are printed from that read, so a partial landing
+is never silent. The claim of a Ticket that carries a `**Build repository:**` line is keyed by that
+repository, so each repository of a feature holds a claim of its own and one landing never reads
+`taken` to the next, and its Review file is named for that repository, since each repository writes
+a Review of its own beside the one Spec and a Review at the Spec's own name would be overwritten by
+the next repository to land. A stop moves no ref in a repository that landed before it, reverts
+nothing and removes nothing, since what landed was reviewed and is already the developer's to push.
+The landing command of a later repository runs a first Final integration there, since nothing
+stopped in that repository: its Final integration never started.
