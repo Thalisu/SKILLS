@@ -11,6 +11,7 @@ ticket="$refs/ticket.md"
 resume="$refs/resume.md"
 final_stopped="$refs/final-stopped.md"
 stand_in="$refs/stand-in.md"
+impeccable="$refs/impeccable.md"
 fails=0
 
 echo "# ticket.md: instructions only, no ADR argument and no why beside a rule"
@@ -124,5 +125,37 @@ absent "stand-in.md argues from no ADR" "docs/adr/"
 absent "stand-in.md names no ADR as a rule's reason" "per [ADR"
 absent "stand-in.md names no plain ADR as a rule's reason" "ADR 0"
 absent "stand-in.md keeps no why for the fallback adding no second line" "that one line already said the session did the Builder's work too"
+
+echo "# impeccable.md: instructions only, no ADR argument and no why beside a rule"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$impeccable" | tr -s ' ')"
+absent "impeccable.md argues from no ADR" "docs/adr/"
+absent "impeccable.md names no ADR as a rule's reason" "per [ADR"
+absent "impeccable.md names no plain ADR as a rule's reason" "ADR 0"
+absent "impeccable.md keeps no why for the script not printing the skill listing" "The script cannot print this fact"
+absent "impeccable.md keeps no why for an unlisted skill on disk" "and impeccable could not run in it"
+absent "impeccable.md keeps no why for handing the stop to the developer" "Who builds the screen is the developer's call"
+absent "impeccable.md keeps no why for never falling back to the Builder at the Door" "the Spec's line is the developer's choice of who builds the screen"
+absent "impeccable.md keeps no why for a Builder's screen under the impeccable line" "is one nobody chose"
+absent "impeccable.md keeps no why for forking no Planner" "so a Plan here is a fork paid for and never opened"
+absent "impeccable.md keeps no why for writing no return file" "the main checkout least of all"
+absent "impeccable.md keeps no why for keeping rules out of the brief" "where a brief the session composed on one run cannot drop one"
+absent "impeccable.md keeps no why for the revokes and the guard probe around the fork" 'since `do-impeccable` holds a shell in the worktree as the Builder does'
+absent "impeccable.md keeps no why for reading the main checkout by script" "the fork's write guard matches text"
+absent "impeccable.md keeps no why for a builder that ignored its worktree" "leaves files in the developer's checkout that no commit carries"
+absent "impeccable.md keeps no why for the state file needing no ignore line" 'which a Ticket run from its Build repository under `Loop: policy` never writes there'
+absent "impeccable.md keeps no why for a snapshot per fork" "since the developer may have worked in the checkout between the two forks"
+absent "impeccable.md keeps no why for removing nothing on a changed checkout" "which of those files belong to the screen is the developer's to say"
+absent "impeccable.md keeps no why for clearing a spent time budget" "since it asks the same command after each criterion's commit"
+absent "impeccable.md keeps no why for the build step never falling back to the Builder" "the Spec's line names who builds the screen, and only the developer changes it"
+absent "impeccable.md keeps no why for the Run section carrying no Plan line" "so there is neither a location nor a Planner's fallback to name"
+absent "impeccable.md keeps no why for listing the acceptance criteria as behaviours" 'A run that forked `do-impeccable` built from no Plan'
+absent "impeccable.md keeps no why for the no scan line" "because the impeccable skill has no detector for the project's platform"
+absent "impeccable.md keeps no why for listing each finding under Pending debt" "so a finding counted under Evidence is always named"
+absent "impeccable.md keeps no why for writing the keys in one place" "the rule [builder.md](builder.md) holds for the Builder's own"
+absent "impeccable.md keeps no why for the brief carrying no rule" "where a brief composed on one run cannot drop one of them"
+absent "impeccable.md keeps no why for the build line naming impeccable" "since no test is written ahead of the screen"
+absent "impeccable.md keeps no why for a stop after the last criterion never being built" "since the flows and the scan are still ahead"
+absent "impeccable.md keeps no why for the definition carrying the return's shape" "since the fork never opens this file"
 
 exit $((fails > 0))
