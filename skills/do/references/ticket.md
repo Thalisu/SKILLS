@@ -502,9 +502,7 @@ tracker the run waits for a yes before it, asked with the `Yours: outward:` line
 [mechanics.md](mechanics.md) carries; a no stops the run with nothing written. Under `--auto`
 that question is still asked of the developer, with the `choice-taker`'s return shown above it:
 Read [run-questions.md](run-questions.md) when the run is under `--auto` and asks it. On a local
-Ticket it proceeds without one, per
-[never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
-a reversible file write, and an interrupt costs the developer one turn.
+Ticket it proceeds without one.
 
 On a local Ticket the run first re-hashes the Ticket right before it writes the claim, against the
 value it last recorded for it: the `ticket_hash=` step 1's `grounding.sh plan` printed, or the one
