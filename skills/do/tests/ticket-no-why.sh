@@ -9,6 +9,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 refs="$here/../references"
 ticket="$refs/ticket.md"
 resume="$refs/resume.md"
+final_stopped="$refs/final-stopped.md"
 fails=0
 
 echo "# ticket.md: instructions only, no ADR argument and no why beside a rule"
@@ -103,5 +104,16 @@ absent "resume.md keeps no why for the question naming every one" "the landing t
 absent "resume.md keeps no rejected alternative of the continue or stop question" 'unlike the `(continue / stop)` question'
 absent "resume.md keeps no rejected alternative of an added mechanism" "No mechanism is added for either"
 absent "resume.md keeps no why for a Digest with no Journey Path" "whose Digest would come back with no Journey Path"
+
+echo "# final-stopped.md: instructions only, no why beside a rule"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$final_stopped" | tr -s ' ')"
+absent "final-stopped.md keeps no why for what a later run resumes from" "since they are what a later run resumes from"
+absent "final-stopped.md keeps no why for the claim a resume takes over" "so the claim still keeps a first run out while a resume can take it over"
+absent "final-stopped.md keeps no why for what landed being the developer's to push" "since what landed was reviewed and is already the developer's to push"
+absent "final-stopped.md keeps no why for a partial landing never being silent" "So that a partial landing is never silent"
+absent "final-stopped.md keeps no why for the next /do taking the stop over" "as every stop of the Final integration does, so the next \`/do\` can take it over"
+absent "final-stopped.md keeps no why for a Final integration that never started" "since its Final integration never started"
+absent "final-stopped.md keeps no why for what the script cannot tell" "and the script cannot tell which"
 
 exit $((fails > 0))

@@ -31,7 +31,7 @@ the landing record once more after the yield, the same `landing-order.sh` call s
 read.
 
 A resume that stops again yields the claim it holds before its Reply, as every stop of the Final
-integration does, so the next `/do` can take it over. Its Reply's lines are printed by the
+integration does. Its Reply's lines are printed by the
 `reply-lines.sh final` call of step 9a of [ticket.md](ticket.md), with `--state <state>/state`
 added. Read [blocked-reply.md](blocked-reply.md) when a resume stops again, for the Reply of that
 stop.
