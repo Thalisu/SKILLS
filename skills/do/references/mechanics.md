@@ -20,7 +20,7 @@ own is a file beside this one. Read
 [conflict-loop.md](conflict-loop.md) when the integration stops, for the conflict loop every stop
 runs. Read [build-loop.md](build-loop.md) when a step builds, for the loop and its test authors. Read
 [forks.md](forks.md) when a `ticket` run meets a fork: `bug-fix` and `refactoring` never read it.
-[integrate.md](integrate.md) builds in no worktree and reads that last file alone.
+[integrate.md](integrate.md) builds in no worktree and reads `conflict-loop.md` alone.
 
 ## What no step does
 

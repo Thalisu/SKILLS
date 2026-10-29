@@ -39,5 +39,21 @@ echo "# every pointer to conflict-loop.md reads \`Read [conflict-loop.md](confli
 pointers_shaped "every pointer to conflict-loop.md has the \`Read <file> when <condition>\` shape" \
   "$(cd "$here/.." && pwd -P)" conflict-loop.md 10
 
+# integrate.md reads conflict-loop.md at every stop and no other part file. mechanics.md's opening
+# lists the part files in an order a refactor may change, so its sentence on integrate.md names the
+# file itself: a run at the integrate step that follows a positional "that last file" opens
+# whichever part was listed last and resolves a stop without the conflict loop.
+echo "# mechanics.md's opening names conflict-loop.md as the part file integrate.md reads"
+mechanics="$here/../references/mechanics.md"
+opening="$(passage_of "$mechanics" "# Shared mechanics" "## " | tr '\n' ' ' | tr -s ' ')"
+flat="$(awk '{ n = split($0, s, /\. /); for (i = 1; i <= n; i++) if (index(s[i], "integrate.md")) print s[i] }' <<<"$opening")"
+expect "mechanics.md's opening carries a sentence on integrate.md" test -n "$flat"
+carries_any "mechanics.md's sentence on integrate.md names conflict-loop.md as the file it reads" \
+  "conflict-loop.md"
+# shellcheck disable=SC2034 # lib.sh's absent reads $out
+out="$flat"
+absent "mechanics.md's sentence on integrate.md does not name forks.md" "forks.md"
+absent "mechanics.md's sentence on integrate.md does not name build-loop.md" "build-loop.md"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
