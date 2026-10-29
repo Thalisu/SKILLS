@@ -16,14 +16,10 @@ own:
   replacing the Digest at the same path, and names the document of each `moved=` line, in one line.
 
 A re-forked reader whose return is not a usable Digest stops the door as a first fork's does, in one
-line naming what is missing, since the session writes only from a return it checked.
-The Digest already at that path stays where it was, untouched. A later run serves it only on
-`verdict=reuse`.
+line naming what is missing. The Digest already at that path stays where it was, untouched. A later
+run serves it only on `verdict=reuse`.
 
-A Digest a run left behind when the reading of the tree and the scratch stopped it, the reading
-[ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md)
-removed, is judged by the digest check alone, which never asks who wrote the file, so it is
-served on `verdict=reuse` like any other, whether it sits beside the Ticket the
-stopped run was on or beside a sibling Ticket the stop's own line named. A developer who does not
-trust one deletes it by hand before running that Ticket again, and that run forks the reader as a
-first run does.
+A Digest an earlier run left behind, beside this Ticket or beside a sibling Ticket, is judged by the
+digest check alone, which never asks who wrote the file, and is served on `verdict=reuse` like any
+other. A developer who does not trust one deletes it by hand before running that Ticket again, and
+that run forks the reader as a first run does.

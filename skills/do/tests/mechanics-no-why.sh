@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # mechanics-no-why.sh: the shared mechanics every worktree Playbook loads (mechanics.md), and the
-# references cut from it (not-landed.md, verification.md), carry instructions only. The why of a
-# rule lives in the ADRs alone (docs/adr/0113), so no ADR argument, no principle given as a reason,
-# no history and no rejected alternative is paid for on every run. One section per reference.
+# references cut from it (not-landed.md, verification.md, second-run.md), carry instructions only.
+# The why of a rule lives in the ADRs alone (docs/adr/0113), so no ADR argument, no principle given
+# as a reason, no history and no rejected alternative is paid for on every run. One section per
+# reference.
 # Run: bash skills/do/tests/mechanics-no-why.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -11,6 +12,7 @@ refs="$here/../references"
 mechanics="$refs/mechanics.md"
 not_landed="$here/../references/not-landed.md"
 verification="$refs/verification.md"
+second_run="$refs/second-run.md"
 fails=0
 
 echo "# mechanics.md: instructions only, no ADR argument and no why beside a rule"
@@ -101,5 +103,16 @@ absent "verification.md keeps no why for where a red flow is fixed" "since it is
 absent "verification.md keeps no why for the verification line" "so the verification is a line a reviewer reruns"
 absent "verification.md keeps no why for leaving the cost to the developer" "because its cost is the one thing only the developer can weigh"
 absent "verification.md keeps no why for the developer handing the weighing over" "the developer handed that weighing over"
+
+echo "# second-run.md: instructions only, no ADR argument and no why beside a rule"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$second_run" | tr -s ' ')"
+absent "second-run.md argues from no ADR" "docs/adr/"
+absent "second-run.md names no ADR as a rule's reason" "per [ADR"
+absent "second-run.md names no plain ADR as a rule's reason" "per ADR"
+absent "second-run.md names no ADR as the history of a removed reading" "ADR 0032"
+absent "second-run.md keeps no why for stopping on an unusable return" "since the session writes only from a return it checked"
+absent "second-run.md keeps no history of a removed reading" "the reading of the tree and the scratch stopped it"
+absent "second-run.md keeps no why for serving a left-behind Digest" "so it is served on"
 
 exit $((fails > 0))
