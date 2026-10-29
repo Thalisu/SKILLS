@@ -253,18 +253,7 @@ journey both, never over the Spec alone, whose Digest would come back with no Jo
 replaces the Digest the way a second run does. Then it re-derives the behaviours list from the
 Digest that comes back and continues at the first behaviour without a commit.
 
-### Resume after a stop, and a Ruling the developer reverses
-
-A `/do` typed again on the Ticket with the Spec unchanged gives the same stop and the same
-`/discuss` command, since nothing the fork stands on moved. Which route it takes depends on what
-the stop left:
-
-- The stop left the Ticket `claimed` with its worktree. The run is a resume: `resume-state.sh`
-  prints the sidecar's `extreme=` and `discuss=` lines, both hashes match, and the run stops there
-  on the recorded command, per the `extreme=` bullet of resume.md. It
-  forks no Planner, no Builder and no `choice-taker`, and never meets the fork again.
-- The stop left nothing claimed. The run is a first run with no sidecar to read: it reuses the
-  Digest, meets the same fork at the same step and stops as the first one did.
+### A Ruling the developer reverses
 
 Once `discuss` amended the Spec, the resume re-forks the reader before it does.
 Read [resume.md](resume.md) when the door prints verdict=resume on that Ticket: its amended-Spec bullet says how.
