@@ -44,3 +44,53 @@ Amended: per ADR 0113, the reasons `mechanics.md` and `not-landed.md` gave besid
 live here. A `not landed: target moved` is answered in the same run, so the developer never types
 the request again only so that a human is present. The ledger's location goes to the review as an
 argument, so the review reads what a `contested` hunk set aside.
+
+Amended: per ADR 0113, the reasons `conflict-loop.md` gave beside its rules for the contested
+class, the Loss ledger and the reapplies live here. The all-mechanical blocks never run on a stop
+with a contested hunk, since their union takes every conflicted file, contested ones included. The
+Target side is read off the index stages, so the session reads no marker there either. A rerun at
+the same stop rewrites each ledger entry where it stands, so the ledger never holds a hunk twice,
+and the ledger's path is fixed before the rebase starts, since the branch the rebase replays is on
+record only while it runs. Every entry is judged before the Gate runs again, so what a contested
+hunk set aside is on record as kept or let go and never merely set aside. `ledger.sh` reads a
+heading outside a fence only, since a `## <id>` line a side quotes is that side's own text, and an
+empty ledger forks no judge, so a rebase with no contested hunk pays nothing for the judging. One
+`ledger-judge` fork reads the whole ledger, since a fork per entry would pay for reading the ledger
+and the tree around it again for every hunk. The Final integration's brief names the Spec as the run's intent, since
+its ledger gathers what the Spec branch's rebase set aside across every Ticket of the Spec and no
+one Ticket's Digest covers it. The judge holds reading and search alone per ADR 0032, since a
+ledger entry is a side of a diff a stranger's commit may have written, and a script binds each
+block it returns to its entry before the session writes from it, for the same reason. `ledger.sh`
+writes verdicts from an entry directory rather than loose arguments, so the judge's free-text
+reason never becomes a shell word a command could hide inside; `contested.sh` writes entries and
+that verb writes verdicts, so neither overwrites the other and a rerun at the same stop carries a
+verdict over, and a resumed run judges only what `pending` named, so running twice leaves the same
+ledger. A refused verdict is never retried, since a reading of an entry nobody set aside is not one
+the run asked for and a second reading never writes over the first. With no `ledger-judge`
+available the run neither stops nor asks, since the developer cannot hand one over mid-run and the
+ledger is what the run needs judged, and it never forks another agent in its place, since a fork
+under any other name could still hold the write tools the judge's definition denies it. Each
+reapply is its own commit, in the order `pending` printed, so each piece of work a contested hunk
+set aside is a diff the developer reads and reverts alone, and no test author is dispatched for it,
+since the edit is work the branch already carried before the rebase, not a behaviour the run adds.
+The whole-side write goes through the index and never a redirect into the path, since the tree may
+hold that path as a symlink the Target side left there: a redirect would follow it and land the
+run's bytes outside the worktree while the index stayed unchanged, leaving nothing to commit; the
+check before it already bound the path back to the entry, so a block naming a path outside the tree
+never reaches `write-blob.sh`. A reapply stages that file alone, so nothing else rides along, and
+its commit body names the entry's id, so the ledger and the history point at each other. A reapply
+that brings nothing back moves on to the next entry rather than stopping the run, since the reapplies before it are already
+commits of their own. The Gate runs once after the last reapply and never between two, so what
+came back is held to the same checks as everything else and the most expensive command of the run
+is paid once whatever the entry count. A red Gate after the reapplies stops as blocked and never
+goes back to the build loop, since the branch now holds the developer's code the replay brought in
+beside the work that came back, and a run that loops on it edits their work; the stop names the
+ledger, since the ledger holds what came back and what did not. A commit whose change the target
+already holds is skipped rather than continued, since git refuses an empty commit and leaves the
+rebase where it is, and nothing of the run's work is lost by it: the change is either already on
+the branch it was going to land on, or it is the Incoming side of a contested hunk the ledger holds
+whole. A blocked stop with the rebase open names the abort as its undo, since the rebase has not
+finished. The integration step alone leaves its Ticket `claimed` on a stop, since a `bug-fix` or
+`refactoring` run has no Ticket and the Final integration's Ticket has already landed, its claim
+yielded. A resumed run reads only the reapplies, since the hunks its ledger came from were classed,
+resolved and judged at a stop of the run that wrote it.

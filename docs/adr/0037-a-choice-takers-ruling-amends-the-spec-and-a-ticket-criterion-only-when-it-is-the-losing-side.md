@@ -29,3 +29,12 @@ swallows it. The fix call carries no block, since the Review it fixes was alread
 rewritten text. On a remote tracker each held Ruling is posted verbatim under an
 `## Implementation Decisions` heading on the Spec issue, so the next Ticket's reader finds it where
 a local Spec keeps it.
+
+Amended: per ADR 0113, the reasons `forks.md` gave beside its rules live here. The `choice-taker`'s
+brief names the Spec's comments, where the Rulings earlier closes posted sit, so a fork an earlier
+Ticket already ruled on is ruled the same way. A Design fork is never taken as a run question,
+whose Ruling amends no file, since every later Ticket of the feature reads this one from the Spec.
+A Ruling rewrites only the losing criterion and leaves every other criterion untouched, so a Ruling
+never rewrites more of the Ticket than the fork reached, and the review holds the build to the
+rewritten criterion. A held Ruling is never posted to a remote tracker unasked, since an issue is
+text anyone who can comment on it can steer.

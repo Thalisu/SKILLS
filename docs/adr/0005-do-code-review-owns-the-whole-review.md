@@ -22,3 +22,7 @@ reads the outcome off the return and never opens the Review file, since the retu
 text, only the outcome, so the Review's Findings never reach the session's window. The run never
 reads, edits, deletes or writes the Review, on the first call's return and on every fix call's, since
 the Review is the review's to write and its record that a Finding existed is the developer's to read.
+
+Amended: per ADR 0113, the reason `skills/do/SKILL.md` gave beside its rule that a `do` run never
+lands and never fixes a Finding lives here: the review does both, so what reaches the developer's
+branch has one owner.

@@ -15,3 +15,10 @@ what the session already held, and cost a fork for nothing.
   ways.
 - Following the recommendation unless a norm contradicts it: `--auto` becomes "take every
   recommendation", which the session does without an agent.
+
+Amended: per ADR 0113, the reasons `forks.md` and `run-questions.md` gave beside their rules live
+here. The run passes the `choice-taker` the chain's `.agents/` folder as `sketch` gets its
+`<agents-dir>`, since a project `do` runs on has no `.agents/principles/` at its root and the
+`choice-taker` holds no shell to resolve one itself. A run question before something that cannot be
+undone is one the agent's own test often reads as extreme, and the session never forks it a second
+time to get a side, since the agent keeps its two returns and its one test for an Extreme fork.

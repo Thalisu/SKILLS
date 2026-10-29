@@ -38,3 +38,11 @@ A Digest a run left behind when that reading, removed by this ADR, stopped it is
 digest check alone, which never asks who wrote the file, so it is served on `verdict=reuse` like any
 other, whether it sits beside the Ticket the stopped run was on or beside a sibling Ticket the stop's
 own line named.
+
+Amended: per ADR 0113, the reasons `forks.md` gave beside its `choice-taker` rules live here. The
+`choice-taker` holds reading and search alone and is forked by name, never replaced by another
+agent, since a general-purpose fork would read the same Spec holding the write tools this ADR
+withholds. A comment from a stranger's account in the Spec is never read as a decision the Spec
+already carries. Since the Spec the `choice-taker` read may carry a stranger's text, a steered
+return that hands back a side the fork never had never gets its `Side:` read into the Spec or the
+Ticket.

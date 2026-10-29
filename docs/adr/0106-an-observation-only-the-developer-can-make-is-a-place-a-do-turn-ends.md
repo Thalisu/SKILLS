@@ -15,3 +15,7 @@ that does not depend on it, under `--auto` as without the flag, since it offers 
   would fork a `choice-taker` that has no side to take.
 - Stop the run as blocked instead of asking: the developer would type `/do` again only to be asked
   the same thing, with the worktree and the reproduction already in hand.
+
+Amended: per ADR 0113, the reason `skills/do/SKILL.md` gave beside its question classification
+lives here: of the calls, only a product or preference call goes to the human, since those are the
+answers the run cannot produce itself.
