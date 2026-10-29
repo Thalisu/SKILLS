@@ -81,6 +81,9 @@ expect "bug-fix-auto.md exists and has text" test -n "$flat"
 full_suite="$(grep -E '^\|.*(full suite|remote run)' "$auto" 2>/dev/null)"
 expect "the full-suite or remote-run question is ruled by the choice-taker under --auto" \
   grep -qF "ruled by the \`choice-taker\`" <<<"$full_suite"
+full_suite_off_mechanics="$(grep -vF "](mechanics.md)" <<<"$full_suite")"
+expect "the full-suite or remote-run question's step links the verification in verification.md, not mechanics.md" \
+  grep -qF "](verification.md)" <<<"$full_suite_off_mechanics"
 discard="$(grep -E '^\|.*uncommitted' "$auto" 2>/dev/null)"
 expect "the discard question is still asked under --auto, with the choice-taker's return shown" \
   grep -qF "still asked" <<<"$discard"
