@@ -25,7 +25,7 @@ the fix of a red flow.
    The script asks nothing: this is the only question asked on this path, and the session puts it.
    A no records each flow that needed it as not run, leaves the criterion it would have proven
    unticked, and records the waiver under the Reply's Pending debt; the close still happens.
-   Under `--auto` the developer handed that weighing over, so the question is not put to them: it
+   Under `--auto` the question is not put to the developer: it
    is a run question the `choice-taker` rules, per the Playbook's own Forks section outside the
    `ticket` Playbook. Read [run-questions.md](run-questions.md) when a `ticket` run under `--auto`
    meets it. Its `Options:` are
