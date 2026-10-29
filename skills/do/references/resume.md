@@ -217,11 +217,9 @@ and leaves the worktree as it is.
   and is never reviewed a second time. Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
 - A Spec amended while the Ticket is `claimed` is resumed the same way whoever amended it: `discuss`
   after a run stopped on an Extreme fork, or the
-  developer editing a Ruling line in the Spec's Implementation Decisions to reverse it. No
-  mechanism is added for either, and the rule does not fire on `verdict=land`: the review already
-  read the branch and it lands as the `verdict=land` bullet says, and a Ruling reversed after that
-  is built by a new Ticket, per
-  [ADR 0038](../../../docs/adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md).
+  developer editing a Ruling line in the Spec's Implementation Decisions to reverse it. The
+  rule does not fire on `verdict=land`: the branch lands as the `verdict=land` bullet says, and a
+  Ruling reversed after that is built by a new Ticket.
   On every other verdict the digest check prints `moved=spec` and `verdict=fork`, so the run
   prints the one line naming the Spec as changed, and the reader is forked again over the amended Spec and
   the journey both, never over the Spec alone. The list is re-derived from the Digest that comes back, every commit whose
