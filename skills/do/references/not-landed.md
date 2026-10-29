@@ -31,8 +31,7 @@ contested hunk takes the **Target** side and its **Incoming** side goes to the s
 the Loss ledger judged and the reapplies brought back, with no **Gate** of the run's own after the
 last of them. Each reapply goes through `check-reapply.sh` with its `replace` and `with`. Read
 [conflict-loop.md](conflict-loop.md) when the integration reaches a stop or brings a reapply back.
-On this integration that check is the only reading its `with` text gets, since no reviewer
-reads a commit made after the review: a block the script refuses writes nothing, is recorded
+and on this integration that check is the only reading its `with` text gets: a block the script refuses writes nothing, is recorded
 `none`, and is listed among this integration's drops, marked as coming after the review, as a line
 of the Reply's Pending debt with or without `--auto`, and in the Run report under `--auto`. The integration hands the branch straight to the fix call on the Review the run already
 has, as the paragraph below says for what the run commits after the review, never a second review:
