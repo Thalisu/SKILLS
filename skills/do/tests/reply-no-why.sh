@@ -52,6 +52,11 @@ absent "run-report.md keeps no why for the two Rulings groups" "and the develope
 absent "run-report.md keeps no why for the On the run group" "so this group is the one place the developer reads what was decided for them"
 absent "run-report.md keeps no why for a Design fork outside the chain" "since that run has no Spec"
 absent "run-report.md keeps no why for leaving unreached steps out of Skipped" "a step it never came to was never considered"
+absent "run-report.md keeps no why for taking the one candidate" "since there is nothing to choose"
+# The three clauses taken out state when a line applies, not why a rule exists.
+out="$(sed -e 's/since the worktree was gone//' -e 's/because `how` was not listed//' -e 's/because its Spec is an issue//' <<<"$out" |
+  grep -oiE '.{0,40}((^|[^<[:alnum:]_])since\b|\b(because|so that)\b).{0,40}')"
+same "run-report.md gives no because, so-that or since reason beside a rule" ""
 
 echo "# blocked-reply.md: instructions only, no ADR argument and no why beside a rule"
 # shellcheck disable=SC2034  # lib.sh's absent reads $out
