@@ -47,7 +47,7 @@ expect "forks.md's own body sends an unposted held Ruling to the Reply's Pending
 # The paragraph describing the brief the fork hands the choice-taker no longer claims the brief
 # hands over no path to the principles: the choice-taker holds no shell to evaluate a literal
 # expression, so the brief itself has to carry the path, filled by the caller.
-principles_para="$(paragraph_with "$forks" "decision the Spec already carries")"
+principles_para="$(paragraph_with "$forks" "\`Principles:\` is the absolute path")"
 expect "forks.md carries the paragraph describing the brief the fork hands the choice-taker" \
   test -n "$principles_para"
 out="$principles_para"
@@ -223,9 +223,12 @@ else
     "sidecar" ".extreme.md"
   carries_any "extreme-fork.md's Extreme fork section writes that sidecar beside a claimed Ticket under --auto" \
     "claimed"
-  carries_any "extreme-fork.md's Extreme fork section has the next /do read the recorded fork, never rule it a second time" \
-    "resume" "next \`/do\`" "rerun" "second time" "recorded" "typed again"
 fi
+# The --auto paragraph says the stop is the same as without the flag; the sidecar paragraph is where
+# the next /do on a claimed Ticket is held to the recorded command.
+sidecar_para="$(paragraph_with <(printf '%s\n' "$extreme_section") "\`discuss=\` lines" | tr -s ' ')"
+expect "extreme-fork.md's Extreme fork section has the next /do read the recorded fork, never rule it a second time" \
+  grep -qF "the resume stops on the recorded command and never judges the fork a second time" <<<"$sidecar_para"
 
 design_section="$(item_holding "$forks" '### ' "subagent_type: choice-taker")"
 expect "forks.md carries the section whose steps fork the choice-taker on a Design fork" test -n "$design_section"

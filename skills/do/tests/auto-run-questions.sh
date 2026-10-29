@@ -164,7 +164,7 @@ echo "# a question still asked under --auto: the choice-taker's return rides on 
 # a ruled question takes carry none of these phrases, so their `choice-taker` never answers here.
 section="$(passage_of "$questions" "# A run question under" "### ")"
 flat="$(for anchor in "cannot be undone" "leaves the machine" "irreversible" "remote tracker" \
-  "still asked" "still asks" "still put"; do
+  "still asked" "still asks" "still put" "return shows" "return is quoted"; do
   paragraph_with <(printf '%s\n' "$section") "$anchor" all
 done | awk '!seen[$0]++' | tr '\n' ' ' | tr -s ' ')"
 expect "run-questions.md's section on run questions covers the ones still asked under --auto" test -n "$flat"

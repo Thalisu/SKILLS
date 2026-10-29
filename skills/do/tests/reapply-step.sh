@@ -130,11 +130,10 @@ carries_any "the whole gate after the last reapply is run only before the first 
   "only before the first review call" "before the first review call" \
   "only before the review is called" "only where the review is called next"
 mapfile -t skipped < <(no_gate_phrasings)
-mapfile -t gated_by_the_call < <(fix_call_gates_phrasings)
 carries_any "a run whose next step is the fix call does not run that gate over the same tree" \
   "${skipped[@]}"
-carries_any "the gate is dropped there because the fix call gates that same tree itself" \
-  "${gated_by_the_call[@]}"
+carries "the gate is dropped only where the run's next step is the fix call on a Review it already has" \
+  "whose next step is the fix call on a Review it already has"
 
 flat="$(passage_of "$mech" "**A rebase that replays no commit.**" "**A rebase that replayed commits.**" | tr '\n' ' ' | tr -s ' ')"
 expect "mechanics.md carries the no-op state the ancestor check reaches" test -n "$flat"

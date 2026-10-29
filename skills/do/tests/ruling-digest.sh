@@ -44,12 +44,9 @@ carries_any "the rewritten lines come from the door's own reading of the amended
   "the door's own hashes" "the door's own reading" "the door's own hashing" "the door hashes" \
   "the door rehashes" "the door recomputes" "git hash-object" "hashed by the door"
 
-# The saving the rewrite buys is a reader on this Ticket's own next run, since a Digest is keyed by
-# its own Ticket's slug: a sibling Ticket's Digest still carries the old hash and re-forks a reader
-# regardless of whether this Ticket's `## Sources` lines were rewritten.
-carries_any "the saving is named as a reader on this Ticket's own next run" \
-  "this Ticket's own next run" "the Ticket's own next run" "its own next run" \
-  "a reader on the next run of this Ticket" "a reader on this Ticket's next run"
+# The rewrite reaches this Ticket's own Digest and no sibling Ticket's.
+carries_each "the rewrite touches this Ticket's Digest alone, never a sibling Ticket's" \
+  "this Ticket's Digest alone" -- "never a sibling Ticket's"
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
 out="$flat"
 check_absent "the passage no longer claims the saving reaches every sibling Ticket of the feature" \

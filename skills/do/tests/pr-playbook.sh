@@ -3075,10 +3075,10 @@ expect "a round whose head moved before the rerun says nothing was rerun and the
 # 0086): SKILL.md names it beside the one push, and reply.md keeps it off `outward` and off every
 # `Yours:` line, so no Reply hands the developer a rerun the run could make itself.
 echo "# SKILL.md / ## Non-negotiables and reply.md / **A push.**: the one rerun a check gets is named beside the one push, made by the run itself and never handed over"
-flat="$(flat_section "$skill" "## Non-negotiables" | sed 's/ - /\n- /g' | grep -F "0086" | tr '\n' ' ')"
-expect "a Non-negotiables bullet names ADR 0086's push" test -n "$flat"
-flat="$(sed 's/\. /.\n/g' <<<"$flat" | grep -F "0089" | tr '\n' ' ')"
-expect "and beside it, a sentence names ADR 0089" test -n "$flat"
+flat="$(flat_section "$skill" "## Non-negotiables" | sed 's/ - /\n- /g' | grep -F "The one push a run makes" | tr '\n' ' ')"
+expect "a Non-negotiables bullet names the run's one push" test -n "$flat"
+flat="$(sed 's/\. /.\n/g' <<<"$flat" | grep -F "The one rerun a check gets" | tr '\n' ' ')"
+expect "and beside it, a sentence names the one rerun a check gets" test -n "$flat"
 carries_each "the one rerun is gh run rerun --failed on the run of the pull request's head" \
   "gh run rerun --failed" -- "head"
 carries_each "after its fixer could not reproduce the check" \
