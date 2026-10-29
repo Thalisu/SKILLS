@@ -2,7 +2,7 @@
 
 How a `do` run carries one piece of work from a worktree it cuts to the developer's branch: the
 worktree, the protected branch, the Ticket file, the reader, the delegates, the gate, the
-integration, the review, the verification and the close. The `ticket`, `bug-fix` and `refactoring`
+integration, the review and the close. The `ticket`, `bug-fix` and `refactoring`
 Playbooks link the section a step needs from that step and never copy it.
 
 Every rule below guards against one of three errors:
@@ -36,7 +36,7 @@ carries the rule in full, with its exceptions.
   landing on the Spec branch).
 - Turn a red check green with a skipped test, a weakened assertion or a sleep, or work around an
   infrastructure failure: a red goes back to the build loop, and a blocked check stops the run,
-  waived only by the developer and recorded as debt (the gate, the verification).
+  waived only by the developer and recorded as debt (the gate, the verification in `verification.md`).
 - Count a check that ran before the last edit, or a timeout, as green (the gate).
 - Remove a worktree or a branch git refused to remove with `--force` or `-D` (the close).
 

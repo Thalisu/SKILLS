@@ -120,16 +120,23 @@ carries "mechanics.md points at verification.md when the run has an affected flo
 out="$flat"
 absent "mechanics.md no longer holds the verification" "## The verification"
 absent "mechanics.md no longer runs the affected flows itself" "scripts/flows.sh [--infra <pattern>]"
+absent "mechanics.md's opening no longer lists the verification among its topics" \
+  "the review, the verification and the close"
+absent "mechanics.md no longer names the verification as one of its sections" "(the gate, the verification)"
 for playbook in ticket.md bug-fix.md refactoring.md; do
   flat="$(tr '\n' ' ' <"$refs/$playbook" | tr -s ' ')"
   carries "$playbook's verification step points at verification.md" "Read [verification.md](verification.md) when "
 done
-for file in ticket.md bug-fix.md refactoring.md forks.md; do
+for file in ticket.md bug-fix.md refactoring.md refactoring-auto.md forks.md; do
   # shellcheck disable=SC2034  # lib.sh's absent reads $out
   out="$(tr '\n' ' ' <"$refs/$file" | tr -s ' ')"
   absent "$file no longer sends the verification to mechanics.md" "verification in [mechanics.md](mechanics.md)"
   absent "$file no longer names mechanics.md as the verification's home" "verification of [mechanics.md](mechanics.md)"
 done
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$refs/refactoring.md" | tr -s ' ')"
+absent "refactoring.md no longer counts the verification among the stops mechanics.md names" \
+  "names for the gate, the integration, the review, the verification"
 
 expect "verification.md exists" test -f "$refs/verification.md"
 flat="$({ tr '\n' ' ' <"$refs/verification.md"; } 2>/dev/null | tr -s ' ')"

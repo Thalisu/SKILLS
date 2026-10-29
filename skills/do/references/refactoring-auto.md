@@ -29,7 +29,7 @@ step 3's harness outside its bound, and step 13's full suite or remote run.
 |---|---|---|
 | 1 | one per home, each naming the home and what of the request fits there | the home the run would take, or `none` |
 | 3 | `yes: run <the harness's command line>` and `no: leave the behaviour undriven`, the command line with what it would touch in `Context:` | `none` |
-| 13 | the answers the verification in [mechanics.md](mechanics.md) offers | the step's own, or `none` |
+| 13 | the answers the verification in `verification.md` offers | the step's own, or `none` |
 | 2, 8 | the answers the step offers | `none` |
 
 ## A ruled question

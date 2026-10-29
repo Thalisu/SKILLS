@@ -56,7 +56,8 @@ The run stops, in one message or as blocked, in these places:
 - step 4 or step 6, on an Extreme fork or on a Design fork no `choice-taker` ruled, per
   [Forks](#forks);
 - steps 10 to 14, on the stops [mechanics.md](mechanics.md) names for the gate, the integration,
-  the review, the verification and the close.
+  the review and the close, and the ones `verification.md` names for the
+  verification.
 
 Everything else the run settles itself and carries on, in the same turn:
 
