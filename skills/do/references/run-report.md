@@ -190,20 +190,10 @@ Sketch lines; in
     the session reads no rule of which shape applies. On a feature of more than one repository,
     the lines `reply-lines.sh repositories` printed follow, from the same files.
 
-    Where the lines stand:
-    - `final`'s lines stand in the Run section. A `Final integration: stopped`,
-      `stopped again` or `not resumed` line is the blocker above the `Yours:` line, and the
-      `Yours:` line names the Spec branch and its worktree, both left in place, and that the claim
-      stays beside the Spec, yielded for the `do` that resumes it; on `not resumed` it quotes the
-      claim's `yield_command=` line whole.
-    - The `Push:` line and the lines `repositories` printed stand under `## Next step`, before its
-      last line.
-    - On a run that built no Ticket and took no claim, these lines are the whole message: the
-      first line, the lines `final` printed, then the lines `repositories` printed, with no other
-      part. That message carries no `Yours:` line, since there is nothing to choose, and no shell
-      line. Under `--auto` it is the same lines, with no `choice-taker` forked.
-    - On exit 3 the session copies nothing and reports the `failed <reason>` line as it reports
-      any script that failed.
+    `final`'s lines stand in the Run section. A `Final integration: stopped`, `stopped again` or
+    `not resumed` line is the blocker above the `Yours:` line. Where these lines stand in the message,
+    and the message of a run that built no Ticket and took no claim, are in
+    [Final integration lines](reply.md#final-integration-lines) of [reply.md](reply.md).
 31. **Watch lines.** In `pr`, the round: the verdict line the watch printed on each call, one per
     call in the order the watch printed them, each `verdict=pending` and then the `verdict=green`
     with its `checks=<n>`. They are the Run report's, never a part of the message.

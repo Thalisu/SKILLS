@@ -139,6 +139,26 @@ Three sections, in this order, each a part of the message.
     that pushed a round reports its push on For whom's round lines, never an `outward`
     hand-over.
 
+## Final integration lines
+
+The lines `bash <skill-dir>/scripts/reply-lines.sh final` and
+`bash <skill-dir>/scripts/reply-lines.sh repositories` printed, on a run that ran the Final
+integration or entered on the door's `verdict=resume-final`, are copied as they stand. The session
+composes none of them.
+
+- A `Final integration: stopped`, `stopped again` or `not resumed` line is the blocker above the
+  `Yours:` line. The `Yours:` line names the Spec branch and its worktree, both left in place, and
+  that the claim stays beside the Spec, yielded for the `do` that resumes it. On `not resumed` it
+  quotes the claim's `yield_command=` line whole.
+- The `Push:` line and the lines `repositories` printed stand under `## Next step`, before its last
+  line.
+- A run that built no Ticket and took no claim writes a message of the first line, the lines
+  `final` printed, then the lines `repositories` printed, and no other part. That message carries
+  no `Yours:` line and no shell line. Under `--auto` it is the same lines, with no `choice-taker`
+  forked.
+- On exit 3 the session copies nothing and reports the `failed <reason>` line as it reports any
+  script that failed.
+
 ## Whole replies
 
 <example>

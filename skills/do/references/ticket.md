@@ -111,7 +111,7 @@ the tracker file describes. Before anything is written:
   `bash <skill-dir>/scripts/reply-lines.sh final --door <state>/door --order <state>/order`
   printed, then the lines
   `bash <skill-dir>/scripts/reply-lines.sh repositories --door <state>/door --order <state>/order`
-  printed, both copied as they stand, per item 30 of [reply.md](reply.md). It carries no `Yours:`
+  printed, both copied as they stand, per [Final integration lines](reply.md#final-integration-lines) of [reply.md](reply.md). It carries no `Yours:`
   line and no shell line. Under `--auto` either stop is the
   same lines, with no `choice-taker` forked.
 - A Ticket whose Build repository cannot be built anywhere as it stands (`verdict=unbuildable`)
@@ -705,7 +705,7 @@ the landing on the Spec branch in [mechanics.md](mechanics.md):
 routed on its exit code and never on its prose. The Spec landing lines are the lines
 `bash <skill-dir>/scripts/reply-lines.sh landing --door <state>/door --land <state>/land --check <state>/check`
 prints once the close of step 9 saved the Completion check, run from the main checkout, without
-`--check` on a run that stopped here, copied as they stand, per item 29 of [reply.md](reply.md). The main checkout is the one the worktree was cut from, so
+`--check` on a run that stopped here, copied as they stand. Read [run-report.md](run-report.md) when the run is under `--auto`, for where the Spec landing lines stand, item 29 of its Run section. The main checkout is the one the worktree was cut from, so
 a Ticket run from its Build repository lands on that repository's Spec branch, and no ref of the
 Home repository moves.
 
@@ -831,8 +831,8 @@ Final integration stops: the claim is yielded there before the Reply, and the la
 again after the yield.
 
 The Reply's Final integration lines are printed from those files, never composed, and copied as
-they stand, per item 30 of [reply.md](reply.md). `<state>/review` is a file the run writes with
-the Integration line of item 27 and the Review return of item 28, as it recorded them. Each call
+they stand, per [Final integration lines](reply.md#final-integration-lines) of [reply.md](reply.md). `<state>/review` is a file the run writes with
+the Integration line and the Review return, as it recorded them. Each call
 hands over only the files this run saved, `--claim`, `--release` and `--yield` among them, and
 `--state <state>/state` on a run that entered on `verdict=resume-final`:
 
@@ -867,7 +867,7 @@ check's output when the run landed on a Spec branch, the blocked stop of step 7'
 did not, `outcome=final-landed` with `landing-order.sh`'s second read when its Final integration
 landed, `outcome=landing-wait` when its landing record read `wait`, and `outcome=claim-taken` or
 `outcome=final-stopped` when its claim read `taken` or its Final integration stopped. The Final
-integration lines above the Next step stay as [reply.md](reply.md) words them. Read
+integration lines above the Next step stay where [Final integration lines](reply.md#final-integration-lines) of [reply.md](reply.md) places them. Read
 [extreme-fork.md](extreme-fork.md) when the run stopped on an Extreme fork: it ends on
 `outcome=extreme-fork` with `playbook=ticket`. A run that stopped on a Design fork no
 `choice-taker` ruled ends on the `/discuss` command the unruled stop fixes, as its last line: Read

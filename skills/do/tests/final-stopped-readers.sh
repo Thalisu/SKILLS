@@ -170,9 +170,9 @@ flat="$(paragraph_with "$final_stopped" "resume that finishes" all | tr -s ' ')"
 expect "a resume that finishes sends its Reply to reply.md" grep -qE "$to_reply" <<<"$flat"
 
 echo "# reply.md, run-report.md and blocked-reply.md: every Reply line of a stopped Final integration stands there"
-item="$(item_holding <(passage_of "$run_report" "## Run" "## Sections") '[0-9]+\.' "**Final integration lines.**")"
+item="$(passage_of "$reply" "## Final integration lines" "## ")"
 flat="$(bullet_on "$item" "built no Ticket and took no claim")"
-expect "run-report.md's item 30 has a bullet for a run that built no Ticket and took no claim" test -n "$flat"
+expect "reply.md's Final integration lines has a bullet for a run that built no Ticket and took no claim" test -n "$flat"
 carries_each "that message carries no Yours: line and no shell line" \
   "no \`Yours:\` line" "no Yours: line" -- "no shell line"
 carries_each "under --auto that message is the same lines with no choice-taker forked" \

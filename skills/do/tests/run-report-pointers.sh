@@ -50,4 +50,31 @@ else
   fail "no step cites reply.md for a Run report rule (found: $(head -3 <<<"$cited" | cut -c1-160) ... $(wc -l <<<"$cited") in all)"
 fi
 
+echo "# ticket.md: no pointer names an item reply.md lacks, and the Final integration lines' message rules sit in reply.md"
+
+ticket="$skill_dir/references/ticket.md"
+reply="$skill_dir/references/reply.md"
+flat_ticket="$(tr '\n' ' ' <"$ticket" | tr -s ' ')"
+stale="$(grep -oE 'item [0-9]+ of \[reply\.md\]' <<<"$flat_ticket" | sort -u | tr '\n' ',')"
+if [ -z "$stale" ]; then
+  ok "ticket.md names no item of reply.md by number for a rule that moved to run-report.md"
+else
+  fail "ticket.md names no item of reply.md by number for a rule that moved to run-report.md (found: $stale)"
+fi
+stale="$(grep -oE 'Integration line of item [0-9]+|Review return of item [0-9]+' <<<"$flat_ticket" | sort -u | tr '\n' ',')"
+if [ -z "$stale" ]; then
+  ok "ticket.md cites no Run section item number of run-report.md for the review file"
+else
+  fail "ticket.md cites no Run section item number of run-report.md for the review file (found: $stale)"
+fi
+expect "reply.md has a Final integration lines section a run without --auto reads" \
+  grep -qx '## Final integration lines' "$reply"
+expect "ticket.md sends the Final integration lines to that section of reply.md" \
+  grep -qF 'reply.md#final-integration-lines' <<<"$flat_ticket"
+section="$(tr '\n' ' ' <<<"$(passage_of "$reply" '## Final integration lines' '## ')" | tr -s ' ')"
+expect "that section is found" grep -q "[a-z]" <<<"$section"
+flat="$section"
+carries "the section places the lines in the message: a run that built no Ticket, the Push: line and the repositories lines under Next step" \
+  "built no Ticket and took no claim" "\`Push:\`" "\`repositories\`" "## Next step" "Yours:"
+
 [ "$fails" = 0 ]
