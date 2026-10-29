@@ -9,7 +9,7 @@ on, and which way. Without the flag each is asked as its step says.
 
 | The question | Its step | Under `--auto` |
 |---|---|---|
-| whether a full suite or a remote run runs | 11, the verification in [verification.md](verification.md) | ruled by the `choice-taker` |
+| whether a full suite or a remote run runs | 11, the verification (Read [verification.md](verification.md) when the run has an affected flow) | ruled by the `choice-taker` |
 | whether uncommitted changes in the worktree are discarded | the resume | still asked, with the `choice-taker`'s return shown above it |
 
 ## A ruled question
