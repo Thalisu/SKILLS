@@ -255,7 +255,7 @@ Digest that comes back and continues at the first behaviour without a commit.
 
 ### A Ruling the developer reverses
 
-Once `discuss` amended the Spec, the resume re-forks the reader before it does.
+Once `discuss` amended the Spec, the resume re-forks the reader.
 Read [resume.md](resume.md) when the door prints verdict=resume on that Ticket: its amended-Spec bullet says how.
 
 A Ruling line is the Spec's, so the developer reverses one by editing it while the Ticket is
