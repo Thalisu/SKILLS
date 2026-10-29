@@ -52,8 +52,7 @@ and leaves the worktree as it is.
 - The worktree is entered, never created: a second worktree is never made.
 - An `extreme=` line means an earlier run stopped on an Extreme fork and left its sidecar. Read
   [extreme-fork.md](extreme-fork.md) when the script prints this line. It is read on
-  `verdict=extreme` and on `verdict=ask` alike, since
-  the script prints `ask` first and a Builder stopped mid-behaviour can leave uncommitted work. The
+  `verdict=extreme` and on `verdict=ask` alike. The
   door's Digest decision settles it before anything below runs, the `extreme=` value passed to the
   digest check as its fourth argument:
 

@@ -377,8 +377,7 @@ just as much at the Digest decision that reused a Digest and forked none, reache
 fork in
 the Plan rather than as a behaviour, and the session rules on it. A Design fork the Plan names, two
 shapes the Ticket, its Spec and the code cannot settle, is walked by the session and never the
-fork, since the Ruling is written to the Spec and the fork holds no tool that writes one: Read
-[forks.md](forks.md) when the Plan names one. A defect whose cause the
+fork. Read [forks.md](forks.md) when the Plan names one. A defect whose cause the
 Ticket does not name, the one step 0 wrote a defect line for reading `cause unknown, diagnosis
 first`, is diagnosed before the fork by the reproduce and cause steps of
 [bug-fix.md](bug-fix.md), steps 2 and 3 there: the defect reproduced on the matching surface, the
