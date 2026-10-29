@@ -16,11 +16,11 @@ Every rule below guards against one of three errors:
 A case no rule here names is judged by which of the three it risks.
 
 Read the section the step links whole, with the sections it points at. A part a step reads on its
-own is a file beside this one, so a step that reaches for it carries none of the rest. Read
+own is a file beside this one. Read
 [conflict-loop.md](conflict-loop.md) when the integration stops, for the conflict loop every stop
 runs. Read [build-loop.md](build-loop.md) when a step builds, for the loop and its test authors. Read
-[forks.md](forks.md) when a `ticket` run meets a fork: `bug-fix` and `refactoring` never read it,
-since each carries its own. [integrate.md](integrate.md) builds in no worktree and reads that last file alone.
+[forks.md](forks.md) when a `ticket` run meets a fork: `bug-fix` and `refactoring` never read it.
+[integrate.md](integrate.md) builds in no worktree and reads that last file alone.
 
 ## What no step does
 
@@ -112,11 +112,8 @@ Ticket of another repository as well.
 - The claim is the `**Status:**` line set to `claimed`, written after the grounding the run builds
   from is in hand and before the worktree exists, except on the `cause unknown, diagnosis first`
   branch of the `ticket` Playbook's Plan step, where the worktree already exists, cut for the
-  diagnosis before the Planner is even forked, so it exists before the claim too. The grounding is
-  the part of a run that refuses, so a claim written ahead of it leaves every refusal with a status
-  the developer resets by hand before the rerun. On that one branch the worktree and its branch
-  are the run's to undo instead: a refusal met there removes both before its Reply, as that Plan
-  step says, so the rerun meets no worktree-exists refusal at the door. On a remote tracker the
+  diagnosis before the Planner is even forked, so it exists before the claim too. On that one branch
+  a refusal removes the worktree and its branch before its Reply, as that Plan step says. On a remote tracker the
   claim is the issue assigned to the developer, the way the tracker file describes, made after the
   developer's yes to a question carrying the `Yours: outward:` line of [reply.md](reply.md), its
   choice that assignment. Under `--auto`, on a remote tracker that question is still asked of the
@@ -188,8 +185,7 @@ journey itself on a reader failure.
 The session writes the Digest itself, whole, at the path [digest.md](digest.md) fixes beside the
 Ticket in the Home repository's scratch: its `## Sources` lines from the door's own hashes first,
 then the text the reader returned. A `## Sources` section in the text the reader returned is
-dropped before the write, since a stranger's text can steer the reader into returning one of its
-own, and the run says so in one line, so the written Digest carries exactly one `## Sources`
+dropped before the write, and the run says so in one line, so the written Digest carries exactly one `## Sources`
 section, the door's own. A Digest already at that path is replaced whole and never edited, with one
 exception (Read [forks.md](forks.md) when a Ruling lands): the `## Sources` lines a `settled` Ruling that rewrote no Ticket
 criterion moves in place, the rest of the file left as it stands.
@@ -293,10 +289,7 @@ Every command of this step that can meet a conflict runs with git's conflict-res
 the rebase itself as `git -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/<the
 developer's branch>`, qualified so a tag sharing the branch's name can never shadow it, and the
 continue and the skip of the conflict loop with the same prefix (Read
-[conflict-loop.md](conflict-loop.md) when the rebase stops). The setting is
-the developer's own and may be on: then a resolution recorded at one stop is replayed into the next
-stop of the same shape, the class would be read from what the cache put back instead of from what
-git left, and the run's own resolutions would land in a cache that outlives it.
+[conflict-loop.md](conflict-loop.md) when the rebase stops).
 
 The step walks the states below, and the state it reached is recorded for the Run report's Run section
 as its integration line.
@@ -330,8 +323,7 @@ diff. The fixed point the review is called with is the commit it rebased onto, n
 worktree was created from.
 
 **A red gate after a rebase that replayed commits.** The run stops as blocked, the way a red gate
-after the review's fix run does and never back to the build loop: the replay brought in code the
-developer's branch carries, and a run that loops on it edits their work. The blocker lines carry
+after the review's fix run does and never back to the build loop. The blocker lines carry
 the failing check named, the command that undoes the rebase, `git reset --hard <the commit recorded
 before it started>`, the worktree and its branch left in place and named, the Ticket left
 `claimed`, nothing landed and nothing pushed.
@@ -492,11 +484,9 @@ reuse off, the conflict loop at every stop (Read [conflict-loop.md](conflict-loo
 rebase stops), a contested
 hunk taking the **Target** side, here the developer's branch's. The Loss ledger is the path the
 claim printed as `ledger=`, beside the Spec and named for this repository as the claim is, and
-never a Ticket's own ledger: a resume may come through any Ticket of the Spec built in this
-repository, and it must find the same file. The ledger is
+never a Ticket's own ledger. The ledger is
 judged and its reapplies brought back as the integration says. The judge's brief names the tree as
-the worktree root and the Spec (`spec=`) as the run's intent, since this ledger spans every Ticket
-of the Spec.
+the worktree root and the Spec (`spec=`) as the run's intent.
 
 **4. The Post-feature gate and the flows.** The gate above, in that tree, with the full suites
 `gate-suites.sh` prints with no argument added, after a rebase that replayed commits or brought a
