@@ -199,7 +199,8 @@ Sketch lines; in
       last line.
     - On a run that built no Ticket and took no claim, these lines are the whole message: the
       first line, the lines `final` printed, then the lines `repositories` printed, with no other
-      part.
+      part. That message carries no `Yours:` line, since there is nothing to choose, and no shell
+      line. Under `--auto` it is the same lines, with no `choice-taker` forked.
     - On exit 3 the session copies nothing and reports the `failed <reason>` line as it reports
       any script that failed.
 31. **Watch lines.** In `pr`, the round: the verdict line the watch printed on each call, one per

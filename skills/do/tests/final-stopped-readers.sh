@@ -147,8 +147,10 @@ carries_any "a resume that stops again yields as any stop does" "yields" "yield"
 echo "# final-stopped.md: the Reply of a stopped Final integration is read in the Reply references"
 reply="$do_dir/references/reply.md"
 blocked_reply="$do_dir/references/blocked-reply.md"
+run_report="$do_dir/references/run-report.md"
 to_blocked='Read \[blocked-reply\.md\]\(blocked-reply\.md\) when [^ ]'
 to_reply='Read \[reply\.md\]\(reply\.md\) when [^ ]'
+to_run_report='Read \[run-report\.md\]\(run-report\.md\) when [^ ]'
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
 out="$(tr '\n' ' ' <"$final_stopped" | tr -s ' ')"
 check_absent "final-stopped.md carries no Reply shape: no Yours: line, no shell line, no message, blocker or quote of its own" 0 0 \
@@ -160,17 +162,17 @@ flat="$(paragraph_with "$final_stopped" "stops again" all | tr -s ' ')"
 expect "a resume that stops again sends its Reply to blocked-reply.md" grep -qE "$to_blocked" <<<"$flat"
 step="$(item_holding "$final_stopped" "$step_marker" "landing-route.sh resume")"
 flat="$(paragraph_with /dev/stdin "out-of-order" all <<<"$step" | tr -s ' ')"
-expect "step 1's route=out-of-order stop sends its message to reply.md" grep -qE "$to_reply" <<<"$flat"
+expect "step 1's route=out-of-order stop sends its message to run-report.md" grep -qE "$to_run_report" <<<"$flat"
 step="$(item_holding "$final_stopped" "$step_marker" "final-claim.sh claim")"
 flat="$(bullet_on "$step" '`claim=taken`')"
 expect "step 2's claim=taken bullet sends its Reply to blocked-reply.md" grep -qE "$to_blocked" <<<"$flat"
 flat="$(paragraph_with "$final_stopped" "resume that finishes" all | tr -s ' ')"
 expect "a resume that finishes sends its Reply to reply.md" grep -qE "$to_reply" <<<"$flat"
 
-echo "# reply.md and blocked-reply.md: every Reply line of a stopped Final integration stands there"
-item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "**Final integration lines.**")"
+echo "# reply.md, run-report.md and blocked-reply.md: every Reply line of a stopped Final integration stands there"
+item="$(item_holding <(passage_of "$run_report" "## Run" "## Sections") '[0-9]+\.' "**Final integration lines.**")"
 flat="$(bullet_on "$item" "built no Ticket and took no claim")"
-expect "reply.md's item 30 has a bullet for a run that built no Ticket and took no claim" test -n "$flat"
+expect "run-report.md's item 30 has a bullet for a run that built no Ticket and took no claim" test -n "$flat"
 carries_each "that message carries no Yours: line and no shell line" \
   "no \`Yours:\` line" "no Yours: line" -- "no shell line"
 carries_each "under --auto that message is the same lines with no choice-taker forked" \
