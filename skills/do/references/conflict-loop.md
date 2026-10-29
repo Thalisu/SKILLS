@@ -14,14 +14,11 @@ That last step builds in no worktree, so it substitutes its own continue, abort,
 judge's brief for this file's, and runs no **Gate** after the reapplies.
 
 One reader reaches no stop at all and reads one state only: the no-op state of that same integration
-step, **A rebase that replays no commit.** of [mechanics.md](mechanics.md), where the ancestor
-check excused the rebase and the ledger still carries an entry judged `reapply` with no applied
-line. It reads **The reapplies brought back** below and nothing else here, since the hunks that
-entry came from were classed, resolved and judged at a stop of the run that wrote the ledger. It
-brings the entry back the way that state does, through `check-reapply.sh` and never around it: the
-block it applies is a judge's reading of a stranger's diff text like every other here, so the same
-check binds that block's `file`, its `blob` and its `with` back to the entry before the session
-writes anything.
+step, **A rebase that replays no commit.** of [mechanics.md](mechanics.md), where the ancestor check
+excused the rebase and the ledger still carries an entry judged `reapply` with no applied line. It
+reads **The reapplies brought back** below and nothing else here. It brings the entry back the way
+that state does, through `check-reapply.sh` and never around it: the check binds that block's
+`file`, its `blob` and its `with` back to the entry before the session writes anything.
 
 ## The conflict loop
 
@@ -39,45 +36,36 @@ as blocked. Between those two the run keeps going: a resolved stop, a judged led
 commit are each followed by the next command, never by a summary that closes the turn or a question
 to the developer.
 
-A blocked stop while the rebase is open always carries the same blocker lines above its `Yours:`
-line, so the states below name only the reason each one quotes: the rebase left open at that
-commit, the conflicting files named, `git rebase --abort` named as the command that undoes it, the
-worktree and its branch left in place and named, nothing landed and nothing pushed, and, at a
-`ticket` run's own integration step only, the Ticket left `claimed`: a `bug-fix` or `refactoring`
-run has no Ticket, and the Final integration's Ticket has already landed, its claim yielded as
-[mechanics.md](mechanics.md) says.
+A blocked stop while the rebase is open always carries these blocker lines above its `Yours:` line,
+and each state below names only the reason it quotes: the rebase left open at that commit, the
+conflicting files named, `git rebase --abort` named as the command that undoes it, the worktree and
+its branch left in place and named, nothing landed and nothing pushed, and, at a `ticket` run's own
+integration step only, the Ticket left `claimed`.
 
 **A rebase that stopped.** At every stop of the rebase, before it resolves, stages or writes
 anything, the run classes the conflicted hunks: `bash <skill-dir>/scripts/conflict-class.sh`. The
-script's verdict is the class, never the session's own reading of the markers, per
-[ADR 0028](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md).
-Its lines, one per conflicted hunk, are quoted in the Run report's Evidence, and the counts, how
-many hunks were resolved mechanically and how many took the **Target** side, go on the integration
-line of its Run section, both written under `--auto` alone.
+script's verdict is the class, never the session's own reading of the markers. Its lines, one per
+conflicted hunk, are quoted in the Run report's Evidence, and the counts, how many hunks were
+resolved mechanically and how many took the **Target** side, go on the integration line of its Run
+section, both written under `--auto` alone.
 
-A stop the script answers with `no conflicted state, nothing classed` is never continued unasked:
-the rebase stopped with nothing unmerged, so whatever is staged for that commit carries nobody's
-recorded answer. A run that opened the rebase itself meets that stop when git refuses a step no hunk
-carries, an untracked file the replay would overwrite for one, and a continue there meets the same
-refusal. The run stops as blocked with git's own message quoted as it printed it, the
-rebase left open at that commit and `git rebase --abort` named as its undo. A resumed run meets the
-same stop only after the mid-rebase bullet of resume.md continued on `resume-state.sh`'s
-`stop=resolved` or `stop=moved` line: on the answer to its question that says so, or on
-`moved=continue`, which puts no question.
+A stop the script answers with `no conflicted state, nothing classed` is never continued unasked. A
+run that opened the rebase itself meets that stop when git refuses a step no hunk carries, an
+untracked file the replay would overwrite for one. The run stops as blocked with git's own message
+quoted as it printed it, the rebase left open at that commit and `git rebase --abort` named as its
+undo. A resumed run meets the same stop only after the mid-rebase bullet of resume.md continued on
+`resume-state.sh`'s `stop=resolved` or `stop=moved` line: on the answer to its question that says
+so, or on `moved=continue`, which puts no question.
 
 Where every hunk of the stop is `mechanical`, the run resolves them itself and nothing is asked of
-the developer. The two blocks below run as they stand, with nothing pasted into them. A conflicted
-path is a name either side of the rebase chose, so it never enters a command line as text: pasted
-in, a single quote in it closes whatever quotes it sits in, and the `$(...)`, backtick, `;` or `|`
-after it runs as the run's own command. So the blocks read the list git left NUL-delimited,
-`git diff --name-only --diff-filter=U -z`, where a path carrying a space or a newline comes back as
-one entry and needs no unescaping, and each path reaches git through a shell variable, whose value
-is never evaluated again, or through `xargs -0`, which starts no shell.
+the developer. The two blocks below run as they stand, with nothing pasted into them: a conflicted
+path never enters a command line as text. The blocks read the list git left NUL-delimited,
+`git diff --name-only --diff-filter=U -z`, and each path reaches git through a shell variable or
+through `xargs -0`.
 
-The first block does two things in order. It stages every file the script printed `trusted`, one
-the developer resolved by hand and never staged, from the script's own read-only list of them, so
-git no longer lists it unmerged and nothing below rewrites it. Then it takes the three stages of
-every file still conflicted out of the index and writes their union:
+The first block does two things in order. It stages every file the script printed `trusted`, one the
+developer resolved by hand and never staged, from the script's own read-only list of them. Then it
+takes the three stages of every file still conflicted out of the index and writes their union:
 
 ```
 bash <skill-dir>/scripts/conflict-class.sh --trusted -z | GIT_LITERAL_PATHSPECS=1 xargs -0 -r git add --
@@ -90,11 +78,9 @@ done
 rm -rf "$stages"
 ```
 
-Stage 2 is the developer's branch and stage 3 the commit being replayed, so the union in that order
-keeps both sides with the developer's branch above the replayed commit's, which is the base order
-this step owes. The `--diff3` stays: without it git trims the lines both sides' additions share, so
-two functions appended at the same place keep one closing brace between them and the file no
-longer parses. Git writes the result and the session never edits a marker.
+The union keeps both sides, the developer's branch (stage 2) above the replayed commit's (stage 3).
+The `--diff3` stays, keeping the lines both sides' additions share. Git writes the result and the
+session never edits a marker.
 
 The second block reads every union back, as the next state says, and marks the files resolved only
 once the read-back returned:
@@ -105,54 +91,43 @@ git diff --name-only --diff-filter=U -z | bash <skill-dir>/scripts/last-wins.sh 
 ```
 
 Then the continue block, the one every stop of this step ends in, carries the rebase to the next
-commit, and every further stop is classed and resolved the same way. The Run report names every
-hunk it resolved with its file and location, and every `trusted` file as taken on trust, kept as
-the developer wrote it and out of the ledger. The first block staged that file before the read-back
-ran, so it is never among the paths the read-back is handed: a key the developer's own resolution
-defines twice is theirs, and nothing of this step rewrites it.
+commit, and every further stop is classed and resolved the same way. The Run report names every hunk
+it resolved with its file and location, and every `trusted` file as taken on trust, kept as the
+developer wrote it and out of the ledger. A `trusted` file is never among the paths the read-back is
+handed, and nothing of this step rewrites it.
 
-**A union that defines the same key twice.** A hunk classed `mechanical` says the two sides only
-added lines, never that the two additions mean the same thing. Where both sides added a definition
-of one key at the same anchor of a file whose reader takes the last definition it meets (JSON, YAML,
-TOML, an INI or a `.env` file), the union keeps both lines and the reader keeps one value: a `deny`
-list the developer's branch just added and an empty one from the replayed commit both land, and
-whatever reads the landed commit gets the empty one, a control of theirs undone with nothing asked.
-So the second block above reads every union back before it marks a file resolved, and the read-back
-is `last-wins.sh`'s and never the session's, for the reason the class itself is a script's, per
-[ADR 0028](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md).
+**A union that defines the same key twice.** Where both sides added a definition of one key at the
+same anchor of a file whose reader takes the last definition it meets (JSON, YAML, TOML, an INI or a
+`.env` file), the union keeps both lines. The second block above reads every union back before it
+marks a file resolved, and the read-back is `last-wins.sh`'s and never the session's.
 
 What the read-back does, by what it finds, with nobody asked anything in any of the four:
 
 - A key defined twice in one scope of one of those files: the file keeps the **Target**'s
   definition, and the **Incoming**'s is dropped from the file and goes to the **Loss ledger** as an
-  entry of its own, shaped `last-wins-duplicate` and keyed by the file and the key path, so a rerun
-  at the same stop rewrites it where it stands.
-- Two definitions written byte for byte alike: they come out as one with no entry, since the reader
-  loses nothing.
-- A key the base itself already defined twice: left as it stands, since it is older than the union.
+  entry of its own, shaped `last-wins-duplicate` and keyed by the file and the key path; a rerun at
+  the same stop rewrites it where it stands.
+- Two definitions written byte for byte alike: they come out as one with no entry.
+- A key the base itself already defined twice: left as it stands.
 - A file whose format the script does not know: left untouched.
 
 The script prints `kept <file> <key path>` and `deduped <file> <key path>`, then
-`read-back files=<n> kept=<n> deduped=<n>`, and those lines are quoted in the Run report's
-Evidence beside the hunks the union resolved. A read-back that exits non-zero, a refused ledger or a file it
-could not rewrite, leaves the staging beside it unrun, since the block runs that only on the
-read-back's success, and the continue then meets a stop git refuses, which the last state of this
-section handles.
+`read-back files=<n> kept=<n> deduped=<n>`, and those lines are quoted in the Run report's Evidence
+beside the hunks the union resolved. A read-back that exits non-zero, a refused ledger or a file it
+could not rewrite, leaves the staging beside it unrun, and the continue then meets a stop git
+refuses, which the last state of this section handles.
 
 **A stop carrying a contested hunk.** A hunk classed `contested` is resolved by a script to the
-**Target** side, and nobody is asked anything, per
-[ADR 0034](../../../docs/adr/0034-a-contested-hunk-takes-the-target-side-and-what-it-sets-aside-is-reapplied-after-the-integration.md):
-neither the developer nor the session writes a hunk of their own, and a headless run resolves the
-stop the same way. The two blocks above are the all-mechanical stop's alone and never run here,
-since their union takes every conflicted file, contested ones included. Here one call resolves the
-whole stop:
+**Target** side, and nobody is asked anything: neither the developer nor the session writes a hunk
+of their own, and a headless run resolves the stop the same way. The two blocks above are the
+all-mechanical stop's alone and never run here. Here one call resolves the whole stop:
 
 ```
 bash <skill-dir>/scripts/contested.sh "<the ledger>"
 ```
 
 The script takes the order, the class and the locations from `conflict-class.sh` and the sides from
-the index stages, so the session reads no marker here either. What it writes, by file:
+the index stages, and the session reads no marker here either. What it writes, by file:
 
 - A file whose hunks are all `mechanical`: written by the union rule.
 - A file carrying a `contested` hunk: written once from its three stages, its `mechanical` hunks by
@@ -168,15 +143,13 @@ Each file is staged and named on a `wrote`, `removed` or `trusted` line, and the
 The **Incoming** side of every `contested` hunk goes to the run's **Loss ledger**, whose shape
 [loss-ledger-format.md](../../../.agents/formats/loss-ledger-format.md) fixes, one entry per hunk
 keyed by its hunk id, written before any file of the stop: the file, the location, the shape, the
-replayed commit, the commit the branch was on before the rebase, the **Target** side quoted and
-the **Incoming** side whole. A file taken whole leaves one entry holding both sides whole, and a
-binary or too-large side is named by its size, its blob and the commit recorded before the rebase,
-from which the blob stays reachable. A rerun at the same stop rewrites each entry where it stands,
-so the ledger never holds a hunk twice.
+replayed commit, the commit the branch was on before the rebase, the **Target** side quoted and the
+**Incoming** side whole. A file taken whole leaves one entry holding both sides whole, and a binary
+or too-large side is named by its size, its blob and the commit recorded before the rebase, from
+which the blob stays reachable. A rerun at the same stop rewrites each entry where it stands.
 
 The ledger is one file per run, in the main checkout unless the Ticket lives in another repository,
-and its path is fixed before the rebase starts, since the branch the rebase replays is only on
-record while it runs:
+and its path is fixed before the rebase starts:
 
 - in `ticket`, beside the Ticket, the path the door printed as `ticket=` with `.ledger` before the
   extension, `01-x.ledger.md` beside `01-x.md`, which on a Ticket run from its Build repository is
@@ -211,38 +184,28 @@ here.
 Once the rebase finishes, the step is ticked with the totals across every stop, the mechanical and
 the contested hunks counted from each verdict line, and the ledger's location.
 
-**The Loss ledger judged.** Every entry the rebase left is judged before the gate runs again, so
-that what a contested hunk set aside is on record as kept or as let go, and never merely set aside.
+**The Loss ledger judged.** Every entry the rebase left is judged, kept or let go, before the gate
+runs again.
 
 Which entries are still waiting is the script's answer and never the session's own reading of the
-file, per
-[ADR 0028](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md):
-`bash <skill-dir>/scripts/ledger.sh pending "<the ledger>"` prints the id of each entry carrying no
-verdict, in file order. It reads a heading outside a fence only, so a `## <id>` line one of the
-sides quotes is that side's own text and never an entry of its own. No id at all is an empty
-ledger, a rebase that set nothing aside, or one whose entries an earlier run already judged: nothing
-is forked, no verdict is written and the step goes straight on, so a rebase with no `contested` hunk
-pays nothing for this state.
+file: `bash <skill-dir>/scripts/ledger.sh pending "<the ledger>"` prints the id of each entry
+carrying no verdict, in file order. It reads a heading outside a fence only: a `## <id>` line one of
+the sides quotes is never an entry of its own. No id at all is an empty ledger, a rebase that set
+nothing aside, or one whose entries an earlier run already judged: nothing is forked, no verdict is
+written and the step goes straight on.
 
 With at least one id, the run calls the Agent tool with `subagent_type: ledger-judge`, the agent
 `do` ships in [ledger-judge.md](../agents/ledger-judge.md), once per integration and never once per
-entry: one fork reads the whole ledger and the tree around it, where a fork per entry would pay for
-that reading again for every hunk, per
-[guard-the-context-window](../../../.agents/principles/guard-the-context-window.md). The brief
-carries four things:
+entry. The brief carries four things:
 
 - the ledger's location;
 - the worktree root, which is the Spec's tree (`tree=`) in the Final integration;
 - the ids `pending` named;
 - the run's intent, which is the Digest's location at a `ticket` run's own integration step, the
   request's line in `bug-fix`, `refactoring` and `integrate`, and the Spec's location (the `spec=`
-  line its claim printed) in the Final integration, whose ledger gathers what the Spec branch's
-  rebase set aside across every Ticket of the Spec, so no one Ticket's Digest covers it.
+  line its claim printed) in the Final integration.
 
-The fork holds reading and search alone, per
-[ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md), since
-a ledger entry is a side of a diff a stranger's commit may have written, and the session writes what
-it returns.
+The fork holds reading and search alone, and the session writes what it returns.
 
 It returns one block per entry: the id, `reapply` or `drop`, a one-line reason, and, on a
 `reapply`, the edit against the tree as it now stands, which the state below brings back. The
@@ -252,14 +215,10 @@ session writes each reading where the ledger keeps it, one block at a time:
    files, one line each.
 2. The run calls `bash <skill-dir>/scripts/ledger.sh verdict "<the ledger>" "<the entry dir>"`.
 
-The verb takes an entry directory, the shape `put` already takes, rather than loose arguments, so
-the judge's free-text reason never becomes a shell word a command could hide inside. `contested.sh`
-writes entries and this verb writes verdicts, so neither overwrites the other and a rerun at the
-same stop carries a verdict over. A resumed run judges only what `pending` named, so running twice
-leaves the same ledger. An id the judge names that `pending` did not, and an id that already
-carries a verdict, are both refused by the script with nothing written, and the run records the
-refusal rather than retrying it: a reading of an entry nobody set aside is not one the run asked
-for, and a second reading never writes over the first.
+The verb takes an entry directory, the shape `put` already takes, never loose arguments. A resumed
+run judges only what `pending` named. An id the judge names that `pending` did not, and an id that
+already carries a verdict, are both refused by the script with nothing written, and the run records
+the refusal rather than retrying it.
 
 No judge can be forked on two branches: the Agent tool is withheld from the session, or the Agent
 tool lists no `ledger-judge`, as it does on a machine that never linked the agent `do` ships. On
@@ -267,20 +226,14 @@ either branch the session judges the pending entries itself, reading each entry 
 names, and writes the same verdicts through the same verb. It says in one line which branch holds,
 the Agent tool withheld, or `ledger-judge` not listed, the agent this machine has not linked, which
 one run of the skills repository's `scripts/link-skills.sh` links before the next `/do`. The run
-neither stops nor asks for the agent, since the developer cannot hand one over mid-run and the
-ledger is what the run needs judged, not the window it was judged in. It never forks another agent
-in its place: a fork under any other name could still hold the write tools `ledger-judge`'s own
-definition denies it.
+neither stops nor asks for the agent, and never forks another agent in its place.
 
 **The reapplies brought back.** Every entry judged `reapply` comes back as one commit per `reapply`
-on top of the finished integration, in the order `pending` printed them, so each piece of work a
-contested hunk set aside is a diff the developer reads and reverts alone. No agent is forked and no
-test author is dispatched: the edit is work the branch already carried before the rebase, not a
-behaviour this run adds.
+on top of the finished integration, in the order `pending` printed them. No agent is forked and no
+test author is dispatched.
 
-The block the judge returned is a reading of a stranger's diff text, per ADR 0032, so a script binds
-it to its entry before the session writes anything from it, and none of its values ever sits inside
-a command line as text. For each entry, in order:
+A script binds the block the judge returned to its entry before the session writes anything from it,
+and none of its values ever sits inside a command line as text. For each entry, in order:
 
 1. **Write the block down.** Into a fresh directory, one line per file: the block's `id` and `file`
    and the entry's `reason` into its `id`, `file` and `reason` files; only on a block carrying
@@ -299,9 +252,9 @@ a command line as text. For each entry, in order:
    On any of those the run writes nothing from the block: the outcome is recorded `none`, the reason
    the script's, through the `ledger.sh applied` call of step 5, and the run goes on to the next
    entry rather than stopping over it. Exit 2 is a fault of the call rather than of the block (no
-   ledger at the path, no `realpath` on this machine, a block dir with no `id` or `file` file), so
-   the block was never checked: the run writes nothing from it either, and records it the same way,
-   `none` with the script's stderr line as the reason.
+   ledger at the path, no `realpath` on this machine, a block dir with no `id` or `file` file): the
+   run writes nothing from it either, and records it the same way, `none` with the script's stderr
+   line as the reason.
 3. **Apply the edit.** Only once the script exits 0 does the session apply the edit itself, from the
    block the judge returned, by what the block carries:
    - `replace` and `with`: the `replace` text swapped for the `with` text in the block's file;
@@ -309,21 +262,14 @@ a command line as text. For each entry, in order:
      `bash <skill-dir>/scripts/write-blob.sh <the file> <the sha>`;
    - `remove the file`: the file removed from the index and the worktree.
 
-   The whole-side write goes through the index rather than a redirect into the path, since the tree
-   may hold that path as a symlink the Target side left there: a redirect would follow it and land
-   the run's bytes outside the worktree while the symlink, and so the index, stayed unchanged,
-   leaving nothing to commit. `write-blob.sh` guards against that the same way `contested.sh`'s
-   `stage_file` guards a hunk taken whole, and the check of step 2 already bound the path it writes
-   to back to the entry, so a block that passed the check but still names a path outside the tree
-   cannot reach `write-blob.sh` at all.
+   The whole-side write goes through `write-blob.sh` and the index, never a redirect into the path.
 4. **Commit that file alone.** The block below runs as it stands, with `$dir` the block dir and
    nothing pasted into it, the way the all-mechanical state's blocks run. The file's path, the
-   entry's id and the judge's reason are read into shell variables: `git add -- "$file"` stages
-   only that file (`write-blob.sh` already staged and checked out the whole-side write the same
-   way), so nothing else rides along, and the message is written to a fresh file and committed with
-   `git commit -F`, never as the command-line string a `-m` flag would carry. Its title line reads
-   `reapply: <the file>` and its body names the entry's id, `Loss ledger entry <id>: <the reason>`,
-   so the ledger and the history point at each other:
+   entry's id and the judge's reason are read into shell variables: `git add -- "$file"` stages only
+   that file (`write-blob.sh` already staged and checked out the whole-side write the same way), and
+   the message is written to a fresh file and committed with `git commit -F`, never as the
+   command-line string a `-m` flag would carry. Its title line reads `reapply: <the file>` and its
+   body names the entry's id, `Loss ledger entry <id>: <the reason>`:
 
    ```
    file="$(cat "$dir/file")"
@@ -338,7 +284,7 @@ a command line as text. For each entry, in order:
 
    An edit whose `replace` text is no longer in the file, or that leaves the staged tree equal to
    `HEAD`, makes no commit: the entry did not come back, and the run goes on to the next one rather
-   than stopping over it, since the reapplies before it are already commits of their own.
+   than stopping over it.
 5. **Record the outcome.** The commit's full sha, or `none` when nothing came back (a refused check
    among the reasons `none` carries), and a one-line reason, the commit's title or what kept it
    out, go into a fresh directory's `id`, `commit` and `reason` files, one line each, and the run
@@ -348,37 +294,31 @@ a command line as text. For each entry, in order:
    rather than retrying it, the same way it records a refused verdict.
 
 Then the gate's command lines run again, only before the first review call: the whole **Gate** runs
-after the last reapplied commit, all of its checks, once, never between two reapply commits, so what
-came back is held to the same checks as everything else and the most expensive command of the run
-is paid once whatever the entry count. A run whose next step is the fix call on a Review it already
-has skips that **Gate**, per
-[ADR 0049](../../../docs/adr/0049-one-tree-is-gated-once-and-do-skips-the-gate-the-landing-call-runs.md):
-the fix call gates the same tree itself and refuses to land it red, so a **Gate** here would pay
-twice for one tree. A ledger with no entry judged `reapply` makes no commit, and, where the
-**Gate** runs at all, the same run of it follows the judging as after any replay.
+after the last reapplied commit, all of its checks, once, never between two reapply commits. A run
+whose next step is the fix call on a Review it already has skips that **Gate**. A ledger with no
+entry judged `reapply` makes no commit, and, where the **Gate** runs at all, the same run of it
+follows the judging as after any replay.
 
 The step is ticked with the totals, each reapplied commit and each dropped entry, a `reapply` whose
 applied line reads `none` among the dropped, and the ledger's location. The review is called only
 once that **Gate** is green, and the fix call on a run the review already read is made with no
 **Gate** of the run's own before it.
 
-A red **Gate** after the reapplied commits stops as blocked, never back to the build loop: the branch now holds the developer's code the replay brought in
-beside the work that came back, and a run that loops on it edits their work. The run never edits
-the branch's code to make the **Gate** pass, never reruns it and never reverts a reapply commit to
-chase green. The rebase has finished by then, so this blocker is its own and not the open-rebase
-one: it carries the failing check named off its red line, or the infrastructure cause on
-`verdict=blocked`, the ledger's location, since the ledger holds what came back and what did not,
-and the command that undoes the whole integration,
+A red **Gate** after the reapplied commits stops as blocked, never back to the build loop. The run
+never edits the branch's code to make the **Gate** pass, never reruns it and never reverts a reapply
+commit to chase green. The rebase has finished by then, so this blocker is its own and not the
+open-rebase one: it carries the failing check named off its red line, or the infrastructure cause on
+`verdict=blocked`, the ledger's location, and the command that undoes the whole integration,
 `git reset --hard <the commit recorded before it started>`. The worktree and its branch stay in
 place and are named, nothing lands and nothing is pushed, and at a `ticket` run's own integration
 step the Ticket stays `claimed`, the clause the open-rebase blocker lines carry and on the same
 terms.
 
 **A replayed commit that is empty after the resolution.** The developer's branch already carries
-that change, or the resolution took the **Target** side of every hunk the commit brought, so the
-continue has nothing left to apply. Git refuses an empty commit and leaves the rebase where it is,
-so the run never reaches that refusal: the block below is the continue every stop of this step ends
-in, and it reads the staged tree against `HEAD` first.
+that change, or the resolution took the **Target** side of every hunk the commit brought: the
+continue has nothing left to apply. The block below is the continue every stop of this step ends in,
+and it reads the staged tree against `HEAD` first, skipping an empty commit instead of continuing
+it.
 
 ```
 if git diff --cached --quiet HEAD; then
@@ -390,14 +330,10 @@ fi
 ```
 
 The commit it skips is named in the Run report off the `skipped <sha> <subject>` line the block
-printed,
-and the rebase carries on to the next commit, where the stop is classed and resolved like any
-other. Nothing of the run's work is lost without a trace: the change is either already on the
-branch it was going to land on, or it is the **Incoming** side of a `contested` hunk and the
-**Loss ledger** holds it whole.
+printed, and the rebase carries on to the next commit, where the stop is classed and resolved like
+any other.
 
 **Git refusing to continue for any other reason.** The run stops as blocked with git's own message
-quoted and the blocker lines the top of this section fixes: the rebase has not finished, so
-`git rebase --abort` is still there to take. The blocked stops carry two different undo commands,
-and each names its own: the abort while the rebase is open, the reset to the recorded commit once
-it has finished.
+quoted and the blocker lines the top of this section fixes, `git rebase --abort` named as its undo.
+The blocked stops carry two different undo commands, and each names its own: the abort while the
+rebase is open, the reset to the recorded commit once it has finished.

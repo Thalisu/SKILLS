@@ -138,4 +138,54 @@ out="$direction"
 check_absent "change-of-direction.md keeps none of the arguments it carried beside its rules" 0 0 \
   "Nothing has two sides for a \`choice-taker\` to rule between"
 
+echo "# references/conflict-loop.md: it carries instructions only, no ADR and no argument beside a rule"
+
+# A run that meets a conflicted hunk reads the file whole; it has no frontmatter, and its fenced
+# shell blocks stay in the text read.
+conflict="$(tr '\n' ' ' <"$here/../references/conflict-loop.md" | tr -s ' ')"
+out="$(grep -oE '.{0,40}(docs/adr/|\bADRs?\b).{0,40}' <<<"$conflict")"
+same "conflict-loop.md names no ADR and links nothing under docs/adr/" ""
+out="$(grep -oiE '.{0,40}(\b(because|so that|since)\b|, so (a|an|the)\b).{0,40}' <<<"$conflict")"
+same "conflict-loop.md gives no because, so-that, since or \", so a/an/the\" reason beside a rule" ""
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$conflict"
+check_absent "conflict-loop.md keeps none of the arguments it carried beside its rules" 0 0 \
+  "since the hunks that entry came from were classed" \
+  "a judge's reading of a stranger's diff text like every other here" \
+  "carries nobody's recorded answer" \
+  "a single quote in it closes whatever quotes it sits in" \
+  "whose value is never evaluated again" \
+  "which is the base order this step owes" \
+  "keep one closing brace between them" \
+  "a key the developer's own resolution defines twice is theirs" \
+  "never that the two additions mean the same thing" \
+  "a control of theirs undone with nothing asked" \
+  "for the reason the class itself is a script's" \
+  "since the reader loses nothing" \
+  "since it is older than the union" \
+  "since the block runs that only on the read-back's success" \
+  "since their union takes every conflicted file" \
+  "so the ledger never holds a hunk twice" \
+  "only on record while it runs" \
+  "never merely set aside" \
+  "pays nothing for this state" \
+  "where a fork per entry would pay for that reading again" \
+  "so no one Ticket's Digest covers it" \
+  "a side of a diff a stranger's commit may have written" \
+  "never becomes a shell word a command could hide inside" \
+  "a second reading never writes over the first" \
+  "since the developer cannot hand one over mid-run" \
+  "a fork under any other name could still hold the write tools" \
+  "a diff the developer reads and reverts alone" \
+  "not a behaviour this run adds" \
+  "a redirect would follow it" \
+  "so the ledger and the history point at each other" \
+  "since the reapplies before it are already commits of their own" \
+  "the most expensive command of the run is paid once" \
+  "would pay twice for one tree" \
+  "a run that loops on it edits their work" \
+  "since the ledger holds what came back and what did not" \
+  "so the run never reaches that refusal" \
+  "Nothing of the run's work is lost without a trace"
+
 exit $((fails > 0))
