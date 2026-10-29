@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # mechanics-no-why.sh: the shared mechanics every worktree Playbook loads (mechanics.md), and the
-# references cut from it (not-landed.md), carry instructions only. The why of a rule lives in the
-# ADRs alone (docs/adr/0113), so no ADR argument, no principle given as a reason, no history and no
-# rejected alternative is paid for on every run. One section per reference.
+# references cut from it (not-landed.md, verification.md), carry instructions only. The why of a
+# rule lives in the ADRs alone (docs/adr/0113), so no ADR argument, no principle given as a reason,
+# no history and no rejected alternative is paid for on every run. One section per reference.
 # Run: bash skills/do/tests/mechanics-no-why.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -10,6 +10,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 refs="$here/../references"
 mechanics="$refs/mechanics.md"
 not_landed="$here/../references/not-landed.md"
+verification="$refs/verification.md"
 fails=0
 
 echo "# mechanics.md: instructions only, no ADR argument and no why beside a rule"
@@ -87,5 +88,18 @@ absent "not-landed.md keeps no why for not running a second suite here" "so a se
 absent "not-landed.md keeps no why for another run's printed line" "since the session that printed it was another run's"
 absent "not-landed.md keeps no why for a fix call with no command= line" "which is what a fix call handed no \`command=\` line does"
 absent "not-landed.md keeps no why for code committed after the review" "since what the run committed after the review is code no reviewer read"
+
+echo "# verification.md: instructions only, no principle or ADR argument and no why beside a rule"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$verification" | tr -s ' ')"
+absent "verification.md argues from no ADR" "docs/adr/"
+absent "verification.md names no ADR as a rule's reason" "per [ADR"
+absent "verification.md names no plain ADR as a rule's reason" "per ADR"
+absent "verification.md gives no principle as a rule's reason" ".agents/principles/"
+absent "verification.md keeps no history of the work reaching the developer's branch" "the work is on the developer's branch now"
+absent "verification.md keeps no why for where a red flow is fixed" "since it is where a red flow is fixed"
+absent "verification.md keeps no why for the verification line" "so the verification is a line a reviewer reruns"
+absent "verification.md keeps no why for leaving the cost to the developer" "because its cost is the one thing only the developer can weigh"
+absent "verification.md keeps no why for the developer handing the weighing over" "the developer handed that weighing over"
 
 exit $((fails > 0))

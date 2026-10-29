@@ -7,27 +7,22 @@ extended, or an existing flow over a screen, a route or a message the diff chang
 `gate-suites.sh` prints `full_e2e=yes`. A run with neither reads `skip: no affected flow` with its
 reason and never opens it.
 
-Run from the main checkout after the landing, per
-[prove-it-works](../../../.agents/principles/prove-it-works.md): the work is on the developer's
-branch now, and Project facts may say the E2E stack serves the primary checkout. The commands run
-there, per [worktrees.md](../../../.agents/worktrees.md): git with `-C <the main checkout>`, the
-flows through their script, which runs them from the main checkout whichever tree it is called
-from, and any other command after a bare `cd` to it and a bare `cd` back to the worktree; the
-worktree stays, since it is where a red flow is fixed.
+Run from the main checkout after the landing. The commands run there, per
+[worktrees.md](../../../.agents/worktrees.md): git with `-C <the main checkout>`, the flows through
+their script, which runs them from the main checkout whichever tree it is called from, and any
+other command after a bare `cd` to it and a bare `cd` back to the worktree; the worktree stays, for
+the fix of a red flow.
 
 1. The affected flows are the flow the E2E step authored or extended and every existing flow over
    a screen, a route or a message the diff changed. They run from one script, with the single-flow
    command from the project's facts and one `--infra` pattern per known infra failure they name:
    `bash <skill-dir>/scripts/flows.sh [--infra <pattern>]... <single-flow command> <flow>...`,
-   its `command=` line printed first, so the verification is a line a reviewer reruns rather than
-   the run's account of it. Each flow prints in the gate's shape, keyed by the flow: one
+   its `command=` line printed first. Each flow prints in the gate's shape, keyed by the flow: one
    `<flow>=green` line, or its red or blocked line with its capped block and the file holding its
    full output. A change the E2E step called internal, with no user-observable surface, has no
    affected flow: the step reads `skip: no affected flow` with that reason.
 2. A full suite or a remote run waits for the developer's yes, the command line shown first.
-   The script asks nothing: this is the only question asked on this path, and the session puts it,
-   per [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md), because
-   its cost is the one thing only the developer can weigh.
+   The script asks nothing: this is the only question asked on this path, and the session puts it.
    A no records each flow that needed it as not run, leaves the criterion it would have proven
    unticked, and records the waiver under the Reply's Pending debt; the close still happens.
    Under `--auto` the developer handed that weighing over, so the question is not put to them: it
