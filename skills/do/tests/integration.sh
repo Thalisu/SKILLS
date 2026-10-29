@@ -503,6 +503,11 @@ run_check() { # $1 worktree, $2 target, $3 ledger: integration.sh check's output
   # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
   out="$(bash "$integrationsh" check "$1" "$2" "$3" 2>&1)" || rc=$?
 }
+run_settle() { # $1 worktree, $2 target, $3 ledger: integration.sh settle's output in $out, its exit in $rc
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+  out="$(bash "$integrationsh" settle "$1" "$2" "$3" 2>&1)" || rc=$?
+}
 run_held() { # $1 name: a main checkout whose main the run's worktree already holds, entered; the worktree in $wt
   fresh "$1"
   echo base >base.txt
@@ -572,6 +577,80 @@ LEDGER
   cd "$repo" || exit 1
 }
 a_branch_that_holds_its_target_with_nothing_owed_is_a_noop
+
+# A Ticket run from its Build repository keeps its ledger in the Home repository's scratch, outside
+# the worktree's own main checkout: the step still reads it, so it neither halts on a ledger nothing
+# owes nor skips a reapply the Home ledger owes.
+a_ticket_run_from_its_build_repository_reads_the_home_ledger() {
+  fresh ticket-home
+  echo home >home.txt
+  commit home
+  home="$PWD"
+  run_held ticket-build
+  run_check "$wt" main "$home/.scratch/run.ledger.md"
+  check_lines "a Build worktree holding its target with no Home ledger is a no-op" 0 "$rc" "verdict=noop"
+  absent "a Build worktree with no Home ledger owes no reapply" "owed="
+
+  mkdir -p "$home/.scratch"
+  cat >"$home/.scratch/run.ledger.md" <<'LEDGER'
+# Loss ledger
+
+## aaaaaaaaaaa1
+
+- file: dropped.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+- verdict: drop, already on the target
+
+### Target (kept)
+
+```
+kept
+```
+
+### Incoming (set aside)
+
+```
+set aside
+```
+LEDGER
+  run_check "$wt" main "$home/.scratch/run.ledger.md"
+  check_lines "a Build worktree holding its target whose Home ledger owes nothing is a no-op" 0 "$rc" "verdict=noop"
+  run_settle "$wt" main "$home/.scratch/run.ledger.md"
+  check_lines "a Build worktree whose Home ledger owes nothing settles" 0 "$rc" "verdict=settled"
+
+  cat >"$home/.scratch/run.ledger.md" <<'LEDGER'
+# Loss ledger
+
+## ccccccccccc3
+
+- file: owed.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 5555555555555555555555555555555555555555
+- before: 6666666666666666666666666666666666666666
+- verdict: reapply, the incoming fix is still needed
+
+### Target (kept)
+
+```
+kept
+```
+
+### Incoming (set aside)
+
+```
+set aside
+```
+LEDGER
+  run_check "$wt" main "$home/.scratch/run.ledger.md"
+  check_lines "a Build worktree holding its target brings back the reapply its Home ledger owes" 3 "$rc" \
+    "owed=ccccccccccc3" "verdict=reapply"
+  cd "$repo" || exit 1
+}
+a_ticket_run_from_its_build_repository_reads_the_home_ledger
 
 # A run resumed between two reapply commits holds its target already, and a no-op tick there would
 # lose the reapply the judge kept: each owed entry is named for the session to bring back.
@@ -695,11 +774,6 @@ a_tag_named_like_the_target_never_decides_the_integration
 
 # The review reads the diff since the fixed point settle prints, so it must be the commit the run's
 # own work sits on: never one that pulls the developer's commits into the diff, or leaves the run's out.
-run_settle() { # $1 worktree, $2 target, $3 ledger: integration.sh settle's output in $out, its exit in $rc
-  rc=0
-  # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
-  out="$(bash "$integrationsh" settle "$1" "$2" "$3" 2>&1)" || rc=$?
-}
 a_settled_integration_prints_the_commit_the_run_sits_on() {
   run_held settle-noop
   start="$(g rev-parse main)"

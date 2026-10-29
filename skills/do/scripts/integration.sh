@@ -82,10 +82,19 @@ if rebase_open; then
   exit 3
 fi
 
-# ledger.sh finds the main checkout from its working directory, so it is asked from inside the
-# worktree, whose common git directory is the main checkout's.
+# ledger.sh finds the main checkout from its working directory and accepts only a ledger under that
+# checkout's .scratch. It is asked from inside the repository holding the ledger: the worktree's own
+# unless the ledger sits in another one (a Ticket run from its Build repository keeps it in the Home
+# repository), found from the nearest directory of the ledger's path that exists. A path in no
+# repository falls back to the worktree, where ledger.sh refuses it.
+ledger_cwd() {
+  local d
+  d="$(dirname -- "$ledger")"
+  while [ "$d" != / ] && [ ! -d "$d" ]; do d="$(dirname -- "$d")"; done
+  if git -C "$d" rev-parse --git-common-dir >/dev/null 2>&1; then echo "$d"; else echo "$worktree"; fi
+}
 owed_ids() {
-  (cd "$worktree" && bash "$here/ledger.sh" owed "$ledger") || exit 2
+  (cd "$(ledger_cwd)" && bash "$here/ledger.sh" owed "$ledger") || exit 2
 }
 # Prints each owed entry and closes on $1 with exit $2 when the ledger owes one; returns otherwise.
 close_if_owed() {
