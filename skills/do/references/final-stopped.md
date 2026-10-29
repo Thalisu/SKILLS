@@ -68,8 +68,8 @@ of this project's facts and the Review at the `review_file=` path the claim prin
    nothing is written: no claim file under this repository's key, no `spec-<feature-slug>`
    worktree, no rebase, no review, no ref moved in any repository. Its message is printed by
    `bash <skill-dir>/scripts/reply-lines.sh final --door <state>/door --order <state>/order` and
-   `reply-lines.sh repositories` from the same two files. Read [run-report.md](run-report.md) when
-   the run stops on `route=out-of-order`, for that message, item 30 of its Run section.
+   `reply-lines.sh repositories` from the same two files. Read [reply.md](reply.md) when
+   the run stops on `route=out-of-order`, for that message, its section Final integration lines.
 2. **The claim.** `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path> | tee <state>/claim`, before
    anything is read from the tree.
    - `claim=claimed` with `takeover=yes`: the run that stopped yielded its claim and this run holds

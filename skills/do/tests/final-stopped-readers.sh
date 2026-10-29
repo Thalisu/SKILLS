@@ -147,10 +147,8 @@ carries_any "a resume that stops again yields as any stop does" "yields" "yield"
 echo "# final-stopped.md: the Reply of a stopped Final integration is read in the Reply references"
 reply="$do_dir/references/reply.md"
 blocked_reply="$do_dir/references/blocked-reply.md"
-run_report="$do_dir/references/run-report.md"
 to_blocked='Read \[blocked-reply\.md\]\(blocked-reply\.md\) when [^ ]'
 to_reply='Read \[reply\.md\]\(reply\.md\) when [^ ]'
-to_run_report='Read \[run-report\.md\]\(run-report\.md\) when [^ ]'
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
 out="$(tr '\n' ' ' <"$final_stopped" | tr -s ' ')"
 check_absent "final-stopped.md carries no Reply shape: no Yours: line, no shell line, no message, blocker or quote of its own" 0 0 \
@@ -162,7 +160,7 @@ flat="$(paragraph_with "$final_stopped" "stops again" all | tr -s ' ')"
 expect "a resume that stops again sends its Reply to blocked-reply.md" grep -qE "$to_blocked" <<<"$flat"
 step="$(item_holding "$final_stopped" "$step_marker" "landing-route.sh resume")"
 flat="$(paragraph_with /dev/stdin "out-of-order" all <<<"$step" | tr -s ' ')"
-expect "step 1's route=out-of-order stop sends its message to run-report.md" grep -qE "$to_run_report" <<<"$flat"
+expect "step 1's route=out-of-order stop sends its message to reply.md" grep -qE "$to_reply" <<<"$flat"
 step="$(item_holding "$final_stopped" "$step_marker" "final-claim.sh claim")"
 flat="$(bullet_on "$step" '`claim=taken`')"
 expect "step 2's claim=taken bullet sends its Reply to blocked-reply.md" grep -qE "$to_blocked" <<<"$flat"
