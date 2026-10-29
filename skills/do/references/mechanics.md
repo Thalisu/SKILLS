@@ -115,8 +115,9 @@ Ticket of another repository as well.
   diagnosis before the Planner is even forked, so it exists before the claim too. On that one branch
   a refusal removes the worktree and its branch before its Reply, as that Plan step says. On a remote tracker the
   claim is the issue assigned to the developer, the way the tracker file describes, made after the
-  developer's yes to a question carrying the `Yours: outward:` line of [reply.md](reply.md), its
-  choice that assignment. Under `--auto`, on a remote tracker that question is still asked of the
+  developer's yes to a question carrying the `Yours: outward:` line, its choice that assignment
+  (Read [blocked-reply.md](blocked-reply.md) when that question is asked before a write to a remote
+  tracker, for that line). Under `--auto`, on a remote tracker that question is still asked of the
   developer, with the `choice-taker`'s return shown above it, and the
   issue is assigned on their yes alone. Read [run-questions.md](run-questions.md) when a `ticket` run under `--auto` asks
   that question.
@@ -714,8 +715,9 @@ repository.
    the Run report lists it beside the Review under the files left uncommitted.
 4. On a remote tracker the run asks first, per the tracker file, in one question that lists every
    write the yes makes, in the order it makes them, from the run's own record, and carries the
-   `Yours: outward:` line of [reply.md](reply.md), its choice the yes that makes those writes or
-   the no that makes none:
+   `Yours: outward:` line, its choice the yes that makes those writes or the no that makes none
+   (Read [blocked-reply.md](blocked-reply.md) when that question is asked before a write to a remote
+   tracker, for that line):
    - for each held Ruling that rewrote a criterion, the Ticket issue's body edited, that
      criterion's `Criterion:` text replaced by its `Now reads:` text, its tick kept, every other
      criterion untouched;

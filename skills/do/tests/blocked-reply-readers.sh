@@ -85,4 +85,25 @@ expect "SKILL.md links blocked-reply.md in its references-list entry alone" test
 stale="$(grep -rnE 'blocked shape (of )?\[reply\.md\]' "$do_dir" --include='*.md' --exclude-dir=tests)"
 expect "no step still sends the blocked shape to reply.md" test -z "$stale"
 
+# The claim and the close on a remote tracker ask before writing there, and the `Yours: outward:`
+# line that question carries, with its class table and its tracker rule, lives in blocked-reply.md
+# alone: a step pointing at reply.md for it sends a run that ends well past the rule it needs.
+echo "# mechanics.md: the claim and the close on a remote tracker read blocked-reply.md before the write"
+mechanics="$here/../references/mechanics.md"
+claim="$(bullets_opening_on "$mechanics" "The claim is the")"
+close_item="$(item_holding <(passage_of "$mechanics" "## The close" "## ") '[0-9]+\.' "Yours: outward:" | tr '\n' ' ' | tr -s ' ')"
+for where in claim close; do
+  if [ "$where" = claim ]; then out="$claim"; else out="$close_item"; fi
+  expect "mechanics.md has the $where on a remote tracker" test -n "$out"
+  expect "the $where reads Read blocked-reply.md when a write to a remote tracker is asked" \
+    grep -qE 'Read \[blocked-reply\.md\]\(blocked-reply\.md\) when [^.]*remote tracker' <<<"$out"
+  absent "the $where no longer places the Yours: outward: line in reply.md" "line of [reply.md](reply.md)"
+done
+# The opening already names the close's `destroy` stop; with that reader set aside, the close
+# left in it is the one that asks before a write to a remote tracker.
+flat="$(awk '/^## /{exit} {print}' "$reference" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+flat="${flat//close\'s \`destroy\` stop/}"
+carries "the opening of blocked-reply.md names the claim and the close as readers, at a write to a remote tracker" \
+  "claim" "close" "write to a remote tracker"
+
 exit $((fails > 0))

@@ -2,8 +2,11 @@
 
 Read by the session writing the Reply of a `ticket`, `bug-fix`, `refactoring`, `trivial`, `pr` or
 `integrate` run, when the run ends blocked or refused: at a door's refusal, at the blocked step it
-stopped at, or at the close's `destroy` stop. It holds what that Reply carries in place of, or
-beside, the five parts of [reply.md](reply.md). A run that ends well never reads it.
+stopped at, or at the close's `destroy` stop. Also read, by the session at the claim and at the
+close of a run on a remote tracker, when it asks the question before a write to a remote tracker,
+for the `Yours: outward:` line that question carries. It holds what that Reply carries in place of,
+or beside, the five parts of [reply.md](reply.md). A run that ends well and writes to no remote
+tracker never reads it.
 
 ## A refusal or a blocked run
 
