@@ -33,3 +33,10 @@ no reviewer read. The verification runs from the main checkout after the landing
 stack serves the primary checkout; the worktree stays, since it is where a red flow is fixed. The
 flows script prints its `command=` line first, so the verification is a line a reviewer reruns
 rather than the run's account of it.
+
+Amended: per ADR 0113, the reasons `resume.md` gave beside the review on a resume live here. A
+Review with no `.review.marker` naming the same commit does not count, since nothing ties the file
+to a review the run's own review step ran, and only a finished review of this branch spares a second
+one. A run on `verdict=land` skips the Plan step and is never a second review, since its Review is
+the script's `review=` line. A resume whose worktree holds no branch leaves the worktree as it is,
+since no branch can be read from it to build on.

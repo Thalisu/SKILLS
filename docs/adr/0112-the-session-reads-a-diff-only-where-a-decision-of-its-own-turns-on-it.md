@@ -20,3 +20,7 @@ before the review.
   spent on a summary the review makes redundant.
 - A read-only fork that summarises the diff: its summary is a delegate's claim again, the thing the
   rule exists to refuse.
+
+Amended: per ADR 0113, the reason `ticket.md` gave beside the diff step lives here: the Builder's
+return names what it built and never what the files now hold, so the diff step is the one place the
+run sees the work it is about to gate.

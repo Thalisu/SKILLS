@@ -61,3 +61,35 @@ hook refuses a write over a Plan already there; and a Plan is replaced whole and
 the fork that writes it holds one path and there is no second writer to merge with. The Plan's path
 is the Home repository's, since a run inside a worktree has no scratch of its own
 (`.agents/scratch.md`).
+
+Amended: per ADR 0113, the reasons `ticket.md` and `stand-in.md` gave beside the Planner's and the
+Builder's steps live here. The reading that grounds the Ticket happens in the Planner's window, per
+guard-the-context-window, so the session opens no `CONTEXT.md`, ADR or source file of its own. The
+Plan step comes before the claim and the worktree because it is the step that refuses. The Planner's
+key is the main checkout, since the worktree the build runs in does not exist yet and the fork
+grounds against HEAD, which is what step 2 cuts the worktree from. The Plan's path ends in
+`.plan.md`, which is what the Planner's own hook lets its one write through on. The guard probe is
+taken once, before the run's first fork of either agent, since a harness does not change within a
+session and a resume is a new session that takes it again; it is never taken on a run that forks
+neither agent, since no pattern guard can hold where no agent runs, and either verdict lets the run
+go on, since the verdict only says which mechanism held. The brief's keys are read from `plan.md`
+and never copied into `ticket.md`, since a copy drifts from the brief the fork is actually handed. A
+held Ruling's `Now reads:` pair reaches the Planner through its `Rulings:` key, since the Digest
+carries no Implementation Decisions section and the fork opens no Spec, and a Design fork is walked
+by the session and never the fork, since the Ruling is written to the Spec and the fork holds no
+tool that writes one. A defect whose cause is unknown is diagnosed by the session before the Planner
+is forked, since the diagnosis needs a running program and the fork holds no tool that runs one, and
+in step 2's worktree, since it instruments files to get its runtime evidence and the developer's
+checkout is not the place for that. A session standing in for the Planner asks for neither the tool
+nor the agent, since the developer cannot hand one over mid-run and the grounding is what the run
+needs, not the window it was read in, and it forks no other agent in the Planner's place, since a
+fork under any other name could still write where `do-planner`'s own definition binds it not to. A
+return that names no Plan hands the session nothing to check, and a return naming a path other than
+the destination is refused, since the run named that destination itself and every step below the
+grounding opens it, so a Plan the fork wrote elsewhere is one the build never sees. The Map is never
+handed to the review, since each reviewer builds its own map after the diff, and the context figure
+is the session's to take, since no fork can read this session's figure from inside its own window.
+The Builder's return is checked against the branch under the slug step 2 cut, since a probe that
+refused to read the branch would drop every `built` return an issue-backed run ever made. On a run
+whose Plan step recorded `Planner/Builder: none`, the session standing in for the Builder adds no
+second line, since that one line already said the session did the Builder's work too.

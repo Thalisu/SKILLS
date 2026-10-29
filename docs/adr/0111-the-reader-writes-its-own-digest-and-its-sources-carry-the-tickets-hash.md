@@ -20,3 +20,7 @@ header check, and a path hook in the reader's frontmatter stays as the best-effo
   impeccable Front-end ticket forks no Planner and still reads the Digest, and a Ruling that rewrites
   a criterion re-forks the reader alone, so both would need a reader of their own anyway, and the
   Planner's window, the one a Ticket is sized by (ADR 0016), would take the documents whole.
+
+Amended: per ADR 0113, the reason `resume.md` gave beside the reader's fork on a resume lives here:
+it reads the Spec and the journey both, since a Digest read over the Spec alone would come back with
+no Journey Path for the Plan step to read.

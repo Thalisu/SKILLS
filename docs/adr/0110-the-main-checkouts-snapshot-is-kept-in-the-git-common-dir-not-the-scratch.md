@@ -15,3 +15,7 @@ common dir anywhere but the hooks and the config it reads itself.
 - Append the `.scratch/` line in the main checkout right before the snapshot: a write to the
   developer's `.gitignore` in a repository that otherwise gets none of the feature's record, and one
   more way to stop the run, a `.gitignore` that is a symlink.
+
+Amended: per ADR 0113, the reason `impeccable.md` gave beside the state file's place lives here: no
+`git status` reports a path under the git common dir, so the state file needs no `.scratch/` ignore
+line, which a Ticket run from its Build repository under `Loop: policy` never writes there.

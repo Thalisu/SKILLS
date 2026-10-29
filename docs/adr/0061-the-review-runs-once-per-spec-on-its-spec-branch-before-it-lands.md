@@ -43,3 +43,17 @@ names a Review the branch lands through the fix call, since the rebase came afte
 the close, `resolved` is written before the Completion check runs: a run that wrote `resolved` first
 is counted by every check that runs after it, so the last of two concurrent runs always sees every
 Ticket resolved.
+
+Amended: per ADR 0113, the reasons `ticket.md` gave beside the review token's revokes live here. The
+token is revoked before the Builder's fork, since the Builder is the one agent the build step forks
+that holds a shell in the worktree: a token still on disk while it builds is a value it could copy
+into a marker of its own, and the run after this one would land a branch no reviewer read. Storing
+the token out of the worktree is not the guarantee on its own: the window is. A Ticket of a Spec
+revokes the Spec's token as well, since a Ticket built and landed after the Spec's Review would
+leave that Review counting, and a resume would land the Ticket's commits with no reviewer having
+read them. The revoke as soon as the Builder returns closes the window on `built`, `fork`, `stopped`
+and a refused return alike, since none of those routes is decided until it has run: a Builder that
+ends the run on a `stopped:` reason the session cannot clear, before the review step mints a fresh
+token, is the one case the revoke taken before the fork could not close. The guard probe's
+`header-only` verdict leaves the `## Sources` check as the whole guard over the fork itself and this
+revoke as the guard over its return.

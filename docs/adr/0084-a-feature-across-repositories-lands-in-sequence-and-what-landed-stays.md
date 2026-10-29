@@ -28,3 +28,9 @@ the next repository to land. A stop moves no ref in a repository that landed bef
 nothing and removes nothing, since what landed was reviewed and is already the developer's to push.
 The landing command of a later repository runs a first Final integration there, since nothing
 stopped in that repository: its Final integration never started.
+
+Amended: per ADR 0113, the reasons `final-stopped.md` gave beside what a stopped Final integration
+leaves landed live here. What landed before the stop stays landed, with no ref moved, nothing
+reverted and nothing removed, since it was reviewed and is already the developer's to push. The run
+reads the landing record once more after the yield so that a partial landing is never silent. A
+repository whose Final integration never started has nothing stopped in it.

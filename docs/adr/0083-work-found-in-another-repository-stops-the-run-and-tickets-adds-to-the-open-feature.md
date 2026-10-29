@@ -23,3 +23,7 @@ by hand. The stopped **Ticket** is resumed by a new `do`.
 `tickets` no longer stops on every feature that already has open **Tickets**: it stops when the
 **Spec** holds nothing they leave uncovered. `discuss` stays the way back when the finding changes
 the feature's direction rather than where a piece of it is built.
+
+Amended: per ADR 0113, the reason `resume.md` gave beside a Plan written anew lives here: a Ticket
+an earlier run stopped on mid-build for work in another repository has a new hash once its new
+blocker is `resolved`, since `tickets` moved a criterion out of it.

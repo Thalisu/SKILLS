@@ -18,3 +18,16 @@ The loop's cost grows with the number of runs landing at once: each lost race re
 integration and its **Gate**. Whether an attempt met a new tip is git's verdict, never the
 session's reading: the integration's own ancestor check, whose no-op after a
 `not landed: target moved` is the failure against a tip already met.
+
+Amended: per ADR 0113, the reasons `resume.md` gave beside a resumed rebase live here. The run asks
+before discarding uncommitted changes in the worktree, since the discard is the one irreversible act
+on that path. A rebase stopped with no conflicted file is asked about, since what is staged for the
+commit it stopped at was staged with nobody's answer recorded and is not the run's to land. A branch
+finished behind the tip it stopped onto could not land by fast-forward. When the developer's branch
+only moved forward, as it does when another run landed while this one was cut short, the run
+continues without asking, since it lands again nothing the branch no longer holds and keeps the hand
+resolution the stop holds, which an abort would throw away. On `moved=ask` a continue would land
+again commits the developer removed, which cannot be undone once landed, and the landing takes them
+with no second review, so the question names every one of them. Under `--auto` that question is
+still asked, since an abort drops work and a continue lands again what cannot be undone, so neither
+is taken on a Ruling.

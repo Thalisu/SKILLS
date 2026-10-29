@@ -19,3 +19,9 @@ that does not depend on it, under `--auto` as without the flag, since it offers 
 Amended: per ADR 0113, the reason `skills/do/SKILL.md` gave beside its question classification
 lives here: of the calls, only a product or preference call goes to the human, since those are the
 answers the run cannot produce itself.
+
+Amended: per ADR 0113, the reasons `ticket.md` gave beside the verification ask live here. The ask
+is a place a turn ends, since everything the run has left, from the integration on, depends on it.
+Under `--auto` it is asked in the same words with no `choice-taker` forked, since it asks for an
+observation only the developer can make and offers no options. A defect not observed fixed leaves
+the Ticket `claimed`, since a defect nobody has observed fixed is never called fixed.

@@ -43,3 +43,7 @@ write a line that reads like an order. A second failed dispatch on one edit has 
 it, since two windows spent on one edit are the evidence that a third would fail the same way.
 Before the Implementer, the Builder wrote every production edit itself, which is what it still does
 when `do-implementer` cannot be dispatched.
+
+Amended: per ADR 0113, the reason `ticket.md` gave beside the Builder's `fallback:` line lives here:
+the line is copied into the Run report unchanged, since it is how the Run report says the Builder
+wrote the code itself because no Implementer could be dispatched.

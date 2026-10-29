@@ -17,3 +17,10 @@ last sentence holds for a run stopped before its close.
   matched the Spec when it landed is a changed decision, not a defect.
 - A delta door in `tickets` past its stop on a feature that has Tickets: `.scratch/` is unversioned,
   so no history shows which line changed, and the developer would name the line anyway.
+
+Amended: per ADR 0113, the reasons `ticket.md` and `resume.md` gave beside this rule live here.
+Under `--auto` the Door's stop on a landed Ticket whose Ruling was reversed is the same one line,
+with no `choice-taker` forked: a Ticket's status is read, never asked, so the flag has no question
+to hand over, and a flag that rebuilt what landed would route around this ADR. A resume adds no
+mechanism for a Ruling the developer reversed in the Spec, and the rule does not fire on
+`verdict=land`, since the review already read the branch.

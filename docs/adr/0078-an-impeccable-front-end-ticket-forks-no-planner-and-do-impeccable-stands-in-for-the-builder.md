@@ -46,3 +46,31 @@ forks; and a changed checkout is left as it is, since which of its files belong 
 developer's to say. The Run section carries no Plan line, since no Planner ran and no Plan was
 written, and each `finding:` line is listed under Pending debt, so a finding counted under Evidence
 is always named.
+
+Amended: per ADR 0113, the reasons `impeccable.md` gave beside its rules live here. The stop on an
+unlisted impeccable skill is the session's to make, since the skill listing is the session's and
+never a file's: a skill installed on disk that the session did not load is not listed, and
+impeccable could not run in it. The run never falls back to the Builder, at the Door or at the build
+step, since the Spec's line is the developer's choice of who builds the screen and only the
+developer changes it, and a screen built by `do-builder` under `Front-end: impeccable` is one nobody
+chose; so the stop carries `Yours: direction:`. No Planner is forked and the session grounds nothing
+in its place, since impeccable builds from the acceptance criteria and reads no Plan, so a Plan here
+is a fork paid for and never opened. The brief has no key for the return and carries no rule: no
+return file is written, the main checkout least of all, and the standing rules live in the
+definition, where a brief composed on one run cannot drop one; its keys are written in one place,
+the rule `builder.md` holds for the Builder's own. The revokes and the guard probe run around this
+fork, since `do-impeccable` holds a shell in the worktree as the Builder does. The main checkout is
+read twice by script around the fork, since the fork's write guard matches text and a builder that
+ignored its worktree leaves files in the developer's checkout that no commit carries, and every fork
+gets a snapshot of its own, since the developer may have worked in the checkout between two forks. A
+changed checkout is left as it is, since which of its files belong to the screen is the developer's
+to say. A spent time budget is cleared as for a Builder, since the fork asks the same command after
+each criterion's commit, and its stop after the last criterion is never `built`, since the flows and
+the scan are still ahead. The Run section carries no Plan line, since no Planner ran and no Plan was
+written, so there is neither a location nor a Planner's fallback to name, and the Behaviours list is
+the acceptance criteria, since the run built from no Plan. A `no scan:` line comes back when the
+skill has no detector for the project's platform or the detector crashed. Each `finding:` line is
+listed under Pending debt, so a finding counted under Evidence is always named. A `build:` line
+names `impeccable`, since no test is written ahead of the screen. The definition carries the
+return's shape itself, since the fork never opens `impeccable.md` and reads `builder.md` for its
+flows alone.

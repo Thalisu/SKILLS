@@ -43,3 +43,9 @@ sidecar, since nothing about the fork says a human must rule on it, so the next 
 fork again and forks the `choice-taker` once one can be, rather than stopping on a recorded
 command. A change of direction is no fork, since nothing has two sides for a `choice-taker` to rule
 between.
+
+Amended: per ADR 0113, the reasons `resume.md` gave beside a Design fork met again on a resume live
+here. The fork's reference is read on `verdict=extreme` and on `verdict=ask` alike, since the script
+prints `ask` first and a Builder stopped mid-behaviour can leave uncommitted work. A fork met again
+forks no second `choice-taker`, since judging the fork a second time could read it the other way,
+and asks nothing about uncommitted work, since a stopped run discards none.

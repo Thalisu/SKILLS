@@ -33,3 +33,11 @@ later run resumes from, and the yield leaves the claim file as it was written, s
 keeps a first run out while a resume can take it over. A resume claims before it reads anything from
 the tree, so two resumes never both walk it, and a claim nobody yielded stops it, since its holder
 is either still integrating or died without yielding and the script cannot tell which.
+
+Amended: per ADR 0113, the reasons `final-stopped.md` gave beside the claim of a stopped Final
+integration live here. The tree, the Spec branch and the claim file stay in place, since they are
+what a later run resumes from. The yield marks the claim as given up and leaves the claim file as it
+was written, so the claim still keeps a first run out while a resume can take it over, and a resume
+that stops yields as well, so the next `/do` can take it over. A claim held by a run that died
+without yielding looks the same as a live one, and the script cannot tell which, so the run stops in
+one line.

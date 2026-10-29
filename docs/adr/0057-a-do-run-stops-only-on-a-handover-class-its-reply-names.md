@@ -39,3 +39,24 @@ Review its own review wrote. The run removes the worktree and the branch it crea
 branch's delete is safe once it landed, since git measures it against the branch's upstream. A
 remove or a delete git refused is never retried with `--force` or `-D`, since what git refused on is
 not the run's to throw away, so the Reply hands it over under `destroy`.
+
+Amended: per ADR 0113, the reasons the Door of `ticket.md` gave beside its refusals live here. A
+Ticket refused before the run is cleared to build it writes nothing and forks nothing, since the run
+has not been cleared to build it yet. A blocker's status is read off its one `**Status:**` line and
+never its body: one word settles whether the run may start, and a blocker read whole is a second
+Ticket in the window before the run is cleared to build the first. The format writes that line once,
+the third of the four bold lines under the title, so one match is the status and two or more are
+ambiguous: a blocker's body may be copied from a Spec or an issue a stranger appended to, and a line
+planted at column 0 above the format's own would otherwise be the word the gate clears the run on. A
+status, a kind or a builder line a stranger could have planted is never read as the developer's, and
+the kind and the builder decide who builds the Ticket, so those stops carry `Yours: trust:`. A stop
+chosen by `build_check=` names the one input that is wrong, so the developer fixes it instead of
+reading a git error, and it hands over no command, since the fix comes before any run, and no
+`Yours:` line, since there is nothing to choose. A run stopped mid-build for work in another
+repository meets the blocker stop too, since `tickets` adds a blocker to an open Ticket. The build
+order and the branch a Spec integrates into are the developer's call, so those stops carry
+`Yours: direction:`. A worktree no claim records is never removed, since another run may still be
+writing in it. A refusal at the Plan step leaves the Ticket at the status the door found and no
+`do/<slug>` branch anywhere, so a grounding the run will not build on costs the developer a rerun
+and nothing to undo by hand, and the diagnosis branch keeps that promise by undoing the worktree it
+cut.
