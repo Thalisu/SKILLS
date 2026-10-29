@@ -136,6 +136,7 @@ absent "builder.md keeps no why for putting the offending paths back" "Without t
 absent "builder.md keeps no why for no third dispatch" "two windows spent on one edit are the evidence"
 absent "builder.md keeps no history of the Implementer fallback" "as the loop did before the Implementer"
 absent "builder.md keeps no why for the Bash hook" "since the Spec it reads is text a stranger can append to"
+absent "builder.md keeps no why for the ban on a wait loop of its own" "a poll whose condition never holds keeps running there"
 
 echo "# impeccable.md: instructions only, no ADR argument, no history and no why beside a rule"
 impeccable_ref="$refs/impeccable.md"

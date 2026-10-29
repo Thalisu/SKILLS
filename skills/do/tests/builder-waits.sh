@@ -29,7 +29,7 @@ carries_any "the Implementer's dispatch sets the Agent tool's run_in_background:
 
 # The ban may sit in either file the Builder follows, so the passage is the paragraph naming a loop
 # of the Builder's own, the one that also names the timeout when several do.
-echo "# builder.md / build-loop.md: the Builder never waits with a loop of its own, since the Bash timeout moves the call to the background"
+echo "# builder.md / build-loop.md: the Builder never waits with a loop of its own, and every call it waits on comes back inside the Bash timeout"
 mapfile -t loop_terms < <(own_loop_phrasings)
 paras="$(
   for term in "${loop_terms[@]}"; do
@@ -44,10 +44,10 @@ subject_denies "it forbids the Builder a wait loop or a poll of its own" "Builde
 carries_each "the ban covers a dispatch and a slow command alike" \
   "dispatch" "agent" "Agent" -- \
   "command" "shell call" "Bash call"
-carries_each "it ties the ban to the Bash tool's timeout moving the call to the background" \
+carries_each "it bounds every call the Builder waits on inside the Bash tool's timeout" \
   "Bash" -- \
   "timeout" "time out" "times out" -- \
-  "to the background" "into the background" "backgrounds it" "backgrounded"
+  "inside the" "within the" "under the" "below the"
 
 # The paragraph also names `600000` for a test or a suite, so the wait call's own timeout is proven
 # over the sentences carrying that number, one of which has to be about the wait.

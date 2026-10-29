@@ -300,7 +300,7 @@ carries_each "the snapshot is taken before the fork and the check runs after the
   "once it returns" "Once it returns" "after the fork's return" "after its return" \
   "fork has returned" "after the return" "after the fork" "After the fork" "its return read" \
   "return is read"
-carries_each "the state file lives under the main checkout's git common dir, which needs no .scratch/ ignore line" \
+carries_each "the state file lives under the main checkout's git common dir, at do/main-state/" \
   "git common dir" -- "/do/main-state/"
 carries_any "the check runs before the Gate" \
   "before the Gate" "before the **Gate**" "before step 5" "before step 4" "before the diff" \

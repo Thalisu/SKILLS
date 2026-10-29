@@ -276,8 +276,8 @@ a time, and reads the result from the notification. A wait call that ends with n
 repeated, up to nine calls in all; when the ninth also ends with no verdict, the Stretch discards the uncommitted work of
 the behaviour in progress, which the next Stretch builds again from the branch per
 `## Where it picks up`, and returns `stopped`, in the shape `## The return` fixes, its `stopped:`
-line naming the dispatch that never returned and saying that nothing is uncommitted, never a
-longer wait or a poll of its own.
+line naming the dispatch that never returned and saying that nothing is uncommitted, never a longer
+wait or a poll of its own.
 
 ## The Implementer
 

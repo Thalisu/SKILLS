@@ -37,4 +37,7 @@ typed. An Implementer's return is never a moment to ask, since it comes back ins
 the behaviour is formatted and committed. A `stop` read after the Plan's last behaviour, with no
 flow left to author, returns `built`, since that verdict is already true, while a `do-impeccable`
 Stretch's never does, since its flows and its detector scan are still ahead. Each Stretch the budget
-ends carries at least one new commit, since the budget is asked only after one.
+ends carries at least one new commit, since the budget is asked only after one. The Builder never
+waits with a loop of its own that has no bound, since a Bash call that outlives the Bash tool's
+timeout is moved to the background by the harness, and a poll whose condition never holds keeps
+running there, a stale shell, long after the Stretch returned.
