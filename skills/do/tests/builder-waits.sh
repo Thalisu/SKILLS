@@ -51,7 +51,7 @@ carries_each "it bounds every call the Builder waits on inside the Bash tool's t
 
 # The paragraph also names `600000` for a test or a suite, so the wait call's own timeout is proven
 # over the sentences carrying that number, one of which has to be about the wait.
-echo "# builder.md / ## The time budget: the fallback wait for a backgrounded agent is itself in the foreground and has a next step"
+echo "# builder.md / ## Waiting on a call: the fallback wait for a backgrounded agent is itself in the foreground and has a next step"
 wait_para="$(paragraph_with "$builder" "timeout 60 tail -f /dev/null" | tr -s ' ')"
 flat="$wait_para"
 expect "builder.md has a paragraph giving the fallback wait \`timeout 60 tail -f /dev/null\`" test -n "$flat"
