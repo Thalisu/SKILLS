@@ -19,8 +19,7 @@ or a resume's, it yields the claim, so the `/do` that resumes can take it over:
 bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path> | tee <state>/yield
 ```
 
-The yield marks the claim as given up and leaves the claim file as it was written: a first run
-still reads it taken, and a resume can take it over. A run that died yields
+The yield marks the claim as given up and leaves the claim file as it was written. A run that died yields
 nothing, and its claim reads `taken` to every resume until the developer yields it by hand.
 Read [blocked-reply.md](blocked-reply.md) when the Final integration stops, for the Reply of the stop.
 
