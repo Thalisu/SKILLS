@@ -9,9 +9,8 @@ the same, and by the Reply, which ends that run on this stop's `/discuss` comman
 A run that found work for another repository ends on a `/discuss` command, and never on `/tickets`,
 when the finding changes what the feature is rather than where a piece of it is built: a story or a
 criterion would have to change, not move, as `elsewhere.md` tells the two
-apart. It is no fork. Nothing has two sides for a `choice-taker` to rule between, so none is
-forked, under `--auto` as without it, and nothing is written into the Spec: no entry in its
-repositories list, no finding line, no Ruling.
+apart. It is no fork: no `choice-taker` is forked, under `--auto` as without it, and nothing is
+written into the Spec: no entry in its repositories list, no finding line, no Ruling.
 
 Read [blocked-reply.md](blocked-reply.md) when the run makes the change-of-direction stop.
 It is a blocked run, written by the blocked shape, with one `Yours:` line under the `direction`

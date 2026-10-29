@@ -82,4 +82,60 @@ check_absent "forks.md keeps none of the arguments it carried beside its rules" 
   "since the criteria are what the reader's brief matches its slice against" \
   "whose Digest would come back with no Journey Path"
 
+echo "# references/extreme-fork.md: it carries instructions only, no ADR and no argument beside a rule"
+
+# A run stopped on an Extreme fork reads the file alone and whole; it has no frontmatter.
+extreme="$(tr '\n' ' ' <"$here/../references/extreme-fork.md" | tr -s ' ')"
+out="$(grep -oE '.{0,40}(docs/adr/|\bADRs?\b).{0,40}' <<<"$extreme")"
+same "extreme-fork.md names no ADR and links nothing under docs/adr/" ""
+out="$(grep -oiE '.{0,40}(\b(because|so that|since)\b|, so (a|an|the)\b).{0,40}' <<<"$extreme")"
+same "extreme-fork.md gives no because, so-that, since or \", so a/an/the\" reason beside a rule" ""
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$extreme"
+check_absent "extreme-fork.md keeps none of the arguments it carried beside its rules" 0 0 \
+  "reads nothing as Extreme on the session's behalf" \
+  "only a \`settled\` Ruling writes either" \
+  "which could read it the other way" \
+  "a sidecar left there would outlive the answer" \
+  "the Builder's own write guard denies every \`.scratch/\` path" \
+  "so a rerun that meets the same fork prints the same command" \
+  "an Extreme fork is the one the \`choice-taker\` takes no side of" \
+  "so the next \`/do\` is a resume that stops on the recorded command"
+
+echo "# references/run-questions.md: it carries instructions only, no ADR and no argument beside a rule"
+
+# A step asked a run question under --auto reads the file alone and whole; it has no frontmatter.
+questions="$(tr '\n' ' ' <"$here/../references/run-questions.md" | tr -s ' ')"
+out="$(grep -oE '.{0,40}(docs/adr/|\bADRs?\b).{0,40}' <<<"$questions")"
+same "run-questions.md names no ADR and links nothing under docs/adr/" ""
+out="$(grep -oiE '.{0,40}(\b(because|so that|since)\b|, so (a|an|the)\b).{0,40}' <<<"$questions")"
+same "run-questions.md gives no because, so-that, since or \", so a/an/the\" reason beside a rule" ""
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$questions"
+check_absent "run-questions.md keeps none of the arguments it carried beside its rules" 0 0 \
+  "the developer handed that direction over for the run" \
+  "That ADR keeps those the developer's" \
+  "so that the developer confirms an answer instead of deciding from scratch" \
+  "the agent's own test often reads as extreme" \
+  "the agent keeps its two returns and its one test for an Extreme fork" \
+  "no option exists for a \`choice-taker\` to take" \
+  "since the Ruling is read back by a developer who never saw the question" \
+  "a fact left out of the brief is a fact it rules without" \
+  "nobody reads the run before it lands" \
+  "a choice that only steered one run must not be found there as a decision" \
+  "so this Ruling always has that file"
+
+echo "# references/change-of-direction.md: it carries instructions only, no ADR and no argument beside a rule"
+
+# A run changing direction reads the file alone and whole; it has no frontmatter.
+direction="$(tr '\n' ' ' <"$here/../references/change-of-direction.md" | tr -s ' ')"
+out="$(grep -oE '.{0,40}(docs/adr/|\bADRs?\b).{0,40}' <<<"$direction")"
+same "change-of-direction.md names no ADR and links nothing under docs/adr/" ""
+out="$(grep -oiE '.{0,40}(\b(because|so that|since)\b|, so (a|an|the)\b).{0,40}' <<<"$direction")"
+same "change-of-direction.md gives no because, so-that, since or \", so a/an/the\" reason beside a rule" ""
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$direction"
+check_absent "change-of-direction.md keeps none of the arguments it carried beside its rules" 0 0 \
+  "Nothing has two sides for a \`choice-taker\` to rule between"
+
 exit $((fails > 0))
