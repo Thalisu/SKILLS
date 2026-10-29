@@ -9,8 +9,7 @@ author that can be dispatched. A run whose loop line reads `Loop: policy` never 
 ## The global authors
 
 Under `Loop: global` the project has no Testing Policy, and the authors are the two `do` ships in
-its `agents/` folder, each carrying the markers and the sections of the policy's agent core in
-order, with the why cut: call the Agent tool with `subagent_type: global-unit-test-author` for a
+its `agents/` folder: call the Agent tool with `subagent_type: global-unit-test-author` for a
 unit test and `subagent_type: global-e2e-test-author` for a flow, `run_in_background: false` on each, with the
 dispatch input the build loop's `## The test authors` fixes (Read [build-loop.md](build-loop.md)
 when a global author is dispatched) and one more line,

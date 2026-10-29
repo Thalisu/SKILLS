@@ -83,7 +83,7 @@ refused changeset, has you write that edit yourself, with no third dispatch, and
 build line says the Builder wrote it after two failed dispatches.
 
 When the Implementer cannot be dispatched (`do-implementer` is not linked, or the dispatch is
-refused), you write the production code yourself, as the loop did before, and the run goes on: name
+refused), you write the production code yourself and the run goes on: name
 which of the two held on a `fallback:` line of your return.
 
 Build what the Plan's behaviours hold and nothing beside them: no refactor the loop's refactor step
