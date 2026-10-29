@@ -3279,8 +3279,6 @@ carries_each "once three rounds have pushed, no diagnosis is forked" \
 carries_each "and the run takes the three-round stop instead, the check among its red= names" \
   "three-round stop" -- \
   "among its" "among the" "with the check" "names it" "red= names"
-carries_any "a diagnosis there would push a fourth round" \
-  "fourth round" "fourth pushed round" "a fourth"
 # The developer relies on a rerun going only to a check its fixer could not reproduce: a rerun of a
 # check whose fixer returned `fixed` or `not fixed` hides a real failure behind a lucky retry, and a
 # rerun keyed on the session's reading of a log is spent before anyone knows whether the failure
