@@ -42,4 +42,20 @@ routes_by_script "step 9a of ticket.md" final "${final_routes[@]}"
 flat="$(passage_of "$mech" '- **Before the claim.**' '- **After the release**' | flat_of)"
 routes_by_script "the before-the-claim bullet of mechanics.md" final claim
 
+# reply-lines.sh prints `failed no-shape` on route=resolved, so the message belongs to the
+# already-landed sub-bullet alone: a line the door bullet carries after its sub-bullets reads as
+# the message of every route.
+door_bullet="$(passage_of "$ticket_md" '- A `verdict=resolved` Ticket whose door printed a `build_repository=`' \
+  '- A Ticket whose Build repository cannot be built')"
+flat="$(bullets_opening_on <(printf '%s\n' "$door_bullet") '`route=already-landed`')"
+carries "the door's route=already-landed stop is the reply-lines.sh final and repositories lines" \
+  'reply-lines.sh final' 'reply-lines.sh repositories'
+in_door="$(grep -oF 'reply-lines.sh' <<<"$door_bullet" | wc -l)"
+in_landed="$(grep -oF 'reply-lines.sh' <<<"$flat" | wc -l)"
+expect "the door's route=resolved stop runs no reply-lines.sh (door bullet: $in_door, already-landed: $in_landed)" \
+  test "$in_door" -eq "$in_landed"
+flat="$(flat_of <<<"$door_bullet")"
+expect "the door bullet gives no one message to both of its stops" \
+  bash -c '! grep -qF "either stop" <<<"$1"' _ "$flat"
+
 exit "$fails"

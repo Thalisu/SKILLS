@@ -99,21 +99,18 @@ the tracker file describes. Before anything is written:
   hands the record's lines, as printed, to `bash <skill-dir>/scripts/landing-route.sh door` on
   stdin and routes on the one `route=` line it prints. The run chooses no route from the record
   itself.
-  - `route=already-landed`: the stop below takes the place of the resolved line. The run does
-    nothing: no claim, no worktree, no rebase, no review, no ref moved in any repository, and
-    nothing written.
+  - `route=already-landed`: this stop takes the place of the resolved line. The run does nothing:
+    no claim, no worktree, no rebase, no review, no ref moved in any repository, and nothing
+    written but `<state>`. After the first line its message is the lines
+    `bash <skill-dir>/scripts/reply-lines.sh final --door <state>/door --order <state>/order`
+    printed, then the lines
+    `bash <skill-dir>/scripts/reply-lines.sh repositories --door <state>/door --order <state>/order`
+    printed, both copied as they stand, per [Final integration lines](reply.md#final-integration-lines) of [reply.md](reply.md). It carries no `Yours:`
+    line and no shell line. Under `--auto` the stop is the same lines, with no `choice-taker`
+    forked.
   - `route=resolved`: the run stops in the resolved line above, as a Ticket whose door printed
     `build_repository=none` does without the call.
   - An exit 2 stops the run as blocked with the script's stderr line quoted.
-
-  The run does nothing: no claim, no worktree, no rebase, no review, no ref moved in any
-  repository, and nothing written but `<state>`. After the first line its message is the lines
-  `bash <skill-dir>/scripts/reply-lines.sh final --door <state>/door --order <state>/order`
-  printed, then the lines
-  `bash <skill-dir>/scripts/reply-lines.sh repositories --door <state>/door --order <state>/order`
-  printed, both copied as they stand, per [Final integration lines](reply.md#final-integration-lines) of [reply.md](reply.md). It carries no `Yours:`
-  line and no shell line. Under `--auto` either stop is the
-  same lines, with no `choice-taker` forked.
 - A Ticket whose Build repository cannot be built anywhere as it stands (`verdict=unbuildable`)
   stops the run before the claim in one line after the first line, chosen by `build_check=`:
   - `unlisted`: the line names `build_repository=` and says the Spec's `## Repositories` list does
