@@ -341,8 +341,7 @@ The Builder reads what each dispatch changed by script, in this order:
 4. Once the behaviour's last edit has passed, the Builder itself formats the touched files and
    commits the behaviour, per steps 5 and 6 of the build loop (Read
    [build-loop.md](build-loop.md) when the behaviour is committed), with its
-   `Behaviour:` line, so a resume still finds one commit per behaviour, and the Implementer never
-   commits: a commit of its own would land unchecked and carry no `Behaviour:` line.
+   `Behaviour:` line, one commit per behaviour, and the Implementer never commits.
 
 An Implementer that returns `NOT GREEN` or `OUT OF BRIEF`, or whose changeset the check refused
 with `verdict=refused`, is a failed dispatch: the Builder dispatches the Implementer once more for
