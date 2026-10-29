@@ -1769,8 +1769,6 @@ carries_each "and never go through remove --superseded" \
   "--superseded" -- \
   "never go" "never goes" "never pass" "not passed" "never taken back" "not taken back" "never given to" \
   "never handed to" "kept out of" "left out of" "stay out of" "stays out of" "never reach" "never through"
-carries_each "since no retry of that check was picked" \
-  "retry" -- "no retry" "never picked" "not picked" "no pick" "nothing picked" "never retried"
 reply_step="$(passage_of "$pr_fix" "$reply_h" "##" 2>/dev/null)"
 flat="$(sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round [0-9<]')"
 carries_each "the Reply's round line for a kept worktree names its branch and path as fix-worktrees.sh printed them" \
@@ -1814,13 +1812,6 @@ carries "the run tree is fetched and cut detached at the watched sha, under the 
   "git fetch origin <head>" \
   "git worktree add --detach <main checkout>/.claude/worktrees/pr-<n>-<at> <sha>"
 before "the run tree is cut before the excerpts are" "git worktree add --detach" "pr-log.sh"
-carries_each "detached because the developer may have the head checked out and git refuses a branch checked out twice" \
-  "detached" -- "developer" -- "twice" "checked out in two" "a second worktree" "already checked out" -- \
-  "refus" "won't" "will not"
-carries_each "nothing the run does moves the developer's head" \
-  "developer" -- \
-  "never moves" "moves nothing" "nothing the run does moves" "does not move" "doesn't move" "never move" \
-  "never touches" "leaves the developer's"
 carries_each "a refusal from git on either line stops the run quoting git's line" \
   "refus" -- "either line" "either of" "both lines" "each line" "either command" -- \
   "git's line" "git's own line" "git's error" "git's stderr" "line git printed" "git's message" "git's refusal"
@@ -2147,38 +2138,20 @@ carries_each "its run tree is cut by item 2 at that new \`sha=\`" "item 2" -- "c
 carries_each "its fixers are forked over the code the checks now ran on" \
   "do-pr-fixer" "fixer" -- "fork" "forked" "forks" -- \
   "ran on" "run on" "moved head" "moved tip" "new head"
-carries_each "the redone round has a new \`<at>\`, so \`fix-worktrees.sh add\` meets no branch of the first attempt" \
-  "new \`<at>\`" "fresh \`<at>\`" "new <at>" "another \`<at>\`" "different \`<at>\`" "its own \`<at>\`" -- \
-  "branch" "worktree"
+carries_any "the redone round has a new \`<at>\`" \
+  "new \`<at>\`" "fresh \`<at>\`" "new <at>" "another \`<at>\`" "different \`<at>\`" "its own \`<at>\`"
 carries_any "no fix commit is replayed, cherry-picked or rebased onto the moved tip" \
   "No fix commit is replayed" "no fix commit is replayed" "No pick is replayed" "no pick is replayed" \
   "No commit is replayed" "no commit is replayed" "Nothing is replayed" "nothing is replayed" \
   "never replayed" "never replays" "not replayed" "replays no" "never cherry-picked" \
   "never cherry-picks" "not cherry-picked" "never rebased" "never rebases" "not rebased" "no rebase"
 
-# The other writers of a shared head rely on the redone round keeping their commits: the new run
-# tree is cut at the moved tip, so their commits are already in it, the round's fixes sit on top of
-# them, and the push reaches `<head>` as a plain fast-forward, where a forced push or a merge would
-# lose or rewrite what they pushed. The developer relies on the same thing from the other side: the
-# fixes land on the branch as it now stands, not on one the checks never saw. Read off the same
-# moved-tip branch as the case above.
-echo "# pr.md / ### Fix the red checks: the redone round reaches <head> by fast-forward on top of the other writer's commits, losing none of them"
+# The other writers of a shared head rely on the redone round's push reaching `<head>` as a plain
+# fast-forward, never forced and never a merge. Read off the same moved-tip branch as the case above.
+echo "# pr.md / ### Fix the red checks: the redone round reaches <head> by fast-forward"
 flat="$moved_branch"
-other_writer=("other writer" "other writers" "others pushed" "pushed by others" "another writer"
-  "someone else" "moved the remote" "remote moved by" "moved the head" "their commits")
-carries_each "the redone round's run tree, cut at the new \`sha=\`, already holds the other writer's commits" \
-  "${other_writer[@]}" -- \
-  "holds" "hold" "carries" "carry" "contains" "contain" "includes" "include" "already has" "already in" -- \
-  "run tree"
-affirms "the redone round's fix commits sit on top of those commits" \
-  "fix" "fixes" "pick" "picks" "commits" -- \
-  "on top of" "atop" "over them" "above them" "ahead of them"
 affirms "its push reaches \`<head>\` by fast-forward" \
   "push" "pushes" "pushed" -- "fast-forward" "fast forward" "fast-forwards" -- "<head>" "the head"
-carries_any "so none of the other writer's commits is lost or rewritten" \
-  "none of them is lost" "none of their commits is lost" "none of those commits is lost" "none is lost" \
-  "nothing is lost" "never lost" "not lost" "loses none" "loses no" "without losing" "is lost or rewritten" \
-  "never rewritten" "not rewritten" "rewrites none" "rewrites no" "without rewriting"
 carries_each "no \`--force\` and no merge" \
   "never \`--force\`" "no \`--force\`" "without \`--force\`" "not \`--force\`" "never forced" "not forced" \
   "no force" -- \
@@ -2473,8 +2446,6 @@ carries_each "a commit that is no \`picked\` sha stops the run with nothing push
 carries "the stop is one Yours: direction: line naming the run tree" "<run tree> holds <the shas that are no pick> that no fixer branch gave it"
 carries_each "the pre-push read admits a check's composed sha beside its picked one" \
   "\`composed <k> <sha>\`" -- "\`picked <k> <sha>\`"
-carries_each "the fast-forward push carries both commits of a check, the compose commit first" \
-  "compose commit first" "the compose first" "compose arrives first" -- "fast-forward"
 
 # A round whose only fix the guard refused has nothing to push, and the developer needs one decision
 # handed over, not a line per check: the stop is read off the sentences of the step tied to the guard
@@ -2533,11 +2504,10 @@ carries_each "from a \`not fixed <k>: <reason>\` line, its reason" \
 fixed_forms=("fixed <k>: <command>" "fixed <k>: <the command that reproduced it>")
 flat="$(sed 's/\. /.\n/g' <<<"$flat" | grep -F -e "${fixed_forms[0]}" -e "${fixed_forms[1]}" | tr '\n' ' ')"
 expect "a sentence naming the slot names the \`fixed <k>: <command>\` line" test -n "$flat"
-carries_each "for a check back red after its fix was pushed, the command of that line, the local one that reproduced the failure" \
+carries_each "for a check back red after its fix was pushed, the command of that line" \
   "pushed" "push" -- \
   "back red" "still red" "red again" "turned red" "went red" "red after" "failed again" "fails again" -- \
-  "the \`<command>\`" "its \`<command>\`" "\`<command>\` of" "the command" "its command" -- \
-  "reproduced" "reproduce" "local command"
+  "the \`<command>\`" "its \`<command>\`" "\`<command>\` of" "the command" "its command"
 
 # A fixer that reports it cannot fix its check hands the check to the developer: a run that goes on
 # churns rounds and CI on a diagnosis the fixer already ruled out. The stop is read off the
@@ -2742,6 +2712,7 @@ step="$(passage_of "$pr_fix" "$fix_h" "##" 2>/dev/null)"
 # shellcheck disable=SC2034  # lib.sh's carries reads $flat
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "stale" | grep -F "diagnosis" | tr '\n' ' ')"
 expect "a sentence of step $fix_n names a stale check beside a diagnosis" test -n "$flat"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "stale" | tr '\n' ' ')"
 carries_each "a stale check gets no do-pr-fixer and no diagnosis" \
   "no \`do-pr-fixer\`" "no do-pr-fixer" "no fixer" -- \
   "no diagnosis" "never diagnosed" "never a diagnosis" "nor a diagnosis" "first or diagnosis"

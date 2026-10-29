@@ -159,8 +159,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
        git fetch origin <head>
        git worktree add --detach <main checkout>/.claude/worktrees/pr-<n>-<at> <sha>
 
-   It is detached, and nothing the run does moves the developer's `<head>`. This path is `<run tree>`
-   from here on. If git refuses either line, the run stops quoting git's line, then exactly one
+   This path is `<run tree>` from here on. If git refuses either line, the run stops quoting git's line, then exactly one
    `Yours: direction: git refused the run tree; fix what its line names, then /do the pull request again`.
 
 3. Cut each check's excerpt and fetch its whole job log, in check order, with the two lines:
@@ -188,9 +187,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    call, so nothing in the Playbook fetches the base or reads `origin/<base>`. It prints `base=`
    and `merge-base=` (kept for the round lines), then `real <k>`, or one `stale <k> <path>` line per
    file. A check it printed `stale` for gets no `do-pr-fixer` and never enters a Wave. A check
-   `pr-classify.sh` printed `stale` for gets no diagnosis either: with no fixer it never returns
-   `not reproduced`, so it never enters the retry record, and its fix stays on the branch that owns
-   its file. It adds one
+   `pr-classify.sh` printed `stale` for gets no diagnosis either and never enters the retry record. It adds one
    `stale-base` entry to the round's stop set, holding every path its `stale` lines name, as a
    stop-case like the others. A stale classification leaves the round going: the real checks'
    Waves still run. On its `failed: <reason>` line, exit 1, the script has also printed `real <k>`
@@ -218,13 +215,11 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    comes out in a later Wave and runs after it.
 
    Before the first Wave's worktrees are cut, the run records the hooks and the config of the git
-   directory every fixer worktree shares with `<run tree>`. A fixer can write into it, and the push
-   in item 5 runs with the developer's credentials:
+   directory every fixer worktree shares with `<run tree>`:
 
        bash <skill-dir>/scripts/pr-hooks.sh snapshot <run tree>
 
-   The run keeps the `hooks=` and `config=` values it prints in the session, in no file of `<dir>`,
-   which a fixer can reach. On a non-zero exit no fixer is forked: the run removes `<run tree>`
+   The run keeps the `hooks=` and `config=` values it prints in the session, in no file of `<dir>`. On a non-zero exit no fixer is forked: the run removes `<run tree>`
    (`git worktree remove <run tree>`), no commit sits on it yet, then stops, quoting the script's
    stderr line, then exactly one
    `Yours: direction: pr-hooks.sh failed; fix what its stderr line names, then /do the pull request again`.
@@ -240,11 +235,9 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       the branch on its own worktree line, and the return file `<dir>/check-<k>`.
    c. `bash <skill-dir>/../../.agents/scripts/returns.sh 540 <every return file of the Wave>` is
       one call that waits on every return file of that Wave, with the Bash timeout at 600000 ms.
-      Call it again over the files still `missing=`, six windows and no more: 54 minutes, past the
-      50-minute budget `do-pr-fixer` keeps from its first command, so a fixer still inside its
-      budget is never given up on. A file that never lands reads
-      `not fixed <k>: the fixer did not return`. A fixer that did not return may still be running
-      in its worktree, so its worktree and its branch are left out of sub-item e's remove call and
+      Call it again over the files still `missing=`, six windows and no more. A file that never lands reads
+      `not fixed <k>: the fixer did not return`. The worktree and the branch of a fixer
+      that did not return are left out of sub-item e's remove call and
       stay on disk for the developer, and its round line names its path, its branch and its compose
       project `fixer-<id>`, whose stack it may have left up. A commit the fixer that did not return
       makes after the wait ends is never picked and never pushed, nor is its return file read if it
@@ -299,9 +292,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
       each `<branch>` the one its worktree line printed. The guard prints `clean <k>`, or one
       `touches <k> <workflow|secret|migration> <path>` line per such file the branch changes over
-      `<sha>`, the commit the run tree was cut at, never over the run tree's moving HEAD: a commit
-      planted in the run tree is part of every branch cut over it, and read against that HEAD it
-      shows no change. It prints `failed <k>: <reason>` for a branch it cannot read, and for one
+      `<sha>`, the commit the run tree was cut at, never over the run tree's moving HEAD. It prints `failed <k>: <reason>` for a branch it cannot read, and for one
       whose shape `fix-integrate.sh --compose` would refuse, read against the run tree's HEAD (not
       one or two commits ahead, a first of two that is no `chore(e2e)` commit of composes alone, a
       first commit whose parent is not that HEAD). Of the checks
@@ -318,8 +309,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       `bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh --compose <run tree> <k>=<branch>...`, each
       `<branch>` the one its worktree line printed. The script picks them in ascending check number,
       whatever order they are given in, and prints one `picked <k> <sha>` per check. A fixer branch
-      whose compose rides ahead of its fix as a `chore(e2e)` commit, the reason the call
-      passes `--compose`, has both commits brought onto the run tree, compose first. That commit
+      whose compose rides ahead of its fix as a `chore(e2e)` commit has both commits brought onto the run tree, compose first. That commit
       holds only regular files named `compose*.yml`, `docker-compose*.yml` or `*.compose.yml`
       (`.yaml` alike), the names the script reads as a compose, and it refuses one holding any
       other file. A
@@ -356,7 +346,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    moved checks whose `conflicted` lines name a common file are never forked together: each goes in a
    separate Wave. A moved check whose
    `conflicted` line shares no file with another moved check may share its Wave. Such a Wave is never
-   merged into a Wave `group-waves.sh` printed, which could put two fixers on one file. Each of these
+   merged into a Wave `group-waves.sh` printed. Each of these
    Waves runs sub-items a to e like any Wave.
 
    A check is moved twice at most. A check already moved twice in this round whose pick conflicts a
@@ -366,8 +356,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `check <m>` for one and `checks <m>, <m>` for several, so the developer reads which checks
    disagree. A line reading `with none` names no check: it reads
    `not fixed: conflicted with no check of its Wave` and the files the line quoted. The conflicted
-   branches of a check left red after two moves stay kept: no retry of that check was picked, so they
-   never go through `remove --superseded`, and they reach the Reply as `kept` lines.
+   branches of a check left red after two moves stay kept, never go through `remove --superseded`, and reach the Reply as `kept` lines.
    This `not fixed` is the session's own reading of a conflict, never a fixer's report, so it raises
    no stop-case and stays out of the round's stop set: the run does not stop on it.
 
@@ -403,11 +392,9 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    step 3's watch, calling it with `<pr>` alone, on the moved head. It runs the round again from the
    new verdict's `sha=`: item 2 cuts a new run tree at that new `sha=` after its
    `git fetch origin <head>` (that cut is the pull), with a new `<at>` from the new `sha=` and a new
-   `<dir>`, so `fix-worktrees.sh add` meets no branch or worktree of the first attempt. Every
-   do-pr-fixer is forked again over the code the checks now ran on, the moved head. The new run
-   tree, cut at the moved tip's `sha=`, already holds the other writer's commits. The redone round's
-   fix commits sit on top of them. Its push reaches `<head>` by fast-forward, never `--force` and
-   never a merge, so none of the other writer's commits is lost or rewritten. No fix commit is
+   `<dir>`. Every
+   do-pr-fixer is forked again over the code the checks now ran on, the moved head. The redone round's
+   push reaches `<head>` by fast-forward, never `--force` and never a merge. No fix commit is
    replayed, cherry-picked or rebased onto the moved tip.
    Once the redone round ends, pushed or stopped, the first attempt's run tree is named
    on a round line with its path and the sha of each fix commit kept there. The first attempt's run tree stays on disk, never removed by
@@ -433,12 +420,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
        git -C <run tree> -c core.hooksPath=/dev/null push origin HEAD:refs/heads/<head>
 
-   `-c core.hooksPath=/dev/null` turns every git hook off for the push, so a hook a fixer wrote
-   into the shared git directory never runs under the developer's credentials.
-
-   The push is fast-forward only: never `--force`, never a merge, never to another branch. It carries every commit on HEAD to `<head>` in the order it sits there, so a check
-   that left a compose arrives compose commit first, its fix commit on top. git's own refusal of a non-fast-forward is the guard. When git accepts it, the fixes are on `<head>`, so
-   a fixer tree item 4 e kept as dirty holds only what its runs left behind. One call takes back
+   The push is fast-forward only: never `--force`, never a merge, never to another branch. When git accepts it, one call takes back
    every branch the round's item 4 e calls kept as `dirty tree`, while `<run tree>` still stands to
    measure them against:
    `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove --pushed <run tree> <branch>...`,
@@ -447,7 +429,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    tree, and one whose commit never landed stays `kept ... unlanded commit`. Its lines go to the Reply's round lines as item 4 e's do. With the push accepted, run
    `git worktree remove <run tree>` and go back to step 3, calling the watch with `<pr>` and the
    pushed tip, the sha `git -C <run tree> rev-parse HEAD` printed, as `<expected-sha>`, with no
-   `<since>` `<state>`: the push changed the checks, so the stall window starts over. The watch holds `verdict=pending` until the pull request's head
+   `<since>` `<state>`. The watch holds `verdict=pending` until the pull request's head
    is the pushed tip, and the hold lasts two minutes at most, and a verdict past it carries
    `released=`, which stops the run by step 3's route. When git refuses it on a first
    attempt, the remote moved between the fetch and the push: the run redoes the round whole, as on a
@@ -534,8 +516,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `<what the fixer ruled out>` slot. It is read off the fixer's return line as it stands, never
    from the session's own reading. For a `not fixed <k>: <reason>` line it is its `<reason>`. For a
    check that came back red after its fix was pushed it is the `<command>` of its
-   `fixed <k>: <command>` line, the local command that reproduced the failure, which the fix
-   answered and the red check shows did not cure it, and for a
+   `fixed <k>: <command>` line, and for a
    `fixed <k> by mechanism: <the test> <the log line>` line it is its `<the test>`. For a
    `no mechanism <k>:` line it is its entries. The return lines of `do-pr-fixer` stay as
    they are: the slot quotes them and adds no clause they do not carry.

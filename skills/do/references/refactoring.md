@@ -2,9 +2,7 @@
 
 A behaviour-preserving reshape of code that already works: a refactor, a rename, an extract, an
 inline, a dedupe, a module moved. It runs outside the chain, with no Ticket and no Spec, and the
-request in words is the whole input. The pin makes the behaviour contract checkable before any
-structure moves, and the commits read subtraction, reshape, cleanup, in that order, so one revert
-undoes one slice.
+request in words is the whole input.
 
 A case no step names is judged by which of these three errors it risks:
 
@@ -188,7 +186,7 @@ and never starts a second. The state a resume reads is the branch and its worktr
 run-state file: the entry of `git worktree list` on `do/<slug>`, then `git branch --list do/<slug>`
 when no entry is there, the commits since the branch the first run started from
 (`git log <base>..refs/heads/do/<slug>`, with `<base>` the merge base of the developer's branch and
-`refs/heads/do/<slug>`, qualified so a same-named tag can never shadow the branch), read by their
+`refs/heads/do/<slug>`), read by their
 titles, and `git status --short` in the worktree.
 
 - An existing worktree is entered with a bare `cd`, never created again. An existing branch with no
@@ -209,8 +207,7 @@ titles, and `git status --short` in the worktree.
     run on the old code, which the Run report quotes, is taken again from a worktree at the fixed
     point, the way step 7's equivalence script takes the old artifact. Step 6's done condition is
     checked first, so a reshape that already reached its target shape goes on to step 7;
-  - the cleanup commit, `chore(<scope>): clean up after the reshape`: step 10, since step 9 runs
-    only once the exit test passed or the developer said no to the revert.
+  - the cleanup commit, `chore(<scope>): clean up after the reshape`: step 10.
 - A Review of the branch, `.scratch/reviews/<the branch, each slash a dash>.md` in the main
   checkout, evidences the review step only when it read this branch and finished: the commit its
   `Commit:` header names is one the branch has been at, `git log -g --format=%H
@@ -343,8 +340,7 @@ Name the structure the code is missing, then state the target shape as if built 
 [foundational-thinking](../../../.agents/principles/foundational-thinking.md) and
 [model-the-domain](../../../.agents/principles/model-the-domain.md): a state machine over
 scattered booleans, a registry over spread-out branching, a typed model over repeated shape
-assumptions, a reducer over a chain of mutations. The structure is the rule the code enforces, held
-in one place, so the reshape deletes branches instead of adding indirection.
+assumptions, a reducer over a chain of mutations.
 
 The target shape is stated as the code would look if this behaviour were built today with what the
 project knows now, not as the shortest edit from the code that is there, per
