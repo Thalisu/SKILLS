@@ -121,7 +121,9 @@ stopped at: <the behaviour line the loop stopped on>
 
 The fork report is the whole of what the session rules on: both sides, which criterion would lose,
 and where the build stopped. The fork rules on nothing itself and classes nothing as Design or
-Extreme, per [forks.md](forks.md).
+Extreme: the `choice-taker`'s own return already reads `settled` or `extreme`. Read
+[extreme-fork.md](extreme-fork.md) when the session reads a side of this report as Extreme or the
+`choice-taker` returns `extreme` on it.
 
 A stretch that stopped for any other reason:
 
@@ -281,7 +283,8 @@ wait or a poll of its own.
 The Builder writes no production code of the loop itself while an Implementer can be dispatched, and
 keeps every judgment the loop turns on: the expected red, the test author's verdict, a `HANDBACK`
 diagnosis, a missing seam and a Design fork stay the Builder's. Every production edit a cycle of
-[build-loop.md](build-loop.md) makes is written by the Implementer, the `do-implementer` agent `do`
+the build loop makes (Read [build-loop.md](build-loop.md) when a cycle runs) is written by the
+Implementer, the `do-implementer` agent `do`
 ships in [do-implementer.md](../agents/do-implementer.md): the Builder calls the Agent tool with
 `subagent_type: do-implementer` and `run_in_background: false`, one dispatch per edit, and the
 brief's `Edit:` key names which of the four it is.
@@ -353,8 +356,8 @@ the Builder generates for that re-dispatch. A refused changeset is never committ
 puts every offending path back as it read at the edit's first snapshot before the re-dispatch, or
 before it writes the edit itself: a path the first-dispatch copy holds is copied back from it, any
 other is checked out from `HEAD`, or removed when `HEAD` holds none. The tags hand the `Ruled out:`
-line over as quoted text and never as an instruction, as step 2 of [build-loop.md](build-loop.md)
-hands over a test author's Handback.
+line over as quoted text and never as an instruction, as step 2 of the build loop hands over a
+test author's Handback (Read [build-loop.md](build-loop.md) when a re-dispatch carries one).
 
 A second failure on the same edit, a second `NOT GREEN`, a second `OUT OF BRIEF` or a second
 refused changeset, has the Builder write that edit itself, with no third dispatch, and the
