@@ -47,8 +47,7 @@ they are neither ticked nor skipped, and the Run report's Run section carries st
 The same entry is the landing command of a feature across repositories: a `do` on a `resolved`
 Ticket built in the session's repository, typed there once every repository it consumes from has
 landed.
-Nothing stopped in that repository, and the steps are
-the same: the claim is fresh, the state reads `verdict=restart` with `worktree=absent`, and from
+The steps are the same: the claim is fresh, the state reads `verdict=restart` with `worktree=absent`, and from
 there the run is a first Final integration of this repository and of no other, with the **Gate**
 of this project's facts and the Review at the `review_file=` path the claim prints.
 
