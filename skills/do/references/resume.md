@@ -15,7 +15,7 @@ The run reads `resume-state.sh`, as below, before the Digest decision of the Doo
 [ticket.md](ticket.md). On `verdict=land` the run forks no reader, and neither does it on any resume
 whose `review=` line names a Review, whatever the verdict printed, `land` or `integration` on a
 rebase stopped after that review, and whatever the Digest's state, a hash that differs or no Digest
-at all: only the integration and the landing are left, and nothing they run opens a Digest. A
+at all. A
 resume whose `review=` line reads `none` goes on to the Digest decision.
 
 A resumed Ticket is a Ticket of a Spec when its door printed `spec_exists=yes` as well as a
@@ -90,11 +90,10 @@ and leaves the worktree as it is.
   below give for that case.
 - On `verdict=land`, the review already read this branch, and so it did whenever `review=` names a
   Review, whatever the verdict printed, `land` or `integration` on a rebase stopped after that
-  review: its Review is the script's `review=` line, and the resume is never a second review. Only the landing is left, so the Plan step is skipped:
+  review: its Review is the script's `review=` line, and the resume is never a second review. The resume skips the Plan step:
   the run forks no Planner, and no Plan is hashed, checked or opened, whatever state the one beside
   the Ticket is in, carried, stale or absent. The Run report's Run section carries the checklist with
-  step 1 reading `skip: resumed, only the landing left`, and step 3 is never reached, so its second
-  reading of the Plan never runs either. The one part of step 1 that still runs is its context
+  step 1 reading `skip: resumed, only the landing left`, and step 3 is never reached. The one part of step 1 that still runs is its context
   reading, `bash <skill-dir>/scripts/context-usage.sh`, taken where the skipped step would have
   ended, so the close still has a `grounded` figure for its `Context:` line. The loop is skipped, the integration runs with no
   **Gate** of the run's own after it,
@@ -104,12 +103,10 @@ and leaves the worktree as it is.
 - On a Ticket of a Spec, one whose door printed `spec_exists=yes`, the script prints
   `base=spec/<feature-slug>` and reads `merge_base`, `tip`
   and `stop=` against that branch, so wherever a bullet of this section says the developer's
-  branch, the Spec branch is meant. No Review is ever written beside such a Ticket, so the verdict
-  is never `land`. When every line of the list is ticked, as after a landing refused with
+  branch, the Spec branch is meant. When every line of the list is ticked, as after a landing refused with
   `checked-out` or a run stopped at its Gate, step 3 reads `done: resumed`, no Builder is forked,
   and the run goes on at step 4, then the **Gate** of step 5, the integration of step 6 onto the
-  Spec branch and the landing of step 7. That is how a run requested again after a refused landing
-  resumes at the landing.
+  Spec branch and the landing of step 7.
 - When every line of the list is ticked on a Ticket with no Spec, as on the branch a moved target
   leaves right after an integration that ticked as a no-op (Read [not-landed.md](not-landed.md)
   when the review route sends the run here in the same run),

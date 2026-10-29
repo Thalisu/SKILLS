@@ -133,8 +133,7 @@ Its last line is the `/discuss` command the Extreme stop fixes, whole, with two 
 - the reason in place of the clause after the semicolon: `the Agent tool is withheld`,
   `choice-taker is not listed`, or `the choice-taker returned no usable Ruling`.
 
-It writes no `<Ticket>.extreme.md` sidecar: the next `/do` on the Ticket meets the fork again and
-forks the `choice-taker` once one can be forked.
+It writes no `<Ticket>.extreme.md` sidecar.
 
 Under `--auto` a Design fork that came back with no Ruling takes this stop as without the flag,
 on each of its three reasons.

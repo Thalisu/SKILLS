@@ -122,10 +122,9 @@ as they do after a Builder, with no step added, skipped or changed for this fork
 Builder's does: the Ticket reads `resolved`, and the Reply's last line is the next `/do`, the one
 the Completion check's `next=` line names.
 
-The fallback of step 3, the session running the loop when no Builder can be forked, never reaches a
-Front-end ticket of a Spec reading `Front-end: impeccable`. The Door stopped it when the session
-lists no impeccable skill, and the build step never falls back to the Builder for it on its own,
-neither by forking `do-builder` nor by the session running the loop in its place.
+The build step never falls back to the Builder for a Front-end ticket of a Spec reading
+`Front-end: impeccable`, neither by forking `do-builder` nor by the session running the loop in its
+place.
 
 ## The close
 

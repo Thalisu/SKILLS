@@ -59,7 +59,7 @@ journey: <absolute path> <hash>
 - On a later run the door recomputes both hashes and compares them with these records. The run
   decides whether to reuse the Digest from that comparison alone and reads neither document again.
   A document still absent is a match. Only a document that appeared, vanished or changed re-forks
-  the reader, so a Ticket whose Spec names no journey reuses its Digest like every other Ticket.
+  the reader.
 
 ### `## Journey Path`
 
@@ -246,8 +246,7 @@ In the Home repository's scratch, beside the Ticket file, taking the Ticket's fi
 repository is the root the door of [ticket.md](ticket.md) prints as `root=`: the main checkout
 whenever the Ticket is built in its Home repository, and the repository the Ticket was named in
 when the run was opened in the Ticket's Build repository. The
-Ticket's slug is the key, the Review's own rule, so two runs on two Tickets of the same feature
-never reach for the same file. A Ticket that is not a local file has no file to sit beside: it
+Ticket's slug is the key. A Ticket that is not a local file has no file to sit beside: it
 keys the Digest by the issue's reference under `.scratch/digests/` in the main checkout.
 
 The path is the Home repository's absolute one, per [scratch.md](../../../.agents/scratch.md). That

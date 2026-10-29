@@ -67,7 +67,7 @@ at the end of this section shows the shape.
   the `git hash-object` the door runs in the Home repository before it forks. The fork copies these
   lines from its brief whole and writes no line of its own there. A document that is not on disk is
   recorded `<name>: absent` instead. The session compares the two values it computed against the two
-  the file carries, so it learns the Plan is the one it asked for without reading a word of it.
+  the file carries, without reading the Plan.
 - `## Grounding`: the glossary words `CONTEXT.md` gives the work, one line each with the type or
   record each maps to; the titles of the ADRs the fork opened, one per line, and nothing of their
   bodies; and the discover audit line, `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, with the
@@ -80,8 +80,7 @@ at the end of this section shows the shape.
   the seams are. Its first line says that it is the pre-diff subsystem and that it is never handed
   to the review.
 - `## Behaviours`: the numbered list the build loop takes one item at a time, in order. Each item is
-  a test author's dispatch input without its `Expected red` key, which depends on the tree at the
-  cycle that dispatches, so the loop fills it. An item carries four keys: `Behavior to prove`, one
+  a test author's dispatch input without its `Expected red` key, which the loop fills. An item carries four keys: `Behavior to prove`, one
   sentence in observable terms that becomes the test name; `Relied on by`, who relies on it and what
   a wrong or missing result costs them; `Target`, the module or function; and `Origin`, `bugfix`
   for a line that reproduces a defect and `new feature` otherwise. The rules the list is cut by
@@ -202,15 +201,11 @@ before the extension: `02-export-notes.plan.md` beside `02-export-notes.md`. The
 the root the door of [ticket.md](ticket.md) prints as `root=`: the main checkout whenever the
 Ticket is built in its Home repository, and the repository the Ticket was named in when the run
 was opened in the Ticket's Build repository, which then holds no Plan at all. The Ticket's slug is
-the key, the Digest's own rule, so two runs on two Tickets of the same feature never reach for the
-same file. A Ticket that is not a local file has no file to sit beside: it keys the Plan by the
+the key. A Ticket that is not a local file has no file to sit beside: it keys the Plan by the
 issue's reference under `.scratch/plans/` in the main checkout, carrying that same `.plan` before
 the extension, `.scratch/plans/42.plan.md` for issue 42.
 
-The path is the Home repository's absolute one, per [scratch.md](../../../.agents/scratch.md). The
-door's `find` counts a `.plan.md` out when it resolves a blocker's number, the way it already counts
-a `.digest.md` and a `.sketch.md` out, so a Plan left beside a Ticket that is gone never supplies a
-blocker's status.
+The path is the Home repository's absolute one, per [scratch.md](../../../.agents/scratch.md).
 
 ## Its edges
 

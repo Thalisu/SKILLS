@@ -5,8 +5,8 @@ one branch into another. The run performs that one operation, with the conflict 
 Playbooks run as their integration step, over a branch no Ticket stands behind, and stops once the
 operation is complete.
 
-The run works in place, on the developer's own checkout, with no worktree. Every rule below guards
-against one of three errors:
+The run works in place, on the developer's own checkout, with no worktree. A case no rule here names is
+judged by which of these three errors it risks:
 
 - an operation the developer did not name: a merge where they asked for a rebase, a branch they did
   not name moved or written to, or an operation started over one they had already begun;
@@ -14,8 +14,6 @@ against one of three errors:
   instead of a script's verdict, or an **Incoming** side set aside anywhere but the **Loss ledger**;
 - the developer's work touched beyond the operation: their uncommitted files replayed into a
   conflict, or anything landed, pushed or claimed on their behalf.
-
-A case no rule here names is judged by which of the three it risks.
 
 ## What this run never does
 

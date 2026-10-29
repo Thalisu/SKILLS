@@ -145,8 +145,7 @@ inside the run's own artifacts, and the run takes it.
 Three writes outside the repository have a fixed place:
 
 - **Work for another repository.** The stop at the Plan on a behaviour with no place in the
-  repository the run builds in is named under `outward`: the run never builds in a
-  repository it was not opened in. Its choice is the
+  repository the run builds in is named under `outward`. Its choice is the
   `tickets` command the Reply ends on, which cuts the moved behaviour for that repository, then
   `/do` on the same Ticket again.
 - **A push.** A blocked Reply whose handed-over commands include a push names that push under
