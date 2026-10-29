@@ -104,7 +104,8 @@ of this project's facts and the Review at the `review_file=` path the claim prin
      `(continue / stop)`, `stop=moved` continues on `moved=continue` and asks
      `(abort / continue)` on `moved=ask`, each question in the words of that bullet.
      Under `--auto` the `(abort / continue)` question is still asked of the developer, with the
-     `choice-taker`'s return above it as that bullet says, per [forks.md](forks.md).
+     `choice-taker`'s return above it as that bullet says. Read
+     [run-questions.md](run-questions.md) when the run is under `--auto`, for that question.
      A `review=`
      line naming a Review means the rebase came after the review, so the branch lands through the
      fix call once it finishes. Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
@@ -113,8 +114,8 @@ of this project's facts and the Review at the `review_file=` path the claim prin
      discarding it, as its `verdict=ask` bullet says, naming the tree and the Spec branch. A
      yes discards it and the run goes on as `verdict=restart` with the tree present; a no stops the
      run. Under `--auto` the question is still asked of the developer, with the `choice-taker`'s
-     return above it as that bullet says, per [forks.md](forks.md), and nothing is discarded on
-     that return.
+     return above it as that bullet says, and nothing is discarded on that return. Read
+     [run-questions.md](run-questions.md) when the run is under `--auto`, for that question.
    - `verdict=land`, exit 4: the Review beside the Spec counts, so the review already read the
      Spec branch. The run integrates with no **Gate** of its own and lands through the fix call on
      that Review, as the review in [mechanics.md](mechanics.md) says for a branch the review

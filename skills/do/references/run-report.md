@@ -137,8 +137,9 @@ Sketch lines; in
     section, each line with the commit beside it.
 23. **Build lines.** Three kinds of line, the behaviours first:
     - One line per behaviour as it landed: the files the loop opened for it, the author's verdict
-      and what was done with it, the commit, and, when the behaviour went to
-      [tdd-fallback.md](tdd-fallback.md), the reason it did and the check that stood in.
+      and what was done with it, the commit, and, when the behaviour went to the TDD
+      fallback (Read [tdd-fallback.md](tdd-fallback.md) when the loop line reads `Loop: fallback`),
+      the reason it did and the check that stood in.
     - Then one flow line per criterion the flows reached, off the `flow:` lines the build
       returned: the criterion, the author's verdict and the commit where a flow was authored, and,
       where none was, the reason it needed none or the empty command slot that stopped it.
@@ -253,15 +254,16 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
      check the choice-taker weighs a Ruling line against, per
      [choice-taker.md](../agents/choice-taker.md). A `## Implementation Decisions` Ruling line
      from any other author is left out of this section, the same as any other stranger's line.
-   - **A held Ruling.** A Ruling this run holds because its Spec is an issue,
-     the forks in [forks.md](forks.md), follows under `On the Spec:` in the same shape, with the Spec issue it was
+   - **A held Ruling.** A Ruling this run holds because its Spec is an issue
+     (Read [forks.md](forks.md) when the run holds one) follows under `On the Spec:` in the same shape, with the Spec issue it was
      posted on once the close's yes posted it, and otherwise with its whole Spec line and its
      `Criterion:` and `Now reads:` lines, for the developer to carry to the issues. That unposted
      Ruling is also listed under Pending debt, in the message and so in the Debt file, with or
      without `--auto`. A Ruling an earlier session held and never posted is not held again: a resume meets
      the fork again, and the earlier run's section of the Debt file still names it.
    - **A Ruling on a run question.** A Ruling the `choice-taker` made under `--auto` on a
-     question about the run itself, the run questions in [forks.md](forks.md), or, outside the
+     question about the run itself (Read [run-questions.md](run-questions.md) when a `ticket` run
+     under `--auto` holds one), or, outside the
      chain, in the matched Playbook's own reference, goes under
      `On the run:` and never among the Spec's lines, one line per Ruling in the order the run met
      them, naming both options, the option taken and the norm:
