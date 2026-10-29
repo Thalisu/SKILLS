@@ -302,10 +302,10 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
    Fixer has returned only once its return file is on disk, so once the Agent tool has handed every
    call of the Wave back, wait for the Wave in one call over every return file it forked that is not
    already there,
-   `bash ~/.claude/skills/do-code-review/../../.agents/scripts/returns.sh 240 <every return file of the Wave>`,
+   `bash ~/.claude/skills/do-code-review/../../.agents/scripts/returns.sh 540 <every return file of the Wave>`,
    given the Bash tool's own `timeout` at its maximum, `600000` ms, so the script's window closes
-   first, and call it again over the files still `missing=`, three windows and no more. A Fixer
-   whose file has not landed after the third costs its own Finding and nothing else of its Wave:
+   first, and call it again over the files still `missing=`, six windows and no more. A Fixer
+   whose file has not landed after the sixth costs its own Finding and nothing else of its Wave:
    that Finding reads `not fixed: the Fixer did not return`, whatever text the Agent tool handed
    back for it, and every Fixer of the Wave whose file did land goes on to steps 4 to 6, read,
    integrated and recorded as if the silent one had failed
@@ -326,7 +326,7 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
 5. **Integrate the Wave.** Over the Fixers that returned a commit, and only those,
    `bash ~/.claude/skills/do-code-review/scripts/fix-integrate.sh <the reviewed tree> <n>=<branch>...`,
    each branch the one its `worktree` line printed. A Fixer that did not return is never among
-   them, even when its commit or its return file lands after the third window closed: nothing it
+   them, even when its commit or its return file lands after the sixth window closed: nothing it
    wrote reaches the reviewed branch, since nothing the run checked stands behind it. The script
    picks the branches onto the reviewed branch in Finding order, whatever order they are given in,
    and prints one line per Finding:
@@ -554,7 +554,7 @@ place on `model: sonnet`, the model its definition pins, with that definition re
 shell from `$(readlink -f ~/.claude/skills/do-code-review)/agents/do-code-review-gate-fixer.md` as
 the head of the prompt and the same brief after it, as for a Fixer.
 
-The Gate fixer's return file is waited for the way a Fixer's is, three windows and no more. One whose file never lands ends the attempts, since it may still be
+The Gate fixer's return file is waited for the way a Fixer's is, six windows and no more. One whose file never lands ends the attempts, since it may still be
 writing in the tree: nothing lands, the `## Fix run` section reads `- gate fixer: no return`, and
 the landing line reads `not landed: gate fixer did not return, <the failing check>`, with a
 Finding still open named beside it, per `## The landing`.

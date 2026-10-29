@@ -2,7 +2,7 @@ name: fix-gate-fixer-no-return
 tags: [fix, gate-fixer, landing]
 runs: 1
 max_turns: 120
-timeout_seconds: 3000
+timeout_seconds: 6000
 allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
 context:
   scaffold_script: |
