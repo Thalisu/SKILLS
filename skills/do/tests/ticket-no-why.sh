@@ -12,6 +12,7 @@ resume="$refs/resume.md"
 final_stopped="$refs/final-stopped.md"
 stand_in="$refs/stand-in.md"
 impeccable="$refs/impeccable.md"
+elsewhere="$refs/elsewhere.md"
 fails=0
 
 echo "# ticket.md: instructions only, no ADR argument and no why beside a rule"
@@ -157,5 +158,13 @@ absent "impeccable.md keeps no why for the brief carrying no rule" "where a brie
 absent "impeccable.md keeps no why for the build line naming impeccable" "since no test is written ahead of the screen"
 absent "impeccable.md keeps no why for a stop after the last criterion never being built" "since the flows and the scan are still ahead"
 absent "impeccable.md keeps no why for the definition carrying the return's shape" "since the fork never opens this file"
+
+echo "# elsewhere.md: instructions only, no ADR argument and no why beside a rule"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(tr '\n' ' ' <"$elsewhere" | tr -s ' ')"
+absent "elsewhere.md argues from no ADR" "docs/adr/"
+absent "elsewhere.md names no ADR as a rule's reason" "per [ADR"
+absent "elsewhere.md names no plain ADR as a rule's reason" "ADR 0"
+absent "elsewhere.md gives the change of direction no because" "anywhere, because what it asks for does not exist as it reads"
 
 exit $((fails > 0))

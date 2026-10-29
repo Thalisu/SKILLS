@@ -20,7 +20,7 @@ Before it writes anything, the run reads the item against the Ticket's criteria 
 - **A move**: the criterion or the story the item traces to still reads true as written once it is
   built in the repository the item names. The rest of this section is that finding.
 - **A change of direction**: that criterion or story would have to be rewritten before anything
-  could be built, there or anywhere, because what it asks for does not exist as it reads, or
+  could be built, there or anywhere: what it asks for does not exist as it reads, or
   building it there would contradict another story, criterion or decision. Then
   `spec-finding.sh` is not run, nothing is written into the Spec and no `/tickets` command is
   handed over. The run stops as blocked the same way, under the `direction` Handover class, and
