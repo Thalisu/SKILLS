@@ -195,6 +195,11 @@ norm like any ADR, and it yields to every ADR the developer decided when the two
 _Avoid_: auto ADR, draft ADR (it is written and binding until a developer's ADR or a deletion
 overrides it), provisional decision
 
+**Stale ADR**:
+An ADR a `do` run's fork found disagreeing with the code or with a later ADR. It stays a norm until
+a developer decides otherwise, and a run only records it as **Pending debt**.
+_Avoid_: outdated ADR, dead ADR, obsolete ADR
+
 **Scratch**:
 The unversioned folder a project keeps its local chain artifacts in, `.scratch/`: a **Spec**, its
 **Journey**, its **Tickets** and the **Reviews** beside them. Always ignored by git, so it is one
