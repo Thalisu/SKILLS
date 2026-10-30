@@ -147,7 +147,7 @@ and leaves the worktree as it is.
   the script's `stop=` line, read before it touches the rebase, and never the session's own reading
   of the rebase state:
   - `stop=conflicted`: the rebase is open onto the tip of the developer's branch with a file still
-    unmerged. The run classes the stop with the door script before it touches anything, and the
+    unmerged. The run classes the stop with `conflict-class.sh` before it touches anything, and the
     stop is resolved as at any stop of the integration.
   - `stop=resolved`: the rebase is open onto that tip with no conflicted file. The question is the turn's final message and nothing is continued before the answer:
 

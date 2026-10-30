@@ -91,13 +91,6 @@ open dossiers (<n>): path | test | signature | veto | occurrences | green_runs  
 
 When `package.json` has more than 12 scripts only those whose name matches `test|e2e|spec|dev|start|docker` are shown. Parsing uses awk only; a minified or unusual `package.json` yields `scripts: none found`; read the file yourself then. The worst case stays under 60 lines.
 
-## How the facts block is injected (verified behaviour)
+## Invoking the facts script
 
-Checked against a throwaway project with six skill variants, in default and bypass permission modes:
-
-- `${CLAUDE_SKILL_DIR}` expands inside the `!` command to the skill directory whatever the working directory is; `$PWD` is the project.
-- Injected commands never prompt. In default mode the invocation aborts silently (zero turns, no error text in `--output-format json`) unless a permission rule allows the command; a typical global allow list does not cover it.
-- The rule that matches is exactly `allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/context.sh)` with the script invoked directly, quoted or unquoted path. Prefixing the command with `bash ` and mirroring that in the rule did **not** match; `Bash(bash *)` matches but is far broader than needed.
-- With `--permission-mode bypassPermissions` nothing is required.
-
-Keep the script executable (`chmod 755`): a direct invocation of a non-executable file fails, and the failure aborts the whole skill.
+Keep `allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/context.sh)` and invoke the script directly, with no `bash ` prefix. Keep it executable (`chmod 755`): a direct invocation of a non-executable file fails, and the failure aborts the whole skill.

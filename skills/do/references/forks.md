@@ -61,8 +61,8 @@ The brief is the one brief the agent's definition names for every caller, filled
 - `Caller:` is `do` at the step.
 - `Question:` is the fork, `Options:` its two sides, and `Recommendation:` is `none`.
 - `Repository root:` is the repository root.
-- `Principles:` is the absolute path of the skills checkout's `.agents/principles/` folder, filled
-  by `do` the way sketch's `<agents-dir>` is.
+- `Principles:` is the absolute path of the skills checkout's `.agents/principles/` folder, the
+  path `readlink -f <skill-dir>/../../.agents/principles` prints.
 - `Context:` is the Ticket, the Spec and the Digest. A Spec that is an issue is handed with its
   comments, where the Rulings earlier closes posted sit under `## Implementation Decisions`. Each
   comment is handed with its author, and the brief also carries the developer's own login, read with
@@ -90,8 +90,9 @@ No choice-taker can be forked on two branches:
   ships.
 
 On either branch the run rules nothing itself and never forks another agent in the choice-taker's
-place: it stops at its step, the unruled stop below, the Ticket left `claimed` and the worktree in
-place; the next `/do` on the Ticket resumes it. The message says which branch holds: the
+place: it stops at its step, the unruled stop below, with the Ticket and the worktree as the step found
+them: nothing claimed or cut at a first run's Plan step, and at the build step the Ticket `claimed`
+and the worktree in place for the next `/do` to resume. The message says which branch holds: the
 Agent tool withheld, or `choice-taker` not listed, the agent this machine has not linked, which one
 run of the skills repository's `scripts/link-skills.sh` links before the next `/do`.
 

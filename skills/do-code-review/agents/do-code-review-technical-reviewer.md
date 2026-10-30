@@ -264,7 +264,7 @@ Refuted by: <what refuted it>
 ## Axes
 
 - Correctness: <n> findings, worst #<n> (<Bucket>)
-- Spec: <n> findings, worst #<n> (<Bucket>) | no spec; Loss ledger: <n> drops read | none | did not open
+- Spec: <n> findings, worst #<n> (<Bucket>) | no spec[; Loss ledger: <n> drops read | did not open]
 - Standards: <as above>
 - Principles: <as above>
 - Blast radius: <as above>

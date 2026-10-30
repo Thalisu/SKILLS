@@ -98,7 +98,7 @@ One branch per path, read off the User Stories.
 - **Out of Scope.** A path the spec's Out of Scope excludes closes at once, with the line that excludes it.
 - **Order.** Order the walk by the actor: the path they walk first, then the ones that need state it creates (create before edit before delete), so every path lands as one demoable slice ([sequence-verifiable-units](../../.agents/principles/sequence-verifiable-units.md)); `tickets` reads that order back from `## States`.
 - **Lenses.** Tag each fork with the lenses from step 5 that apply to it.
-- **Runnable.** Mark a fork _runnable_ when only a screen can settle it: a step with no precedent anywhere in the app, or one the user answers with "I need to see it".
+- **Runnable.** Mark a fork _runnable_ when only seeing a screen can settle it: its answer turns on how the step looks or feels to use, or the user answers it with "I need to see it".
 
 Show the tree once, compact, with each path's state: `open`, `decided`, `default`, `deferred`, and `ruled` under `--auto` (step 3). Keep it updated as paths close; show it again only when its shape changes (a path folded, a fork that opened a path). A path closing is not a shape change.
 

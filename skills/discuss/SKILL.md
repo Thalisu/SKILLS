@@ -36,6 +36,7 @@ A message with no tool call ends the turn, and the session waits there until the
 
 - the ask for a missing plan (step 1);
 - a question to the user (step 3), which includes the three exceptions under `--auto`;
+- a wait on a prototype, when every branch still open depends on its report: one line naming the branch it is being built for, and nothing guessed about what the report will say;
 - the close (step 6).
 
 Everything between those points happens in one turn. The grounding note, the tree and the first question arrive together: the session never stops after the note or the tree to ask whether to begin. A status line is welcome, in the same message as the next tool call. Under `--auto` nobody is watching the run, so a turn that ends on a progress summary, on an announcement of the next branch, or on an offer to carry on stops the walk with branches still open. When a message is about to end that way, make the next tool call instead.

@@ -94,8 +94,7 @@ the tracker file describes. Before anything is written:
   feature across repositories, where the same command is the landing command of its repository.
   Before the stop the run reads the landing record, in a call of its own:
   `bash <skill-dir>/scripts/landing-order.sh <the Ticket's path> | tee <state>/order`, which writes
-  nothing else. A record
-  hands the record's lines, as printed, to `bash <skill-dir>/scripts/landing-route.sh door` on
+  nothing else. The run hands the record's lines, as printed, to `bash <skill-dir>/scripts/landing-route.sh door` on
   stdin and routes on the one `route=` line it prints. The run chooses no route from the record
   itself.
   - `route=already-landed`: this stop takes the place of the resolved line. The run does nothing:
@@ -230,7 +229,7 @@ Do:
 **0. Resolve and show.** Before any edit, step 0 records its lines for the Run report's Run
 section, in the order the Run section fixes, its facts taken off the lines the door script
 printed and never restated from a file the session read. The Run report carries them under
-`--auto`; the session may also write them as it goes, and nothing depends on that:
+`--auto`:
 
 - `Playbook: ticket`, which the message carries too, as its first line.
 - The title confirmed back, `<NN>: <title>`.
@@ -258,8 +257,7 @@ printed and never restated from a file the session read. The Run report carries 
   step stays open until the run reaches it. The Run report's Run section carries it after the lines
   above, each step the run reached ticked `done:` or reading `skip: <reason>`.
 
-The door script still runs before any write; recording the lines for the Run report moves none of those
-actions. A Ticket the door refuses ends in one message, the refusal, as [reply.md](reply.md) says
+A Ticket the door refuses ends in one message, the refusal, as [reply.md](reply.md) says
 for a refusal before any edit. Done when the title, the predicate and the loop line are recorded
 for the Run report's Run section.
 
@@ -681,7 +679,7 @@ developer's second report is recorded marked as theirs.
 **6. Integration.** The integration in [mechanics.md](mechanics.md), with the Ticket's Spec branch
 as the target, `refs/heads/spec/<feature-slug>`, or, on a Ticket with no Spec, the branch the run
 started on: the branch it built on rebased onto that branch, every conflicted hunk
-classed by the door script before anything is resolved, and the gate's command lines run again when
+classed by `conflict-class.sh` before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
 the Loss ledger beside the Ticket in the main checkout, `.ledger` before the extension, or, on a Ticket run from its Build repository, beside the Ticket in the Home repository, by the door's `ticket=` path, while the rebase runs in the Build repository's worktree. The no-op is ticked on `integration.sh check`'s `verdict=noop`, and never on an ancestor check of the run's own. Done when the step reads the no-op, or the target and the count with
 the tree handed over with no **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named, and

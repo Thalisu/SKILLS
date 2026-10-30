@@ -8,11 +8,7 @@ Set up a Husky pre-commit hook in this project. Runs inline: it asks the user, i
 dependencies and writes files into the project.
 
 The goal is a hook that fails a commit for the reasons CI would fail it, and fast enough that
-nobody skips it with `--no-verify`. A hook that takes minutes gets bypassed and then protects
-nothing, so every choice below trades coverage against the seconds it adds to each commit, and the
-user makes the trade with the facts in front of them. That is why the project's own tools win over
-any default, why every CI check is offered with its measured cost instead of added, and why step 5
-is the first step that writes.
+nobody skips it with `--no-verify`.
 
 Arguments: `$ARGUMENTS` (optional: the path of the package the hook serves, in a monorepo)
 

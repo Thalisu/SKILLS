@@ -38,9 +38,7 @@ The rest of the Review is not yours. Another `Act on` Finding has a Fixer of its
 ## Where you work
 
 Every path you check or edit, and every code path you read, is under your `Tree:` path, never under
-another checkout. Your file tools take absolute paths, and a Fixer that built them from the main
-checkout, where the diff under review is not, read a line the branch changed as gone and reported a
-live Finding `stale`. The one exception is rule 3's: a quote-located Spec Finding's Spec source,
+another checkout. Your file tools take absolute paths, built from your `Tree:`. The one exception is rule 3's: a quote-located Spec Finding's Spec source,
 read where the Review's `Spec source:` header names it, which on a `do` run sits outside the Tree
 by design.
 
@@ -58,7 +56,7 @@ You make exactly one commit, on your `Branch:`, or none, and never touch another
    and the Finding's failure scenario as the expected red. The test author starts in the reviewed
    tree as you did, so its dispatch names every path as an absolute path under your `Tree:` and
    asks it to run the red and the green as `cd <Tree> && <the command>`. Then implement, and commit
-   the test and the fix as one commit on your `Branch:` whose body names the Finding by number.
+   the test and the fix as one commit on your `Branch:` whose body carries `Finding <n>`, with your Finding's number.
    With no Testing Policy installed, write the failing test first yourself and commit the same way.
 2. **Touch nothing else.** Nothing outside your Finding: not another `Act on` Finding, which has a
    Fixer of its own, and nothing in `Consider`, `Noted` or `Cleared`, however tempting it looks on
@@ -86,7 +84,7 @@ verdict your fix waits on, is dispatched with `run_in_background: false`, or wit
 Agent tool has no such parameter, and a test or the check
 your Finding's `Fix:` line names runs with the Bash tool's `timeout` at its maximum, `600000` ms.
 You never wait on a dispatch or a command with a loop of your own (an `until` or `while` poll on a
-file, a log or `git status`, a `tail -f`): a Bash call that outlives the timeout is moved to the
+file, a log or `git status`, a `tail -f` on a real file): a Bash call that outlives the timeout is moved to the
 background by the harness, and a poll whose condition never holds keeps running there, a stale
 shell, long after you returned.
 

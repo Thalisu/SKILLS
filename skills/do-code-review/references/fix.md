@@ -39,7 +39,7 @@ reviewed nothing.
 A Review whose header reads `Spec: <path>` was written beside a Spec a caller handed over, and the
 door script knows that Review as the run's own file only when it is told that Spec. So the call
 runs it with `--spec <that path>` beside the short sha
-(`bash skills/do-code-review/scripts/fixed-point.sh <short sha> --spec <path>`), and `dirty=no`
+(`bash ~/.claude/skills/do-code-review/scripts/fixed-point.sh <short sha> --spec <path>`), and `dirty=no`
 holds with only that Review untracked. Without the flag the door reads the Review as the
 developer's uncommitted work and the call refuses. The Review the caller named goes over with it,
 as `--review <the Review's location>`, since a Spec of a feature across repositories holds one
@@ -140,8 +140,7 @@ answer means:
   worktree: it fails on an assertion the check makes about the code, never merely on the check
   failing to load. An unresolved import, a missing export or a `TypeError` on a symbol the code at
   `Commit:` never carried is no red here: the check never ran against the reviewed behaviour, it
-  only tripped over a symbol a later commit added, and that same failure would still fire the moment
-  anyone pasted that symbol back in with the Finding's own sink left exactly as broken. Treat that
+  only tripped over a symbol a later commit added. Treat that
   miss the way a check that never failed at all is treated, below. Remove that worktree (`git
   worktree remove --force <that path>`), then run the same check in the tree at HEAD, the way The
   re-check runs it: it passes. Both hold, and the Finding is settled here: hold `- <n>: fixed <sha>,
@@ -150,8 +149,7 @@ answer means:
   at HEAD, and the Finding goes to The Fixer: a check that was never red on an assertion against the
   code the Review judged proves nothing about the fix, whichever file the commit that touched it
   landed in.
-- **A `touched=none` line, or a `Fix:` that names no check**: the Finding goes to The Fixer, as it
-  did before this step existed. A check that already passed on code no commit has touched since the
+- **A `touched=none` line, or a `Fix:` that names no check**: the Finding goes to The Fixer. A check that already passed on code no commit has touched since the
   review proves nothing the review did not already see, and a Finding with no check has nothing to
   prove it by, so neither is ever recorded `verified` here. A test file the `Fix:` names that holds
   no test of the behaviour it names is no check yet: the file passing says nothing about the
@@ -200,9 +198,7 @@ tree of its own, cut beside it for its one Finding by the Wave's `fix-worktrees.
 Every Fixer, and the Gate fixer, is forked from the reviewed tree, the run's own working directory,
 and its brief names the tree it works in, `Tree: <its absolute path>`: the reviewed tree for the
 Gate fixer, its own worktree for a Fixer. A fork's shell starts in the tree it was forked from, but
-its file tools take absolute paths, and a Fixer has built them from the main checkout, where the
-diff under review is not: it read a line the branch changed as gone and reported a live Finding
-`stale`. The run never changes its own working directory and never uses a worktree tool, per the
+its file tools take absolute paths, built from its `Tree:`. The run never changes its own working directory and never uses a worktree tool, per the
 two-trees contract, and never writes a git command that makes or removes a Fixer's worktree or
 branch: `fix-worktrees.sh` composes those names and is the only thing that touches them, so the
 run hands back only the branches it printed.
@@ -222,7 +218,7 @@ so its window stays the size of that Finding.
 Each is the `do-code-review-fixer` agent this skill ships, forked with the Agent tool as
 `subagent_type: do-code-review-fixer` and no `model` key, so it runs on the model and the effort its
 definition picks and never on the session's. Its contract is its definition,
-[do-code-review-fixer.md](../agents/do-code-review-fixer.md): the four rules, the tree it reads and
+[do-code-review-fixer.md](../agents/do-code-review-fixer.md): the five rules, the tree it reads and
 writes in, the two ends with no commit and the return file, none of them restated here. Its brief
 carries what changes from one call to the next, and nothing else:
 
@@ -319,12 +315,13 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
    re-check, the Diff tests, the Gate, the Gate fixer on a red one, the append and the landing,
    and lands nothing: that Finding `not fixed` keeps the Review from Green.
 4. **Read each returned line**: a commit, a location reported stale, or `not fixed` with what
-   stopped it. Two of a Fixer's lines end in no commit, per its definition, and the run reads them
+   stopped it. Three of a Fixer's lines end in no commit, per its definition, and the run reads them
    this way:
    - `not fixed: test author unreachable`, the Agent tool withheld from it. No further Wave runs,
      since each Fixer would meet the same wall, and every Finding of a later Wave reads the same.
    - `not fixed` with a test's reason, a test that would not go green. The Fixer dropped its own
      edits in its own worktree, which stays clean.
+   - `not fixed: out of time`, the budget spent. The Fixer dropped its edits in its own worktree.
 5. **Integrate the Wave.** Over the Fixers that returned a commit, and only those,
    `bash ~/.claude/skills/do-code-review/scripts/fix-integrate.sh <the reviewed tree> <n>=<branch>...`,
    each branch the one its `worktree` line printed. A Fixer that did not return is never among
@@ -340,8 +337,7 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
      never resolved in place, per
      [ADR 0054](../../../docs/adr/0054-a-conflict-between-two-fixers-is-aborted-and-re-routed-never-resolved.md):
      a conflict between two Fixers of one Review means the floor missed a coupling or a Fixer
-     touched what its Finding did not name, and a resolution would hide that and let the record
-     report two fixes where the merge kept one, so no conflict is classed and no hunk is merged.
+     touched what its Finding did not name, so no conflict is classed and no hunk is merged.
      The Finding writes no line yet: its re-route count goes up by one, and it is forked again in
      the Wave that runs next, from a fresh worktree cut over the reviewed branch as this Wave's
      integration left it, which holds the Finding it lost to.
@@ -456,8 +452,7 @@ any top-level `const mock*` by name and a file the branch touched for another re
 every name it already defined: the row is dirty only when
 `git diff -U0 <the fixed point>..HEAD -- <the file>` adds the `const <the name>` line in one of those
 files, and that added line is not a handle. A handle binds the name to a mock that already exists
-and builds nothing, its right-hand side reading `<identifier> as jest.Mock`, with or without type
-arguments, or `jest.mocked(<identifier>)`, and it is the shape a Testing Policy's shared factories
+and builds nothing, its right-hand side one identifier under a cast or the framework's typed-mock wrapper, and it is the shape a Testing Policy's shared factories
 tell every test to write, so two files each holding one is no second copy of a factory. Every other row is debt the branch did not write, left to the Testing Policy's second-use
 rule, and no section of the report but those two counts.
 
@@ -537,7 +532,7 @@ per attempt and the return file, none of them restated here. Its brief carries w
 attempt to the next, and nothing else:
 
 - the red block as the check printed it, the capped lines, and never the full log or the Review:
-  for the duplication scan, its `## duplicate-symbols` header and the dirty rows alone;
+  for the duplication scan, each of the two headers that holds a dirty row and the dirty rows under it;
 - the branch it commits on;
 - `Tree: <the absolute path of the tree it works in>`;
 - `Return file: <the Fixers' directory>/gate-fixer-<the attempt>.md`.
@@ -668,11 +663,8 @@ to answer, so a hunk a person must judge ends the landing instead of waiting on 
    `bash ~/.claude/skills/do-code-review/scripts/conflict-class.sh`, whose verdict is the class and
    never the orchestrator's reading of the markers, per
    [ADR 0028](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md).
-   It is a verbatim copy of the script `do`'s integration runs, kept in this skill so the review
-   classes the same way where `do` is not installed, and `do`'s test of that script fails when the
-   two drift.
 3. Every hunk `mechanical` and the verdict line reading `trusted=0`: the orchestrator resolves them
-   itself by keeping both sides in base order, the rule `do`'s integration applies, restated here for the same reason. The conflicted
+   itself by keeping both sides in base order, the rule `do`'s integration applies. The conflicted
    files are the list git left, read NUL-delimited, `git diff --name-only --diff-filter=U -z`, and a
    path never enters a command line as text, since either side of the rebase chose it and a single
    quote in it closes whatever quotes it is pasted into. The two blocks run as they stand, nothing

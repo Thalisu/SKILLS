@@ -1,6 +1,6 @@
 ---
 name: spec
-description: "Synthesise the current conversation into a spec, publish it where the project's issue tracker points, and name the next command: journey when the stories add a screen or walk more than one path or step, tickets otherwise. No interview, one check on the test seams."
+description: "Synthesise the current conversation into a spec, publish it where the project's issue tracker points, and name the next command: journey when the stories add a screen or walk more than one path or step, tickets otherwise. No interview: one check on the test seams, and one builder question when a story has a screen."
 disable-model-invocation: true
 argument-hint: "[--auto] [optional: a pasted discuss closing summary, when it is not already in this conversation]"
 ---
@@ -70,10 +70,11 @@ pasted `discuss` closing summary, when the session that produced it is gone).
 
 - An `--auto` token among the arguments, before the summary, after it or inside it, is dropped
   wherever it sat and puts the run under `--auto`. The rest is read as it would be without the
-  flag, so the token never reaches the plan or the spec. What the flag changes is in steps 2
-  and 5.
-- A `discuss` closing summary is the plan: its decisions, defaults and deferrals are carried into
-  the spec as they stand, never re-argued and never improved on.
+  flag, so the token never reaches the plan or the spec. What the flag changes is in steps 2,
+  4 and 5.
+- A `discuss` closing summary is the plan: its decisions, defaults, deferrals and `Rulings` are
+  carried into the spec as they stand, each Ruling on the format's `Ruled by the choice-taker under
+  --auto:` line and never as the developer's decision, never re-argued and never improved on.
 - A conversation that decided the plan some other way (the user chose among options, or stated what
   is to be built and how) is a plan too.
 - A conversation that holds no decided plan gets one message telling the user to run `/discuss` on
@@ -181,7 +182,7 @@ Ruling: it reads ruled, never confirmed and never taken, in the spec (step 3) an
 (step 5), with the return's `Norm:`. The run goes on to step 3 in the same turn.
 
 **When the check comes back to the developer.** The seams question is asked after all, as the one
-message above and the skill's one question, with one line before it naming the reason. Then the
+message above, with one line before it naming the reason. Then the
 turn ends, and no spec is written before the answer, which is the decision as it is without the
 flag: the seams then read confirmed, never ruled. The rest of the run stays under `--auto`, so the
 close's last line still carries the flag. It happens in these cases and no others:
@@ -303,8 +304,9 @@ nothing about the section it lacks and the close has no line about repositories,
 skills take a spec without the section as a feature of one repository.
 
 **A rerun** on the same feature rewrites the spec in place instead of publishing a second one. In
-local mode the file is rewritten, keeping a `Journey:` line that already points at a journey file
-and any `## Comments` section. In a remote tracker the issue this session published is edited, and
+local mode the file is rewritten, keeping the `Status:` line, a `Journey:` line that already points
+at a journey file, every Repositories entry a later run added, and every `Ruled by the choice-taker
+on Ticket` and `Moved by the run on Ticket` line under Implementation Decisions. In a remote tracker the issue this session published is edited, and
 one is created only when the conversation names none.
 
 **The front-end line on a rerun.** A rerun settles the line from the earlier spec and from the
@@ -362,8 +364,7 @@ exists.
 
 - **No story has a screen** (an API, a job, a migration, a refactor, a library): the line reads
   `Front-end: none`, and the developer is asked nothing about builders. Whether a feature has a
-  front-end is read off the stories and never asked, so a back-end feature goes down the chain as
-  it did before the line existed.
+  front-end is read off the stories and never asked.
 - **A story has a screen**: one message asks who builds the front-end, the chain's Builder or
   impeccable. Then the turn ends and the run waits, with no tool call after the question and
   nothing written yet: the spec is published once, with its header whole. The message carries

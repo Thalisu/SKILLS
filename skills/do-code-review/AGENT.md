@@ -1,6 +1,6 @@
 ---
 name: do-code-review
-description: 'Reviews the diff of the branch since a fixed point on six Axes and writes one Review file, the Findings by Bucket, each at a Rung, then returns the Review text and its location. Forks the technical reviewer and the security reviewer in parallel, and never edits code. Invoke through /do-code-review on a branch, from do at its review step with a Ticket, or from debt at its fix step with a Debt review; the developer, do and debt are its only callers. Never on your own initiative.'
+description: 'Reviews the diff of the branch since a fixed point on six Axes and writes one Review file, the Findings by Bucket, each at a Rung, then forks the Fixers and lands a Green Review. Returns the Review text and its location, and edits no code itself. Invoke through /do-code-review on a branch, from do at its review step with a Ticket, or from debt at its fix step with a Debt review; the developer, do and debt are its only callers. Never on your own initiative.'
 model: opus
 effort: high
 tools: Bash, Read, Glob, Grep, Write, Agent, Skill
@@ -314,16 +314,14 @@ results, go on. When it returns before the reviewers do, because the harness run
 background, do not end your turn: wait for the return files with the wait script,
 `bash ~/.claude/skills/do-code-review/../../.agents/scripts/returns.sh 240 <technical.md> <security.md>`,
 given the Bash tool's own `timeout` at its maximum, `600000` ms, so the script's window is the one
-that closes first and the call comes back to you instead of being cut short and left running in the
-background. It prints one `returned=` or `missing=` line per file, in the order given, and comes
+that closes first. A call the harness moves to the background reaches you as a notification: wait
+for it, then call again over the files still `missing=`. It prints one `returned=` or `missing=` line per file, in the order given, and comes
 back the moment both files are there. When it comes back at its window instead, with a `missing=`
 line, read the file that landed and wait again for the file still missing alone, the same call over
 that one path, so a return you already have is never waited on a second time. Three windows per fork and no more, which is 720 s, and the retry is waited for the
-same way, so the two forks together wait 1440 s at most, under the `timeout_seconds` of
-`evals/reviewer-retry/case.yaml`: that is what leaves a run whose reviewer never returns the room
-to declare it failed and still write the Review. The technical reviewer returns its Findings in the
+same way, so the two forks together wait 1440 s at most. The technical reviewer returns its Findings in the
 shape the format fixes, its five Axis lines and its safety fact; the security reviewer returns the
-same shape with the Security line alone.
+same shape with no `## Noted` heading and the Security line alone.
 
 A reviewer whose file never lands did not return, and one whose file lands outside that shape did
 not return either. Either one is forked once more with the same brief, alone, and waited for the
@@ -339,8 +337,7 @@ On a sharded run the same fork, wait and retry go over the Row set, and none of 
 Shard:
 
 - **Fork** every Row at once, all the Agent tool calls in one message, each with its own brief and
-  its own `Return file:` line. A Shard forked after another has returned makes the review as many
-  times longer as there are Shards.
+  its own `Return file:` line.
 - **Wait** on every return file of the set in one call, in Row order:
 
   ```
@@ -519,7 +516,7 @@ there is one, so a clean run is three lines. On a `fix` call whose list an earli
 `Act on: nothing remained`. The landing line is the one below, whether a fix ran or not. Then the
 push command.
 
-On a sharded run the `Axis not run:` line keeps its prefix, so a caller relays it as it always did,
+On a sharded run the `Axis not run:` line keeps its prefix, so a caller relays it unchanged,
 and names each Shard the Axis did not run on with that Row's reason, still one line per Axis:
 
 ```
@@ -533,7 +530,7 @@ line takes the first form:
 Axis not run: Spec, <the reason>
 ```
 
-Every other call, a plain one or a developer's with a landing target, ends the way it always did. Your last message is the Review's text, then one line `Written to <the review= path>`, then one
+Every other call, a plain one or a developer's with a landing target, ends this way. Your last message is the Review's text, then one line `Written to <the review= path>`, then one
 line for that file's own visibility, the door's `review_in_status=`, either way: on
 `review_in_status=yes`, that the Review shows up in `git status` for the caller to keep or drop;
 on `review_in_status=no`, that git ignores that path in the tree it sits in, or it sits outside the

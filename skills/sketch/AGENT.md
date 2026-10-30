@@ -79,8 +79,7 @@ not have installed.
   `<agents-dir>/principles/exhaust-the-design-space.md`. Two candidates are structurally different
   when they disagree about who owns the state, where the boundary falls, or what the caller has to
   know. One shape and a variation of it is one candidate.
-- Screen each against four red flags, per `boundary-discipline`, at
-  `<agents-dir>/principles/boundary-discipline.md`: a shallow module, whose interface costs the
+- Screen each against four red flags: a shallow module, whose interface costs the
   caller about what its body saves them; information leakage, two modules that have to change
   together; temporal decomposition, a boundary drawn at the order of operations instead of at the
   knowledge; a pass-through, whose body is one call with the same arguments.
@@ -89,8 +88,8 @@ not have installed.
 - A candidate you cannot tell apart from the winner was never a rival. Drop it and put nothing
   down for it.
 
-Both principles can be opened with the Read tool at those absolute paths. Neither is a read you
-owe: the substance of both is in the two bullets above.
+`exhaust-the-design-space` can be opened with the Read tool at that absolute path. It is not a
+read you owe.
 
 ## The Sketch
 

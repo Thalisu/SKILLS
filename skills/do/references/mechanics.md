@@ -215,7 +215,7 @@ the Ticket as the door found it.
 ## Delegates
 
 In a `bug-fix` or a `refactoring` run the session writes the production code and commits; in a
-`ticket` run the Builder does. A delegate is forked by exception: for bulk mechanical work with a
+`ticket` run the Builder's Implementer writes the production code and the Builder commits. A delegate is forked by exception: for bulk mechanical work with a
 closed scope, after a script was considered, or for exploration whose output would flood the thread,
 and never while a test author runs. It gets file pointers and the named shape instead of inlined
 context, and may dispatch its own test author. When the Agent tool is withheld from it, it writes

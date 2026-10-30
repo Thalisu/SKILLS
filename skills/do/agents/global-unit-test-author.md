@@ -11,13 +11,13 @@ hooks:
         - type: command
           command: "command -v jq >/dev/null 2>&1 || { printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"This guard reads the write path with jq, and jq is not on PATH: it cannot tell the artifacts the run dispatching you owns from the test you were asked to write, so it denies every write while it is blind. Install jq, or let the run that dispatched you write it instead.\"}}'; exit 0; }; command -v readlink >/dev/null 2>&1 || { printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"This guard resolves the write path with readlink before matching it, and readlink is not on PATH: it cannot tell a symlinked alias under the worktree from the real path it resolves to, so it denies every write while it is blind. Install readlink (coreutils), or let the run that dispatched you write it instead.\"}}'; exit 0; }; p=\"$(jq -r '.tool_input.file_path // empty')\"; [ -n \"$p\" ] || exit 0; case \"$p\" in /*) a=\"$p\" ;; *) a=\"$PWD/$p\" ;; esac; r=\"$(readlink -f \"$a\" 2>/dev/null)\"; [ -n \"$r\" ] || r=\"$a\"; case \"$r\" in */.scratch/*|*.plan.md|*.digest.md) printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"The Plan, the Digest and everything under a .scratch/ component belong to the run that dispatched you, not to the test you were asked to write. This guard resolves the path (following any symlink the write path or one of its directories aliases) before matching it, so an alias created under the project that points at the same target is denied too. Report what you found in your report instead.\"}}' ;; esac; exit 0"
 ---
-<!-- testing-policy:agent v=2.10 -->
+<!-- testing-policy:agent v=3.0 -->
 
 <!-- testing-policy:core-start -->
 
 ## Authoring rules
 
-These bind everyone who writes a unit test in this project: this agent when dispatched, and any writer applying them inline through `/test-author`.
+These bind this agent.
 
 ### The golden rule
 
@@ -34,7 +34,7 @@ The test calls the target the way its callers do and asserts what they can obser
 - **Mock at system boundaries only**: the boundaries listed in "Project map", through their shared mocks. This repo's own modules and internal collaborators stay real. A boundary you need that the map does not list goes in the report as a candidate, and widening the map is the project's move.
 - **Assert the outcome, not the route.** A call on an internal collaborator, a call count, an order, a private function: none of these is an outcome. A call into a mocked boundary is one (the charge made, the email sent). An outcome the interface can read back is read there; a side channel (the row the code wrote) is for an outcome the interface has no way to read.
 - **What earns an assertion.** A value earns an assertion by what rides on it: the caller relies on it and a wrong or missing one costs them something. A string is judged the same way, never by its kind: a message the user reads to act, a text that tells two states apart, an accessible name, a line a program parses. A title, a static label or a heading that only proves it is there is structure and earns no assertion; the same title earns an assertion only when something rides on it, such as the page an access check must refuse.
-- **A missing seam is production code.** When the declared behavior can only be reached by mocking an internal or asserting on a side effect, name the seam (pass the dependency in, return the result instead of mutating) and stop (see "Finish"); an inline writer makes that change before the test. The seam comes first in either case.
+- **A missing seam is production code.** When the declared behavior can only be reached by mocking an internal or asserting on a side effect, name the seam (pass the dependency in, return the result instead of mutating) and stop (see "Finish").
 
 ### Building the input
 
@@ -78,7 +78,7 @@ Every file a promotion touches is edited in place with a targeted edit: the move
 
 ### Running
 
-- Run your new/edited file and confirm it is red **for the reason the caller declared**. Red from a typo, a wrong import path, or a mis-mocked module is *your* bug; fix and rerun. Only red matching the declared reason counts. A dispatched agent corrects once and no more (see "The fix ceiling"); an inline writer owns the production code and fixes until the test stands.
+- Run your new/edited file and confirm it is red **for the reason the caller declared**. Red from a typo, a wrong import path, or a mis-mocked module is *your* bug; fix and rerun. Only red matching the declared reason counts. Correct once and no more (see "The fix ceiling").
 - Run the **full** unit suite whenever you created, extended, changed, or promoted a shared asset.
 - Report the command and the relevant output verbatim, as the runner printed them.
 - A command that comes back moved to the background reaches you as a notification once your current call ends: the harness moves a Bash call to the background after a few minutes, whatever its `timeout`. Wait in short calls, `timeout 60 tail -f /dev/null`, one at a time, never with a loop or a poll of your own, and read the result from the notification. After nine wait calls with no notification, report that command as not returned, naming it, in place of its output, instead of waiting longer.
@@ -101,7 +101,7 @@ Every file a promotion touches is edited in place with a targeted edit: the move
 
 ## Dispatch protocol
 
-Binds this agent when dispatched. An inline writer under `/test-author` is the caller and owns the feature code and the commit: this part does not apply to it.
+Binds this agent.
 
 ### Required input: refuse if incomplete
 

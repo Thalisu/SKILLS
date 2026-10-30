@@ -89,7 +89,8 @@ Compose the Debt review:
 bash <skill-dir>/scripts/debt-review.sh <slug> <dir>
 ```
 
-On exit 0 it prints `review=<path>` and `line=Written to <path>`. The session never reads a return
+On exit 0 it prints `review=<path>` and `line=Written to <path>`. On exit 2, print its stderr line and
+stop, or, with none, `no spec in the feature folder; nothing written`, and call no fix run. The session never reads a return
 file itself and never places an item in a Bucket: the script does both.
 
 On a rerun it appends the new Findings to the existing Debt review instead of rewriting it. When
@@ -109,6 +110,9 @@ comes back as new and is judged again on the next run; then `/debt <slug>` as th
 `<slug>` being the `slug=` value gather.sh printed.
 
 ## 3. The fix
+
+When the session does not list `do-code-review`, nothing is cut: the run prints
+`skip: do-code-review not listed` as its last line and stops.
 
 The fix runs after the Debt review's text and `Written to <location>`. Cut the branch, `<slug>` being
 the `slug=` value gather.sh printed and `<review>` the `review=` value gather.sh or debt-review.sh
@@ -172,9 +176,6 @@ The script prints a `tickets=` value when a `## Consider` Finding is marked `too
 When it did, the run puts that `tickets=` value (the `/tickets <spec>` line) on its own line just
 before the push command, the fix run's reply's last line, so the push command stays the run's last
 line. When the script printed no `tickets=`, nothing is inserted.
-
-When the session does not list `do-code-review`, the run checks that before the cut, so nothing is cut:
-it prints `skip: do-code-review not listed` as its last line and stops.
 
 <arguments>
 $ARGUMENTS

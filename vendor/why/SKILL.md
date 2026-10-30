@@ -1,6 +1,6 @@
 ---
 name: why
-description: "Use when the user asks why code was built a certain way, why a tradeoff or alternative was chosen, where a threshold or magic number came from, what business, product or operational constraint forced a design, why dead-looking code still exists, or what the history of a feature is. Triggers on \"why does X work this way\", \"why did we pick Y\", design rationale, regressions, postmortems, and /why. Discovers the MCPs available at run time, maps them to seven evidence categories (source control, issue tracker, long-form docs, real-time chat, infrastructure observability, error tracking, product analytics warehouse), queries them in parallel, and returns a cited, confidence-calibrated read on decisions, competing hypotheses and gaps. Use how instead for pure mechanism questions about runtime flow, placement or layering; use teach instead when the user wants to genuinely understand a subsystem rather than be handed a rationale report."
+description: "Use when the user asks why code was built a certain way: design rationale, a tradeoff or rejected alternative, where a threshold came from, what constraint forced a design, why dead-looking code still exists, a regression's or a feature's history, or /why. Returns a cited, confidence-calibrated read from every evidence source the session exposes. Use how instead for pure mechanism questions about runtime flow, placement or layering; use teach instead when the user wants to genuinely understand a subsystem rather than be handed a rationale report."
 ---
 
 # Why
@@ -117,7 +117,7 @@ Launch all matching investigators in a single message so they run concurrently. 
 
 Subagent config (each):
 - `subagent_type`: `general-purpose`
-- `model`: your configured why-investigators model (default `sonnet`)
+- `model`: `sonnet`
 - tools: full access, **including MCP servers**. An investigator without its MCP is useless. Investigators still shouldn't write anything. That's a posture, not a sandbox.
 
 Each investigator gets:
@@ -163,7 +163,7 @@ If your scope assessment suggests a single-commit trivial target where the PR de
 Spawn one synthesizer subagent:
 
 - `subagent_type`: `general-purpose`
-- `model`: your configured why-synthesizer model (default `opus`)
+- `model`: `opus`
 - tools: full access, **including MCP servers**. The synthesizer's quality check spot-verifies citations, which can require MCP access.
 
 The synthesizer gets:

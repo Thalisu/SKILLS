@@ -35,9 +35,7 @@ The Run report's Run section carries these lines, in this order:
 4. the gate's command lines;
 5. the door's verdict on the diff.
 
-The copy in the Run report is the record of them, and without `--auto` the run writes none. Neither
-the checklist nor any of those lines is required as text written mid-run, and a session that writes
-them as it goes is free to.
+The copy in the Run report is the record of them, and without `--auto` the run writes none.
 
 There is no loop line, no claim line and no protected-branch warning: a protected branch is a
 refusal. Nothing is pushed.
@@ -53,8 +51,8 @@ The turn ends in four places only:
 - a stop the gate or the door on the diff calls for, with the touched files restored.
 
 Anything else carries on in the same turn. The edit made, the gate green or the verdict printed is
-followed by the next step, never by a progress report, an offer to continue or a question about a
-fact a search settles.
+followed by the next step in the same turn, never by a message that ends the turn, an offer to
+continue or a question about a fact a search settles.
 
 ### A refusal
 

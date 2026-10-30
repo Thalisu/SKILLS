@@ -3,8 +3,8 @@
 Every Playbook reads this file last and writes its reply by it: five parts, and every other line a
 step names goes to the Run report, written under `--auto` alone.
 
-Every line a step names reaches the developer in the Reply or the Run report, never in text the
-session wrote mid-run.
+Every line a step names is recorded for the Reply or the Run report. A status note in passing
+replaces neither.
 
 ## The message
 
@@ -81,7 +81,7 @@ Three sections, in this order, each a part of the message.
 2. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
    on the way and not done. It lists every `Risk:` line of the review's return, on every run, with
    or without `--auto`. It lists every
-   `Axis not run:` line of the review's return too, with its reason, with or without `--auto`. So is
+   `Axis not run:` line of the review's return too, with its reason, with or without `--auto`. It lists
    every `drop` of an integration that ran after the review, each marked as coming after the review,
    with or without `--auto`. The Run report
    still carries all three under `--auto`, and the message stays five parts. A `bug-fix` or
@@ -112,7 +112,7 @@ Three sections, in this order, each a part of the message.
     | a `ticket` run that landed on its Spec branch | `spec-landed` | `completion-check.sh`'s output |
     | a `setup` run that resolved its Ticket | `setup-resolved` | `completion-check.sh`'s output |
     | a Final integration that landed, or a resume of one that finished | `final-landed` | `branch=<the developer's branch>`, and on a feature of more than one repository `landing-order.sh`'s output, read after the release |
-    | a landing record that read `verdict=wait`, or the door's Already landed or Out of order stop | `landing-wait` | `branch=<the developer's branch>` and `landing-order.sh`'s output |
+    | a landing record that read `verdict=wait` | `landing-wait` | `branch=<the developer's branch>` and `landing-order.sh`'s output |
     | a Final integration claim that read `taken`, on a run that is not a resume | `claim-taken` | `final-claim.sh`'s output |
     | a Final integration that stopped, a resume that stopped again, or a resume on a claim nobody yielded | `final-stopped` | `ticket=<the /do argument the run was started with, as typed>` |
     | a `pr` run whose watch read green | `pr-green` | `pr=<n>`, `pushed=yes\|no`, and `head=<head>` when it pushed |

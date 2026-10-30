@@ -61,8 +61,7 @@ bug-fix:
 ## Steps
 
 **0. Read back, name the surface, show.** Before any edit, step 0 records its lines for the Run report's
-Run section, in the order the Run section fixes. The Run report carries them under `--auto`;
-the session may also write them as it goes, and nothing depends on that:
+Run section, in the order the Run section fixes. The Run report carries them under `--auto`:
 
 - `Playbook: bug-fix`, which also opens the message.
 - The bug read back in one line: what happened, where, and the error or the wrong output.
@@ -284,7 +283,7 @@ The return is recorded for the Run report's Run section, one line per part, and 
 `route=` line of `review-route.sh`, as the review in [mechanics.md](mechanics.md) says, with the
 request that started the run as `rerun=`. Read [not-landed.md](not-landed.md) when the `route=`
 line reads anything but `route=verify`. A `do-code-review` the session does not list is handled
-the way the `ticket` Playbook handles it.
+as `### When the review cannot be called` of [mechanics.md](mechanics.md) says.
 
 Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as blocked
 with the review's reason quoted and the worktree and its branch named, or the step reads

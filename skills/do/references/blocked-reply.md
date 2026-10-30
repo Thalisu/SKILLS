@@ -16,7 +16,7 @@ A run that ends early writes, in this order:
 2. The refusal or the blocker with its reason, and the `Yours:` line beside it.
 3. The Playbook or the door the request goes to, with the command to type.
 
-Its Next step is `next-step.sh`'s stdout, copied whole, as item 10 of [Sections](reply.md#sections) pipes
+Its Next step is `next-step.sh`'s stdout, copied whole, as item 3 of [Sections](reply.md#sections) pipes
 it, on the `outcome=` each stop below names. Never compose it yourself.
 
 A first run of a Spec the `ticket` door refused on a protected branch (`verdict=refused`) is one of
@@ -168,7 +168,7 @@ Three writes outside the repository have a fixed place:
 
 Replies as a run writes them. They show the shape, never which lines a Playbook carries: that is
 the matched Playbook's steps'. The first is a `ticket` run under `--auto` stopped after work
-exists, whose Run report is the one under `## Whole replies` of [reply.md](reply.md). The others
+exists, whose Run report is the one under `## Example` of `run-report.md`. The others
 are `ticket` runs refused at the door before any edit.
 
 <example>

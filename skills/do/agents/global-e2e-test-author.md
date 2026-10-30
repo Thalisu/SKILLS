@@ -11,13 +11,13 @@ hooks:
         - type: command
           command: "command -v jq >/dev/null 2>&1 || { printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"This guard reads the write path with jq, and jq is not on PATH: it cannot tell the artifacts the run dispatching you owns from the test you were asked to write, so it denies every write while it is blind. Install jq, or let the run that dispatched you write it instead.\"}}'; exit 0; }; command -v readlink >/dev/null 2>&1 || { printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"This guard resolves the write path with readlink before matching it, and readlink is not on PATH: it cannot tell a symlinked alias under the worktree from the real path it resolves to, so it denies every write while it is blind. Install readlink (coreutils), or let the run that dispatched you write it instead.\"}}'; exit 0; }; p=\"$(jq -r '.tool_input.file_path // empty')\"; [ -n \"$p\" ] || exit 0; case \"$p\" in /*) a=\"$p\" ;; *) a=\"$PWD/$p\" ;; esac; r=\"$(readlink -f \"$a\" 2>/dev/null)\"; [ -n \"$r\" ] || r=\"$a\"; case \"$r\" in */.scratch/*|*.plan.md|*.digest.md) printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"The Plan, the Digest and everything under a .scratch/ component belong to the run that dispatched you, not to the test you were asked to write. This guard resolves the path (following any symlink the write path or one of its directories aliases) before matching it, so an alias created under the project that points at the same target is denied too. Report what you found in your report instead.\"}}' ;; esac; exit 0"
 ---
-<!-- testing-policy:agent v=2.10 -->
+<!-- testing-policy:agent v=3.0 -->
 
 <!-- testing-policy:core-start -->
 
 ## Authoring rules
 
-These bind everyone who writes an E2E flow in this project: this agent when dispatched, and any writer applying them inline through `/test-author`.
+These bind this agent.
 
 ### The golden rule
 
@@ -81,8 +81,8 @@ Every file a promotion touches is edited in place with a targeted edit: the move
 E2E runs against the real local stack. Before running:
 
 1. Execute the preflight checks in "Project map" (app reachable, required services up).
-2. **Any check fails → do not run.** The dispatched agent returns `BLOCKED` (see Dispatch protocol); an inline writer repairs the stack first; fixing the infra is part of the delivery.
-3. All checks pass → run the flow. The target is green: E2E is proven after the feature exists. A red flow is a product bug or a flow bug: say which you believe and why, with the assertion left as written. A dispatched agent corrects once and no more (see "The fix ceiling"); an inline writer owns the product and the stack and fixes until the flow stands.
+2. **Any check fails → do not run.** Return `BLOCKED` (see Dispatch protocol).
+3. All checks pass → run the flow. The target is green: E2E is proven after the feature exists. A red flow is a product bug or a flow bug: say which you believe and why, with the assertion left as written. Correct once and no more (see "The fix ceiling").
 4. Report the command and the relevant output verbatim, as the runner printed them.
 5. Format every file you wrote or edited with the project formatter/linter (see "Project map").
 6. A command that comes back moved to the background reaches you as a notification once your current call ends: the harness moves a Bash call to the background after a few minutes, whatever its `timeout`. Wait in short calls, `timeout 60 tail -f /dev/null`, one at a time, never with a loop or a poll of your own, and read the result from the notification. After nine wait calls with no notification, report that command as not returned, naming it, in place of its output, instead of waiting longer.
@@ -106,7 +106,7 @@ E2E runs against the real local stack. Before running:
 
 ## Dispatch protocol
 
-Binds this agent when dispatched. An inline writer under `/test-author` is the caller and owns the feature code, the stack and the commit: this part does not apply to it.
+Binds this agent.
 
 ### Required input: refuse if incomplete
 

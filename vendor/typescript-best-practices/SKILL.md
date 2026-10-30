@@ -1,7 +1,6 @@
 ---
 name: typescript-best-practices
-description: "TypeScript typing and API-shape rules: discriminated unions, branded primitives, constructive modeling so illegal states cannot be built, `unknown` over `any`, no `as` casts, `satisfies`, the narrowing hierarchy, honest isX type guards, `never` exhaustiveness checks, schema-based boundary parsing such as z.infer, deriving types with Pick/Omit/ReturnType, object arguments, real tests over mocks, and structured logging over console.log. Use when the user is doing coding work in a TypeScript repository: writing, editing, refactoring or reviewing .ts or .tsx code, designing a type or module API, or planning a change that will land in TypeScript files. Also use for /typescript-best-practices. Do not use for non-coding work in a TypeScript repo, such as writing a README, docs or release notes."
-paths: ["**/*.ts", "**/*.tsx"]
+description: "TypeScript typing and API-shape rules. Use when the user is doing coding work in a TypeScript repository: writing, editing, refactoring or reviewing .ts or .tsx code, designing a type or module API, or planning a change that will land in TypeScript files. Also use for /typescript-best-practices. Do not use for non-coding work in a TypeScript repo, such as writing a README, docs or release notes."
 ---
 
 # TypeScript best practices

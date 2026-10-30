@@ -24,7 +24,7 @@ named on the report's `assumed:` line.
 |---|---|
 | the question, one line | take it from the prompt's wording; a prompt that names no question has nothing to answer: report `PROTOTYPE none` with the reason and stop |
 | the shape, `ui` or `logic` | "what should this look like" is `ui`; "does this model, state or flow hold up" is `logic`; neutral wording takes `ui` when a page or component is nearby and `logic` when a module or reducer is |
-| where it lives: the page, route or module | find the nearest one with `rg` and targeted reads; a surface with no home gets a throwaway route (`ui`) or a file beside the closest module (`logic`) |
+| where it lives: the page, route or module | find the nearest one with `rg` and targeted reads; a surface with no home gets a throwaway route (`ui`); a `logic` prototype takes the closest module as its subject |
 | what it has: the data a screen renders, the actions a model takes | read them off the code it lives next to; invent only the minimum that makes the question askable |
 | constraints already decided: terms, choices, things that must stay | none |
 

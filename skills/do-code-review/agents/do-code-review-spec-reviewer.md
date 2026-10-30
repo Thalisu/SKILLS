@@ -183,7 +183,7 @@ Refuted by: <what refuted it>
 
 ## Axes
 
-- Spec: <n> findings, worst #<n> (<Bucket>) | no spec; Loss ledger: <n> drops read | none | did not open
+- Spec: <n> findings, worst #<n> (<Bucket>) | no spec[; Loss ledger: <n> drops read | did not open]
 
 Safe because: <the one fact>. Rung <n>.
 ```

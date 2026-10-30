@@ -75,8 +75,7 @@ Sketch lines; in
 8. **Protected-branch warning.** When it applies: the branch, the rule, and that the landing is
    refused on it.
 9. **Checklist.** The matched Playbook's checklist, verbatim, every step the run reached ticked
-   `done:` or reading `skip: <reason>`, and a step it never reached left as it was copied. It is
-   never required as text before the first edit.
+   `done:` or reading `skip: <reason>`, and a step it never reached left as it was copied.
 10. **Plan line.** In `ticket`, the Plan's location and every fallback the Planner's return
     named: a Map built from search output because `how` was not listed, one `rg -n -w` per
     candidate in place of the discover batch, or a shape the fork stated itself. The grounding
@@ -278,7 +277,7 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
 ## Example
 
 The Run report a `ticket` run under `--auto` wrote at its `Report:` location, the run whose
-blocked Reply [reply.md](reply.md) shows under its Whole replies, shortened to one line where a
+blocked Reply `blocked-reply.md` shows first under its Whole replies, shortened to one line where a
 section holds several.
 
 <example>
@@ -290,8 +289,8 @@ section holds several.
 Loop: policy
 Claimed: .scratch/20260101-notes/issues/03-share-notes.md
 
-ticket:
-1. door: done: verdict=build
+Do:
+- [x] 0. done: verdict=start
 ...
 
 Plan: .scratch/20260101-notes/issues/03-share-notes.plan.md
@@ -322,7 +321,7 @@ none
 ## Rulings
 
 On the Spec: none
-On the run: yes: run npx playwright test (the full suite) or no: record each flow that needed it as not run: no: record each flow that needed it as not run. Norm: no norm: the side easiest to undo.
+On the run: none
 
 ## Skipped
 

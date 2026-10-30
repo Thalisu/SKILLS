@@ -13,20 +13,20 @@ their script, which runs them from the main checkout whichever tree it is called
 other command after a bare `cd` to it and a bare `cd` back to the worktree; the worktree stays, for
 the fix of a red flow.
 
-1. The affected flows are the flow the E2E step authored or extended and every existing flow over
+1. The affected flows are the flow the build authored or extended and every existing flow over
    a screen, a route or a message the diff changed. They run from one script, with the single-flow
    command from the project's facts and one `--infra` pattern per known infra failure they name:
    `bash <skill-dir>/scripts/flows.sh [--infra <pattern>]... <single-flow command> <flow>...`,
    its `command=` line printed first. Each flow prints in the gate's shape, keyed by the flow: one
    `<flow>=green` line, or its red or blocked line with its capped block and the file holding its
-   full output. A change the E2E step called internal, with no user-observable surface, has no
+   full output. A change with no user-observable surface has no
    affected flow: the step reads `skip: no affected flow` with that reason.
 2. A full suite or a remote run waits for the developer's yes, the command line shown first.
    The script asks nothing: this is the only question asked on this path, and the session puts it.
    A no records each flow that needed it as not run, leaves the criterion it would have proven
    unticked, and records the waiver under the Reply's Pending debt; the close still happens.
    Under `--auto` the question is not put to the developer: it
-   is a run question the `choice-taker` rules, per the Playbook's own Forks section outside the
+   is a run question the `choice-taker` rules, per the Playbook's own `--auto` reference outside the
    `ticket` Playbook. Read [run-questions.md](run-questions.md) when a `ticket` run under `--auto`
    meets it. Its `Options:` are
    `yes: run <the command line>` and `no: record each flow that needed it as not run`, its

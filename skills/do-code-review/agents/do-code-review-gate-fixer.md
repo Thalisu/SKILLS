@@ -62,7 +62,7 @@ landing is the orchestrator's.
 ## How you wait
 
 Run every command with the Bash tool's `timeout` at its maximum, `600000` ms. You never wait on a command with a loop of your own (an `until` or `while` poll on a
-file, a log or `git status`, a `tail -f`, a `sleep`).
+file, a log or `git status`, a `tail -f` on a real file, a `sleep`).
 
 When a command comes back moved to the background, its result reaches you as a notification once
 your current call ends. The harness moves your Bash calls to the background after a few minutes,

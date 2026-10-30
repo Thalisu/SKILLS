@@ -14,8 +14,8 @@ A case no step names is judged by which of these three errors it risks:
   a shim, a speculative cleanup or the run's own scaffold left behind in the tree.
 
 The shared parts are in [mechanics.md](mechanics.md), linked from the steps that use them: the
-worktree, the protected branch, the gate, the integration, the review, the verification and the
-close. Read [conflict-loop.md](conflict-loop.md) when the integration stops, for the conflict loop
+worktree, the protected branch, the gate, the integration, the review and the close. Read
+[verification.md](verification.md) when a step runs the verification. Read [conflict-loop.md](conflict-loop.md) when the integration stops, for the conflict loop
 every stop runs. Read [build-loop.md](build-loop.md) when a step builds, for the loop and its test authors. The reply is written by [reply.md](reply.md):
 five parts, and every line a step records for the Run report reaches a file under `--auto` alone.
 
@@ -281,7 +281,7 @@ Inside this bound the harness runs unasked, as often as steps 3, 5, 6 and 7 call
 
 A behaviour that cannot be driven inside that bound (a mailer, a payments client, a migration
 runner, anything that reads a credential to do its work) is not driven anyway. The run shows the
-harness's command line first and waits for the same yes [mechanics.md](mechanics.md) requires
+harness's command line first and waits for the same yes the verification step requires
 before a remote run. A no
 leaves this part reading `skip: the behaviour cannot be driven inside the harness's bound`, and the
 gap the harness would have covered is named as debt in the reply the same way step 9 names one.
@@ -515,7 +515,7 @@ reverted on that return. Read [refactoring-auto.md](refactoring-auto.md) when th
 `--auto` and the exit test failed.
 
 Step 3's yes for a harness that cannot stay inside its bound and step 13's question before a full
-suite or a remote run are the yeses [mechanics.md](mechanics.md) reserves to the developer. Both
+suite or a remote run are the yeses the shared references reserve to the developer. Both
 are asked whenever the run reaches them, and under `--auto` the `choice-taker` rules both.
 
 Done when the answer and its reason are recorded for the Run report's Run section, with the developer's

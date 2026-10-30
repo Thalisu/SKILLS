@@ -1,6 +1,6 @@
 ---
 name: architect
-description: "Design the shape before code: sketch the caller's usage first, then the types, function signatures and module boundaries with `not implemented` bodies, explore rival candidates in parallel, synthesize one design package with rationale, then implement against it and redesign if it proves wrong. Use when the user asks for /architect, \"architect this\", \"design this\", or is about to write code that crosses a function boundary and wants the caller's usage, types, signatures or module shape settled first: new modules, services, APIs or components, work that adds or reshapes functions and types other code will call, refactors that move ownership, or any implementation where jumping straight to code would lock in the wrong shape. Not for a one-line local edit that crosses no boundary, and not for read-only questions: mechanism belongs to how, rationale to why, and wanting to genuinely understand a change to teach."
+description: "Design the shape before code: the caller's usage, types, signatures and module boundaries, compared across rival candidates, then implemented against. Use for /architect, or before writing code that crosses a function boundary: new modules, APIs or components, changes to what other code calls, or refactors that move ownership. Not for a one-line local edit that crosses no boundary, and not for read-only questions: mechanism belongs to how, rationale to why, and wanting to genuinely understand a change to teach."
 ---
 
 # Architect
@@ -27,9 +27,9 @@ Skip Phase A only when the work is genuinely greenfield with no surrounding syst
 
 ## Phase B: Sketch
 
-Spawn one subagent per configured architect runner, all in a single message, each with the design-sketch task, the Phase A grounding artifacts, an isolated working directory and the path to write its output. Pass `references/runner-prompt.md` as each runner's prompt. Each candidate produces a design package shaped per `references/rationale-template.md`: the caller's usage written first, then the type sketch, function signatures, module map, and prose rationale derived from it.
+Spawn one subagent per architect runner, all in a single message, each with the design-sketch task, the Phase A grounding artifacts, an isolated working directory and the path to write its output. Pass `references/runner-prompt.md` and `references/rationale-template.md` as each runner's prompt. Each candidate produces a design package shaped per `references/rationale-template.md`: the caller's usage written first, then the type sketch, function signatures, module map, and prose rationale derived from it.
 
-Use your configured architect runners (defaults `opus`, `sonnet`).
+The runners are `opus` and `sonnet`.
 
 Design it twice. Require at least two structurally distinct candidates before synthesis, even when the first looks sufficient. This is the **exhaust-the-design-space** principle made concrete. Whole-shape alternatives, not point fixes inside one shape.
 

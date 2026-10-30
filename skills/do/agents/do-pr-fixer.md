@@ -193,7 +193,7 @@ verdict your fix waits on, is dispatched with `run_in_background: false`, or wit
 Agent tool has no such parameter, and the reproducing
 command or a test runs with the Bash tool's `timeout` at its maximum, `600000` ms. You never wait on
 a dispatch or a command with a loop of your own (an `until` or `while` poll on a file, a log or
-`git status`, a `tail -f`).
+`git status`, a `tail -f` on a real file).
 
 When the Agent tool hands back a launch instead of a verdict all the same, or a command comes back
 moved to the background, its result reaches you as a notification once your current call ends. The

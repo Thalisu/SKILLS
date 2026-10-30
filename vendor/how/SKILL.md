@@ -1,6 +1,6 @@
 ---
 name: how
-description: "Explains how a subsystem works: explores the codebase and produces a senior-engineer walkthrough of its architecture, runtime flow, key concepts, where things live and gotchas, and can also critique the architecture on request. Use when the user asks \"how does X work\", wants a walkthrough or a trace of a subsystem or feature flow, needs a working mental model before changing code, asks a placement / ownership / layering question (\"where should this live\", \"which package owns this\", \"is this the right layer\"), or types /how. Use why instead for motivation and rationale (why it was built this way, why this tradeoff, why this threshold). Use teach instead when the user wants to genuinely understand a change or subsystem rather than be handed a walkthrough."
+description: "Explains how a subsystem works as a senior-engineer walkthrough, and critiques its architecture on request. Use when the user asks how something works, wants a flow traced, needs a working mental model before changing code, asks where code should live or which layer owns it, or types /how. Use why instead for motivation and rationale. Use teach instead when the user wants to genuinely understand a change or subsystem rather than be handed a walkthrough."
 ---
 
 # How
@@ -45,7 +45,7 @@ The right decomposition depends on the question. Use your judgment. Narrow quest
 Spawn all explorers in a single message:
 
 - `subagent_type`: `general-purpose`
-- `model`: your configured how-explorer model (default `sonnet`)
+- `model`: `sonnet`
 - posture: read-only. The subagent explores and reports; it must not edit files.
 
 Each explorer gets the same base prompt from `references/explorer-prompt.md` plus a specific exploration angle naming its slice. Each explorer should:
@@ -109,11 +109,11 @@ Run the full explain flow above (Steps 1-4). You must understand the architectur
 
 ### Step 2. Spawn Critics
 
-After the explanation is complete, spawn one architectural critic per model in your configured how-critics list (defaults `opus`, `sonnet`), all in a single message.
+After the explanation is complete, spawn one architectural critic per model, `opus` and `sonnet`, all in a single message.
 
 For each critic:
 - `subagent_type`: `general-purpose`
-- `model`: one model from the configured how-critics list. These are minimum reasoning levels. The lead should escalate any model when the architecture warrants deeper analysis.
+- `model`: one of the critics' models, `opus` or `sonnet`.
 - posture: read-only. The subagent explores and reports; it must not edit files.
 
 Read `references/critic-prompt.md` for the prompt template. Each critic gets:

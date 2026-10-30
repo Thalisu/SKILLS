@@ -15,11 +15,12 @@ Three lines directly under the title, before the first section:
   line: who builds the feature's front-end. `none` when no User Story has a screen, read off the
   stories by `spec`; `builder`, the chain's own Builder, or `impeccable`, the developer's answer
   when a story has one. The line has these three values and no other. A Spec with no `Front-end:`
-  line reads as `none`: it was written before the line existed, and it goes down the chain as it
-  did then.
+  line reads as `none`.
 - `Status: ready-for-agent`, in local mode, where the tracker file records triage state as a
   `Status:` line. In a remote tracker the label is applied instead, when the project's triage
-  vocabulary exists; otherwise the line is omitted.
+  vocabulary exists; otherwise the line is omitted. It is the first word of the Spec status walk:
+  `spec` writes it on a first run, a rerun keeps the word it finds, and `do` and the `pr` Playbook
+  write the later ones.
 
 ## Template
 

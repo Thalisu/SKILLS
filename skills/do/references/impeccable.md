@@ -217,7 +217,7 @@ moment: never inside a criterion, after a flow's commit or after the scan. On `s
 returns `stopped` in the Builder's shape, its `stopped:` line naming the spent time budget in the
 Builder's own words and saying that nothing is uncommitted. Where a Builder's `stop` after its last
 behaviour can already be `built`, this fork's never is: it returns `stopped`, and the next Stretch finds a commit beside every criterion and goes on
-to them.
+to the flows.
 
 On `built`, one `flow:` line per criterion follows the pairs, in the shape [builder.md](builder.md)
 fixes: the commit that carries the flow, or the reason no flow was written. The flows are the

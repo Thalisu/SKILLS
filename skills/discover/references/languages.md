@@ -53,7 +53,7 @@ attributed to its item. `has`/`inside` match direct children/parents only unless
 | | | `property_declaration` | `field: name` | `swift/Svc.swift:6` (27) |
 | | | `class_declaration` (also `struct`) | `field: name` | `swift/Svc.swift:5` (24), `swift/Svc.swift:1` struct (17) |
 | `c` | `.c .h` | `function_definition` | `has: {kind: function_declarator, has: {field: declarator, …}}` | `c/svc.c:3` (15), `c/svc.h:6` inline (29) |
-| `cpp` | `.cc .cpp .cxx .hpp .hh` | `function_definition` | same nesting, regex `(^\|::)(names)$` for `Svc::fetchUser` | `cpp/svc.cpp:10` (23), `cpp/svc.hpp:3` (30) |
+| `cpp` | `.cc .cpp .cxx .hpp .hh` | `function_definition` | same nesting, regex `(^\|[.:])(names)$` for `Svc::fetchUser` | `cpp/svc.cpp:10` (23), `cpp/svc.hpp:3` (30) |
 | `csharp` | `.cs` | `method_declaration` | `field: name` | `cs/Svc.cs:7` (22) |
 | | | `property_declaration` | `field: name` | `cs/Svc.cs:5` (28) |
 | | | `class_declaration` | `field: name` | `cs/Svc.cs:3` (24) |
