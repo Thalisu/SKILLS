@@ -44,3 +44,5 @@ the review refuses the landing on a protected branch whatever the run wrote, so 
 developer never read cannot let the work land where the rule forbids it. The review asks nobody
 anything on its landing paths, since it is a fork with nobody to ask, so a hunk a person must judge
 comes back to the run in its return.
+
+Superseded by ADR 0116: a Green Review lands by opening a Landing pull request, with no fast-forward fallback.

@@ -60,3 +60,5 @@ writing in it. A refusal at the Plan step leaves the Ticket at the status the do
 `do/<slug>` branch anywhere, so a grounding the run will not build on costs the developer a rerun
 and nothing to undo by hand, and the diagnosis branch keeps that promise by undoing the worktree it
 cut.
+
+Amended by ADR 0117: opening a Landing pull request is a second authorised exception to the `outward` class.

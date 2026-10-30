@@ -42,3 +42,5 @@ with its check named), works in a worktree, and lands by fast-forward with nothi
 [ADR 0033](0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md)
 supersedes the call per red E2E flow: `do` calls the review once per run, and the fix of a red flow
 lands through `fix` on the same Review, the Gate and the landing with no reviewer.
+
+Amended by ADR 0116: the default run fixes and then opens a Landing pull request in place of the fast-forward.

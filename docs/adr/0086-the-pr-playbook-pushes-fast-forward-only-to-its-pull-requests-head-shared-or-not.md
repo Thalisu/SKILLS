@@ -19,3 +19,5 @@ still refuses a fast-forward stops the run, so git's own refusal is what seriali
 Amended: ADR 0102 widens what the push carries. A fixer whose own compose brought the job's stack up
 healthy leaves it as a `chore(e2e)` commit ahead of its fix commit, and the push carries both by
 fast-forward, compose first; the fast-forward rule above is unchanged.
+
+Amended by ADR 0117: a landing run is the second exception, pushing only the branch it reviewed.

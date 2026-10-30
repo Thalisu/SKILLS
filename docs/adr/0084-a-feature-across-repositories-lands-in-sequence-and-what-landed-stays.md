@@ -34,3 +34,5 @@ leaves landed live here. What landed before the stop stays landed, with no ref m
 reverted and nothing removed, since it was reviewed and is already the developer's to push. The run
 reads the landing record once more after the yield so that a partial landing is never silent. A
 repository whose Final integration never started has nothing stopped in it.
+
+Amended by ADR 0118: a repository is landed once its Landing pull request is open, and the landing order becomes the merge order the consumer's Reply names.

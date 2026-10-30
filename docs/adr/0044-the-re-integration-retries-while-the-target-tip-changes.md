@@ -31,3 +31,5 @@ again commits the developer removed, which cannot be undone once landed, and the
 with no second review, so the question names every one of them. Under `--auto` that question is
 still asked, since an abort drops work and a continue lands again what cannot be undone, so neither
 is taken on a Ruling.
+
+Amended by ADR 0120: the re-integration covers a target that moved before the push; after the Landing pull request opens, a conflict is resolved by merge into its head.

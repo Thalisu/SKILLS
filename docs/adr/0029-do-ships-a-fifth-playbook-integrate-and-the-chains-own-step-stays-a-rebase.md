@@ -23,3 +23,5 @@ A stop the developer reached may hold resolutions of their own, which the loop w
 overwrite as if git had left them, so the door's `in_progress=` other than `none` ends the run in
 one message naming the operation with its `continue=` and `abort=` commands, nothing integrated.
 The Playbook runs the loop only over an operation it started itself.
+
+Amended by ADR 0120: on a Landing pull request that opens `CONFLICTING`, the run merges the target into the head itself, so the push stays a fast-forward.

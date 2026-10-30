@@ -6,3 +6,5 @@ label. Using Jira's three status categories alone was rejected: `resolved` means
 branch (ADR 0060), and in a team where Done means in production the board would show as delivered a
 Ticket no integration has reached. A Ticket a person moved past the mapped status, still in the
 Done category, reads as resolved, so a team's extra step never blocks a blocker check.
+
+Amended by ADR 0119: a Spec's own status walk maps to named statuses the same way.

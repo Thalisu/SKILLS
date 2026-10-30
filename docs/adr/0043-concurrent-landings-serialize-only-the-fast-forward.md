@@ -25,3 +25,5 @@ Amended: per ADR 0113, the reason `mechanics.md` gave beside the landing on the 
 here. That landing holds the lock the review's landing holds, from its first read to the end of the
 ref update, so of two Tickets of one Spec landing at once exactly one passes and the other reads
 `moved` with the Spec branch untouched.
+
+Amended by ADR 0116: with the developer's branch no longer fast-forwarded, the lock serializes only the landing on a Spec branch.

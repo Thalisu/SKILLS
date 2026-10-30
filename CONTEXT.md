@@ -12,6 +12,13 @@ The decided description of one feature, synthesised from a `discuss` session: pr
 user stories, implementation and testing decisions, and what is out of scope.
 _Avoid_: brief, PRD, plan
 
+**Spec status**:
+The word on a **Spec** that says where its feature stands, a walk of its own apart from a
+**Ticket**'s: `ready-for-agent`, `in-progress`, `waiting-pr`, `done`. `done` means every
+**Landing pull request** of the **Spec** is green and mergeable, written by the `pr` **Playbook**
+run that ends green and finds every other one green too; it never means merged, since merging is the developer's, outside the chain.
+_Avoid_: Ticket status (a **Ticket** walks `ready-for-agent`, `claimed`, `resolved`), merged
+
 **Path**:
 One thing the actor sets out to do, end to end, walked in steps: arrive, see, act, the system
 answers, or it fails.
@@ -239,8 +246,9 @@ _Avoid_: gate (the **Gate** is the checks a branch passes before it lands), fina
 **Final integration**:
 What the `do` run whose **Completion check** finds every **Ticket** `resolved` does next: it claims
 the **Spec**, rebases its **Spec branch** onto the branch it was cut from, and has `do-code-review`
-review it whole and open its **Landing pull request** there. The **Spec** is landed, and done,
-once that pull request is open and mergeable; merging it is the developer's, outside the chain. A
+review it whole and open its **Landing pull request** there. The **Spec** is landed once that
+pull request is open and mergeable, and `done` once the `pr` **Playbook** ends green on it; merging
+it is the developer's, outside the chain. A
 run that stops yields its claim, and a stopped one is resumed
 by a new `do` on any **Ticket** of the **Spec**, which takes over a yielded claim only: a claim
 nobody yielded reads as a run still integrating.
