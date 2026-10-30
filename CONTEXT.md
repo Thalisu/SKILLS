@@ -223,8 +223,10 @@ _Avoid_: spec folder, slug folder, feature directory
 
 **Spec branch**:
 The branch every **Ticket** of one **Spec** lands on, cut from the developer's branch by the first
-`do` run of that **Spec** and landed back into that branch once every **Ticket** reads `resolved`.
-A `do` run lands its **Ticket** here itself.
+`do` run of that **Spec** and proposed back into that branch by its **Landing pull request** once
+every **Ticket** reads `resolved`. A `do` run lands its **Ticket** here itself, by fast-forward. Once
+that pull request is open, the local branch is deleted and lives on the remote as the pull
+request's head, and a **Spec branch** gone from the local refs reads as landed.
 _Avoid_: feature branch (a feature is the **Feature folder**'s word, not a branch), integration
 branch, epic branch
 
@@ -237,7 +239,9 @@ _Avoid_: gate (the **Gate** is the checks a branch passes before it lands), fina
 **Final integration**:
 What the `do` run whose **Completion check** finds every **Ticket** `resolved` does next: it claims
 the **Spec**, rebases its **Spec branch** onto the branch it was cut from, and has `do-code-review`
-review it whole and land it there. A run that stops yields its claim, and a stopped one is resumed
+review it whole and open its **Landing pull request** there. The **Spec** is landed, and done,
+once that pull request is open and mergeable; merging it is the developer's, outside the chain. A
+run that stops yields its claim, and a stopped one is resumed
 by a new `do` on any **Ticket** of the **Spec**, which takes over a yielded claim only: a claim
 nobody yielded reads as a run still integrating.
 _Avoid_: merge, spec review, feature landing
@@ -330,6 +334,15 @@ _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never blo
 The full set of checks a branch passes after its last edit and before it lands: the unit suite,
 the typecheck, the lint and the format check.
 _Avoid_: tests, suite (the suite is one check of the Gate), CI
+
+**Landing pull request**:
+The pull request `do-code-review` opens from the branch it reviewed into the landing target once
+the **Review** is **Green** and the **Gate** passed, after pushing that branch and no other. It is
+how a `bug-fix`, a `refactoring`, a **Ticket** with no **Spec** and a **Final integration** land
+on the developer's branch; a **Trivial** run still commits there directly, and a **Ticket** of a
+**Spec** still lands on its **Spec branch** by fast-forward.
+_Avoid_: merge, landing (alone it no longer means a fast-forward), PR (the `pr` **Playbook**'s
+word for a pull request someone else opened)
 
 **Diff tests**:
 The tests whose files the diff since the fixed point touched or added, run after the **Fixers** as
@@ -506,9 +519,9 @@ _Avoid_: model page (one link of the chain), doc set, lineage
   last attempt already met, or any other return without landing, stops the run as blocked
 - Only the fast-forward of a landing is serialized across concurrent runs, by a lock one script
   call holds; integrations, reviews and **Gates** of different runs overlap freely
-- `do-code-review` lands the branch it reviewed on the developer's branch by fast-forward when the
-  **Review** is **Green**, whoever called it; a **Review** that is not **Green** lands nothing.
-  `do` never lands
+- `do-code-review` lands the branch it reviewed by opening its **Landing pull request** into the
+  landing target when the **Review** is **Green**, whoever called it; a **Review** that is not
+  **Green** opens nothing. `do` never lands
 - A **Finding** belongs to exactly one **Axis** and sits in exactly one **Bucket**
 - Five **Axes** are put to the diff by the technical reviewer and the Security **Axis** by the
   security reviewer, whose posture is the attacker's: attack surface first, then STRIDE and OWASP.

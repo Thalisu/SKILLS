@@ -174,6 +174,63 @@ run "$wt" "$review"
 check_lines "a Finding whose header line no commit since the Review changed, though a commit changed another line of the same file, is listed with touched=none" \
   0 "$rc" "finding=1 touched=none"
 
+fresh shifted-header-line
+wt="$tmp/shifted-header-line"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+commit base
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\n# a.sh echoes its argument\n# usage: a.sh <word>\necho "$1"\n' >src/a.sh
+commit "docs: a.sh states its usage"
+inserted="$(git rev-parse HEAD)"
+printf '#!/usr/bin/env bash\nset -u\n# a.sh echoes its argument\n# usage: a.sh <word>\necho "${1:-}"\n' >src/a.sh
+commit "fix: a.sh reads a missing argument as empty"
+fixed="$(git rev-parse HEAD)"
+
+review="$tmp/17-a.review.md"
+review_at "$reviewed" "$review"
+run "$wt" "$review"
+check_lines "a Finding whose header line a commit since the Review changed, after an earlier commit inserted lines above it, is listed with that later commit" \
+  0 "$rc" "finding=1 touched=$fixed"
+check_absent "a Finding whose header line a commit since the Review changed is never listed with the commit that only inserted lines above it" \
+  0 "$rc" "touched=$inserted"
+
+fresh named-in-message
+wt="$tmp/named-in-message"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+printf '#!/usr/bin/env bash\nset -u\nbash src/a.sh "$1"\n' >src/b.sh
+commit base
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\nbash src/a.sh "${1:-}"\n' >src/b.sh
+commit "fix: b.sh passes a missing argument on as empty
+
+Finding 2: a call with no argument exits 0."
+named="$(git rev-parse HEAD)"
+printf '#!/usr/bin/env bash\nset -u\nbash src/a.sh "${1:-}" || exit 2\n' >src/b.sh
+commit "fix: b.sh exits 2 when a.sh fails
+
+Finding 12: a failing a.sh call exits 2."
+
+act_on="### 1. Correctness at src/a.sh:3
+Claim: a call with no argument exits on an unbound variable.
+Evidence: \`bash src/a.sh\` exits 1 with \`\$1: unbound variable\`.
+Rung: 4
+Fix: a call with no argument prints an empty line and exits 0, in tests/a.test.sh
+
+### 2. Spec at \"the argument handling\"
+Claim: a call with no argument exits on an unbound variable.
+Evidence: \`bash src/b.sh\` exits 1.
+Rung: 4
+Fix: a call with no argument exits 0"
+review="$tmp/18-a.review.md"
+review_at "$reviewed" "$review" "$act_on"
+run "$wt" "$review"
+check_lines "a Finding whose header line no commit since the Review changed is listed with the latest commit since the Review whose message names it" \
+  0 "$rc" "finding=2 touched=$named"
+check_lines "a commit naming a Finding whose number starts with another Finding's digits is no touch of that other Finding" \
+  0 "$rc" "finding=1 touched=none"
+
 fresh fix-target-only
 wt="$tmp/fix-target-only"
 mkdir -p src tests

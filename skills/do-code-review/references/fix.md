@@ -121,8 +121,10 @@ developer's own checkout, which the door has just found clean. It prints one
 `finding=<n> touched=<sha>|none` line per `Act on` Finding whose latest line is not `fixed <sha>,
 verified`, by the
 rule above, the sha being the latest commit since the Review's `Commit:` that changed the Finding's
-header line or line range, as `git log -L` tracks it: a commit that only touched some other line of
-the same file is no touch. A rebase since the review moves the Review's `Commit:` off the branch,
+header line or line range, as `git log -L` tracks it from where that range sits at HEAD, or whose
+message names the Finding as `Finding <n>`, per
+[ADR 0115](../../../docs/adr/0115-a-commit-that-names-a-finding-touches-it.md): a commit that
+only touched some other line of the same file, and names no such Finding, is no touch. A rebase since the review moves the Review's `Commit:` off the branch,
 and the script still reads it as a rebase while the Review's `Fixed point:` is on the branch, or was
 dropped by the rebase because the target already held its patch: the range then starts at the
 target's copy of that patch, and replays of the commits the Review read are no touch. What each

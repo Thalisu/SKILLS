@@ -8,12 +8,12 @@
 #
 # Prints one line per unsettled Act on Finding, in the Review's order:
 #   finding=<n> touched=<sha>|none
-# <sha> is the full hash of the latest commit in <the Review's Commit:>..HEAD that changed the line
-# or line range of the Finding's header location (fix-waves.sh's finding_files, header only, never
-# its Fix target: the target is what the fix call re-checks, not what counts as touched), as `git
-# log -L` tracks it: a commit that touched the header's file without changing that line or range is
-# no touch. None when no commit did, `git log -L` cannot follow the range, or the header names no
-# file. After a `Commit: <sha>, dirty` Review the range starts one commit later: the door refuses a
+# <sha> is the full hash of the latest commit in <the Review's Commit:>..HEAD that either changed the
+# line or line range of the Finding's header location (fix-waves.sh's finding_files, header only,
+# never its Fix target: the target is what the fix call re-checks, not what counts as touched), as
+# `git log -L` tracks it from where that range sits at HEAD, or whose message names the Finding as
+# `Finding <n>`. A commit that touched the header's file without changing that line or range, and
+# names no such Finding, is no touch. None when no commit did. ADR 0115. After a `Commit: <sha>, dirty` Review the range starts one commit later: the door refuses a
 # fix call on a dirty tree, so the first commit on top of <sha> is the developer committing the tree
 # the Review already judged, and it is no touch made after the Review.
 #
@@ -77,6 +77,48 @@ header_line_range() {
   fi
 }
 
+# range_at_head <worktree> <sha> <path> <start> <end>
+# Prints "<start> <end>" for lines <start>-<end> of <path> at <sha> moved to where they sit at HEAD,
+# by the hunks of `git diff <sha> HEAD`: `git log -L` reads a range against the revision it ends
+# at, never against <sha>. An edge inside a changed hunk moves to that hunk's edge at HEAD, and the
+# range is clamped to the file's length at HEAD. Nothing when <path> is empty or gone at HEAD.
+range_at_head() {
+  local wt="$1" sha="$2" path="$3" start="$4" end="$5" length
+  length="$(git -C "$wt" show "HEAD:$path" 2>/dev/null | wc -l)"
+  [ "$length" -gt 0 ] || return 0
+  git -C "$wt" diff -U0 --no-color "$sha" HEAD -- "$path" 2>/dev/null |
+    awk -v s="$start" -v e="$end" -v len="$length" '
+      function moved(l, edge,   i, oend, nend) {
+        shift = 0
+        for (i = 1; i <= n; i++) {
+          if (oc[i] == 0) {
+            if (l > os[i]) { shift += nc[i]; continue }
+            break
+          }
+          if (l < os[i]) break
+          oend = os[i] + oc[i] - 1
+          if (l > oend) { shift += nc[i] - oc[i]; continue }
+          nend = nc[i] > 0 ? ns[i] + nc[i] - 1 : ns[i]
+          return edge == "start" ? (nc[i] > 0 ? ns[i] : ns[i] + 1) : nend
+        }
+        return l + shift
+      }
+      /^@@ / {
+        split($2, o, ","); split($3, w, ",")
+        n++
+        os[n] = substr(o[1], 2) + 0; oc[n] = (2 in o) ? o[2] + 0 : 1
+        ns[n] = substr(w[1], 2) + 0; nc[n] = (2 in w) ? w[2] + 0 : 1
+      }
+      END {
+        a = moved(s, "start"); b = moved(e, "end")
+        if (a < 1) a = 1
+        if (a > len) a = len
+        if (b > len) b = len
+        if (b < a) b = a
+        print a, b
+      }'
+}
+
 # latest_touch <worktree> <since sha> <path> <start> <end>
 # Prints the latest commit in <since>..HEAD that changed lines <start>-<end> of <path>, as `git log
 # -L` tracks them; nothing when none did, or the range does not resolve at <since> or HEAD.
@@ -104,28 +146,55 @@ patch_copy() {
     awk -v id="$id" '$1 == id { print $2; exit }'
 }
 
-# latest_touch_since_rebase <worktree> <fixed point sha> <since sha> <base sha> <path> <start> <end>
-# Prints the latest commit in <base>..HEAD that changed lines <start>-<end> of <path>, as `git log
-# -L` tracks them, skipping a commit whose author date and subject match one in
-# <fixed point>..<since>: a rebase replays those commits unchanged, and the Review already read
-# them. Nothing when none remain.
-latest_touch_since_rebase() {
-  local wt="$1" fixed_point="$2" since="$3" base="$4" path="$5" start="$6" end="$7" seen sig sha
-  seen="$(reviewed_signatures "$wt" "$fixed_point" "$since")"
+# first_unreplayed <worktree> <fixed point sha> <since sha>
+# Reads commit hashes on stdin, newest first, and prints the first whose author date and subject
+# match no commit in <fixed point>..<since>: a rebase replays those commits unchanged, and the
+# Review already read them. Nothing when none remain.
+first_unreplayed() {
+  local wt="$1" seen sig sha
+  seen="$(reviewed_signatures "$wt" "$2" "$3")"
   while IFS= read -r sha; do
     [ -n "$sha" ] || continue
     sig="$(git -C "$wt" log -1 --format='%ad%x09%s' --date=iso-strict "$sha")"
     grep -qxF "$sig" <<<"$seen" && continue
     echo "$sha"
     return 0
-  done < <(git -C "$wt" log --format=%H -L "$start,$end:$path" "$base..HEAD" 2>/dev/null | grep -E '^[0-9a-f]{40}$')
+  done
+}
+
+# latest_touch_since_rebase <worktree> <fixed point sha> <since sha> <base sha> <path> <start> <end>
+# Prints the latest commit in <base>..HEAD that changed lines <start>-<end> of <path>, as `git log
+# -L` tracks them, skipping a replay of a commit in <fixed point>..<since>. Nothing when none remain.
+latest_touch_since_rebase() {
+  local wt="$1" fixed_point="$2" since="$3" base="$4" path="$5" start="$6" end="$7"
+  git -C "$wt" log --format=%H -L "$start,$end:$path" "$base..HEAD" 2>/dev/null |
+    grep -E '^[0-9a-f]{40}$' | first_unreplayed "$wt" "$fixed_point" "$since"
+}
+
+# named_commits <worktree> <from sha> <finding number>
+# Prints, newest first, every commit in <from>..HEAD whose message names the Finding as
+# `Finding <n>`, never as the prefix of a longer number (`Finding 12` is no `Finding 1`).
+named_commits() {
+  git -C "$1" log --format=%H -E --grep="(^|[^[:alnum:]])Finding $3([^0-9]|$)" "$2..HEAD" 2>/dev/null
+}
+
+# later_of <worktree> <sha> <sha>
+# Prints the later of two commits on HEAD's history, or the one given when the other is empty.
+later_of() {
+  if [ -z "$2" ] || [ -z "$3" ]; then
+    echo "${2:-$3}"
+  elif git -C "$1" merge-base --is-ancestor "$2" "$3" 2>/dev/null; then
+    echo "$3"
+  else
+    echo "$2"
+  fi
 }
 
 main() {
   [ "$#" -eq 2 ] || usage
   [ -d "$1" ] && [ -f "$2" ] && [ -r "$2" ] || usage
   local wt="$1" review="$2" since fixed_point base="" records latest n loc target sha
-  local listed=0 off_branch=0 rebased=0 range start end
+  local listed=0 off_branch=0 rebased=0 range start end named
   local -a files
   since="$(review_commit "$review")"
   if [ -z "$since" ]; then
@@ -159,12 +228,24 @@ main() {
     sha=""
     if [ "$off_branch" = 0 ] && [ "${#files[@]}" -gt 0 ] && [ -n "$range" ]; then
       read -r start end <<<"$range"
-      if [ "$rebased" = 1 ]; then
+      read -r start end <<<"$(range_at_head "$wt" "$since" "${files[0]}" "$start" "$end")"
+      if [ -z "$start" ]; then
+        :
+      elif [ "$rebased" = 1 ]; then
         sha="$(latest_touch_since_rebase "$wt" "$fixed_point" "$since" "$base" "${files[0]}" "$start" "$end")"
       else
         sha="$(latest_touch "$wt" "$since" "${files[0]}" "$start" "$end")"
       fi
     fi
+    named=""
+    if [ "$off_branch" = 1 ]; then
+      :
+    elif [ "$rebased" = 1 ]; then
+      named="$(named_commits "$wt" "$base" "$n" | first_unreplayed "$wt" "$fixed_point" "$since")"
+    else
+      named="$(named_commits "$wt" "$since" "$n" | head -n 1)"
+    fi
+    sha="$(later_of "$wt" "$sha" "$named")"
     echo "finding=$n touched=${sha:-none}"
     listed=1
   done <<<"$records"
